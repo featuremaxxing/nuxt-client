@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -17,15 +17,14 @@
 /**
  * 
  * @export
- * @interface SubmissionContainerElementContent
+ * @enum {string}
  */
-export interface SubmissionContainerElementContent {
-    /**
-     * The dueDate as date string or null of not set
-     * @type {string}
-     * @memberof SubmissionContainerElementContent
-     */
-    dueDate: string;
+export enum AssignmentStatus {
+    OPEN = 'open',
+    SUBMITTED = 'submitted',
+    IN_REVIEW = 'inReview',
+    RETURNED = 'returned'
 }
+
 
 

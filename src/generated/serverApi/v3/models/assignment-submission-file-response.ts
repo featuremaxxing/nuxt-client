@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -17,15 +17,21 @@
 /**
  * 
  * @export
- * @interface SubmissionContainerContentBody
+ * @interface AssignmentSubmissionFileResponse
  */
-export interface SubmissionContainerContentBody {
+export interface AssignmentSubmissionFileResponse {
     /**
-     * The point in time until when a submission can be handed in.
+     * 
      * @type {string}
-     * @memberof SubmissionContainerContentBody
+     * @memberof AssignmentSubmissionFileResponse
      */
-    dueDate?: string;
+    fileRecordId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AssignmentSubmissionFileResponse
+     */
+    name: string;
 }
 
 
