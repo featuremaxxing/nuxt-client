@@ -633,6 +633,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Коментар до роботи (необов'язково)",
 	"components.cardElement.assignmentElement.studentComment": "Коментар",
 	"components.cardElement.assignmentElement.teacherComment": "Коментар вчителя",
+	"components.cardElement.assignmentElement.feedbackHeading": "Відгук",
 	"components.cardElement.assignmentElement.status.open": "Відкрито",
 	"components.cardElement.assignmentElement.status.submitted": "Здано",
 	"components.cardElement.assignmentElement.status.inReview": "На перевірці",

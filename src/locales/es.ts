@@ -635,6 +635,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Comentario sobre la entrega (opcional)",
 	"components.cardElement.assignmentElement.studentComment": "Comentario",
 	"components.cardElement.assignmentElement.teacherComment": "Comentario del docente",
+	"components.cardElement.assignmentElement.feedbackHeading": "Retroalimentación",
 	"components.cardElement.assignmentElement.status.open": "Abierta",
 	"components.cardElement.assignmentElement.status.submitted": "Entregada",
 	"components.cardElement.assignmentElement.status.inReview": "En corrección",

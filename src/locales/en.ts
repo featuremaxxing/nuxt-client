@@ -622,6 +622,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Note on your submission (optional)",
 	"components.cardElement.assignmentElement.studentComment": "Note",
 	"components.cardElement.assignmentElement.teacherComment": "Teacher's comment",
+	"components.cardElement.assignmentElement.feedbackHeading": "Feedback",
 	"components.cardElement.assignmentElement.status.open": "Open",
 	"components.cardElement.assignmentElement.status.submitted": "Submitted",
 	"components.cardElement.assignmentElement.status.inReview": "In review",

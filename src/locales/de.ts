@@ -643,6 +643,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Anmerkung zur Abgabe (optional)",
 	"components.cardElement.assignmentElement.studentComment": "Anmerkung",
 	"components.cardElement.assignmentElement.teacherComment": "Lehrkraft-Kommentar",
+	"components.cardElement.assignmentElement.feedbackHeading": "Rückmeldung",
 	"components.cardElement.assignmentElement.status.open": "Offen",
 	"components.cardElement.assignmentElement.status.submitted": "Abgegeben",
 	"components.cardElement.assignmentElement.status.inReview": "In Korrektur",

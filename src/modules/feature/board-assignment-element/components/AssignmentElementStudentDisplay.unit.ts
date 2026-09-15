@@ -159,5 +159,9 @@ describe("AssignmentElementStudentDisplay", () => {
 		expect(feedback.exists()).toBe(true);
 		expect(feedback.text()).toContain("components.cardElement.assignmentElement.teacherComment");
 		expect(feedback.text()).toContain("Gut strukturiert!");
+
+		expect(wrapper.find("[data-testid='assignment-feedback-heading']").text()).toContain(
+			"components.cardElement.assignmentElement.feedbackHeading"
+		);
 	});
 });

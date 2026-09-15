@@ -27,6 +27,9 @@
 			</div>
 
 			<div v-if="isReturned" class="assignment-feedback" data-testid="assignment-feedback">
+				<div class="assignment-feedback-heading" data-testid="assignment-feedback-heading">
+					{{ t("components.cardElement.assignmentElement.feedbackHeading") }}
+				</div>
 				<div v-if="maxPoints !== null" class="assignment-points">
 					{{ t("components.cardElement.assignmentElement.points", { points: ownSubmission.points ?? 0, maxPoints }) }}
 				</div>
@@ -178,6 +181,15 @@ const onFileSelected = async (files: File | File[] | null) => {
 .assignment-file,
 .assignment-feedback {
 	margin-bottom: 8px;
+}
+.assignment-feedback {
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+.assignment-feedback-heading {
+	font-weight: 600;
+	margin-bottom: 4px;
 }
 .assignment-points {
 	font-weight: 600;
