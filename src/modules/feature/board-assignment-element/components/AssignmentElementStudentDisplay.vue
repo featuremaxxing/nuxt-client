@@ -34,7 +34,6 @@
 					{{ t("components.cardElement.assignmentElement.points", { points: ownSubmission.points ?? 0, maxPoints }) }}
 				</div>
 				<div v-if="ownSubmission.feedbackComment" data-testid="assignment-teacher-comment">
-					<span class="text-caption">{{ t("components.cardElement.assignmentElement.teacherComment") }}: </span>
 					{{ ownSubmission.feedbackComment }}
 				</div>
 			</div>
