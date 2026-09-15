@@ -43,6 +43,12 @@ export interface AssignmentContentBody {
      * @type {string}
      * @memberof AssignmentContentBody
      */
+    startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AssignmentContentBody
+     */
     dueDate?: string;
     /**
      * grace period after dueDate in minutes, during which a submission is late

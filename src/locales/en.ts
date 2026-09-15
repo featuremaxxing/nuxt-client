@@ -598,6 +598,8 @@ export default {
 	"components.cardElement.assignmentElement.untitled": "Untitled assignment",
 	"components.cardElement.assignmentElement.title": "Title",
 	"components.cardElement.assignmentElement.description": "Description",
+	"components.cardElement.assignmentElement.startDate": "Start date",
+	"components.cardElement.assignmentElement.startDateLabel": "Starts: {date}",
 	"components.cardElement.assignmentElement.dueDate": "Due date",
 	"components.cardElement.assignmentElement.dueDateLabel": "Due: {date}",
 	"components.cardElement.assignmentElement.graceMinutes": "Grace period",

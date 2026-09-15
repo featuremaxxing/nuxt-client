@@ -611,6 +611,8 @@ export default {
 	"components.cardElement.assignmentElement.untitled": "Tarea sin título",
 	"components.cardElement.assignmentElement.title": "Título",
 	"components.cardElement.assignmentElement.description": "Descripción",
+	"components.cardElement.assignmentElement.startDate": "Fecha de inicio",
+	"components.cardElement.assignmentElement.startDateLabel": "Empieza: {date}",
 	"components.cardElement.assignmentElement.dueDate": "Fecha de entrega",
 	"components.cardElement.assignmentElement.dueDateLabel": "Vence: {date}",
 	"components.cardElement.assignmentElement.graceMinutes": "Período de gracia",

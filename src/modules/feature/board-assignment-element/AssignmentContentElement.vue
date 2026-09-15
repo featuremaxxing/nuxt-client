@@ -1,5 +1,6 @@
 <template>
 	<VCard
+		v-if="isVisibleForUser"
 		ref="assignmentContentElement"
 		class="content-element-card mb-4"
 		:class="{ 'content-element-card-edit-mode': isEditMode }"
@@ -35,6 +36,7 @@ import AssignmentElementStudentDisplay from "./components/AssignmentElementStude
 import AssignmentElementTeacherDisplay from "./components/AssignmentElementTeacherDisplay.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
+import { nowUtc, parseUtc } from "@/utils/date-time.utils";
 import { useBoardAllowedOperations, useBoardFocusHandler } from "@data-board";
 import { mdiClipboardTextOutline } from "@icons/material";
 import { BoardMenu, BoardMenuScope, ContentElementBar } from "@ui-board";
@@ -67,6 +69,19 @@ const assignmentContentElement = ref(null);
 useBoardFocusHandler(element.value.id, assignmentContentElement);
 
 const canManageAssignments = computed(() => allowedOperations.value.updateElement);
+
+// Students must not see an assignment at all before its startDate (teachers do). This is
+// presentation-level only: the server still serves the element in the board payload, but
+// rejects any submission attempt before the start regardless of what a manipulated
+// client renders. Re-evaluates when board data refreshes; no live timer by design.
+const isVisibleForUser = computed(() => {
+	if (canManageAssignments.value) {
+		return true;
+	}
+
+	const startDate = element.value.content.startDate;
+	return !startDate || !parseUtc(startDate).isAfter(nowUtc());
+});
 
 const onMoveUp = () => emit("move-up:edit");
 const onMoveDown = () => emit("move-down:edit");

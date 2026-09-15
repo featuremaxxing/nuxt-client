@@ -1,5 +1,6 @@
 import AssignmentContentElement from "./AssignmentContentElement.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
+import { dateFromToday } from "@/utils/date-time.utils";
 import { assignmentElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { mount } from "@vue/test-utils";
@@ -77,5 +78,29 @@ describe("AssignmentContentElement", () => {
 		const { wrapper } = setupWrapper({ element, canEdit: false });
 
 		expect(wrapper.text()).toContain("Essay");
+	});
+
+	it("hides the element completely for students before the start date", () => {
+		const element = assignmentElementResponseFactory.build();
+		element.content.startDate = dateFromToday(1, "day");
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.find("[data-testid='board-assignment-element']").exists()).toBe(false);
+	});
+
+	it("shows the element for students once the start date has passed", () => {
+		const element = assignmentElementResponseFactory.build();
+		element.content.startDate = dateFromToday(-1, "day");
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.find("[data-testid='board-assignment-element']").exists()).toBe(true);
+	});
+
+	it("always shows the element for teachers, even before the start date", () => {
+		const element = assignmentElementResponseFactory.build();
+		element.content.startDate = dateFromToday(1, "day");
+		const { wrapper } = setupWrapper({ element, canEdit: true });
+
+		expect(wrapper.find("[data-testid='board-assignment-element']").exists()).toBe(true);
 	});
 });

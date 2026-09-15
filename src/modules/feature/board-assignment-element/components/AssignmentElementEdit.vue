@@ -15,6 +15,12 @@
 			@update:model-value="(value: string) => (modelValue.text = value)"
 		/>
 		<DueDateTimeField
+			:model-value="modelValue.startDate ?? undefined"
+			:date-label="t('components.cardElement.assignmentElement.startDate')"
+			data-testid="assignment-start-date-time"
+			@update:model-value="(value?: string) => (modelValue.startDate = value ?? null)"
+		/>
+		<DueDateTimeField
 			:model-value="modelValue.dueDate ?? undefined"
 			data-testid="assignment-due-date-time"
 			@update:model-value="(value?: string) => (modelValue.dueDate = value ?? null)"

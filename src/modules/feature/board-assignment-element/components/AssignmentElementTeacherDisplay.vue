@@ -4,6 +4,9 @@
 			{{ element.content.title || t("components.cardElement.assignmentElement.untitled") }}
 		</div>
 
+		<VChip v-if="startDateLabel" size="small" class="mb-2" data-testid="assignment-start-date-chip">
+			{{ startDateLabel }}
+		</VChip>
 		<VChip v-if="dueDateLabel" size="small" class="mb-2">{{ dueDateLabel }}</VChip>
 
 		<VBtn
@@ -58,6 +61,11 @@ onMounted(async () => {
 const dueDateLabel = computed(() => {
 	const formatted = dueDateIso.value ? formatUtc(dueDateIso.value, "dateTime") : undefined;
 	return formatted ? t("components.cardElement.assignmentElement.dueDateLabel", { date: formatted }) : undefined;
+});
+
+const startDateLabel = computed(() => {
+	const formatted = props.element.content.startDate ? formatUtc(props.element.content.startDate, "dateTime") : undefined;
+	return formatted ? t("components.cardElement.assignmentElement.startDateLabel", { date: formatted }) : undefined;
 });
 
 const buttonLabel = computed(() =>

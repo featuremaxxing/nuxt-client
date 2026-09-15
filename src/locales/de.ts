@@ -619,6 +619,8 @@ export default {
 	"components.cardElement.assignmentElement.untitled": "Aufgabe ohne Titel",
 	"components.cardElement.assignmentElement.title": "Titel",
 	"components.cardElement.assignmentElement.description": "Beschreibung",
+	"components.cardElement.assignmentElement.startDate": "Startzeit",
+	"components.cardElement.assignmentElement.startDateLabel": "Startet: {date}",
 	"components.cardElement.assignmentElement.dueDate": "Abgabedatum",
 	"components.cardElement.assignmentElement.dueDateLabel": "Fällig: {date}",
 	"components.cardElement.assignmentElement.graceMinutes": "Toleranz",

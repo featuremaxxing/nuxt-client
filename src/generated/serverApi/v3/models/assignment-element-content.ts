@@ -44,6 +44,12 @@ export interface AssignmentElementContent {
      * @type {string}
      * @memberof AssignmentElementContent
      */
+    startDate?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof AssignmentElementContent
+     */
     dueDate?: string | null;
     /**
      * 

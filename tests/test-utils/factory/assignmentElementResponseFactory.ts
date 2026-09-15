@@ -9,6 +9,7 @@ export const assignmentElementResponseFactory = Factory.define<AssignmentElement
 		title: `Assignment ${sequence}`,
 		text: "Please submit your work.",
 		inputFormat: InputFormat.PLAIN_TEXT,
+		startDate: null,
 		dueDate: null,
 		graceMinutes: null,
 		maxPoints: 10,

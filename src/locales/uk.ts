@@ -609,6 +609,8 @@ export default {
 	"components.cardElement.assignmentElement.untitled": "Завдання без назви",
 	"components.cardElement.assignmentElement.title": "Назва",
 	"components.cardElement.assignmentElement.description": "Опис",
+	"components.cardElement.assignmentElement.startDate": "Час початку",
+	"components.cardElement.assignmentElement.startDateLabel": "Початок: {date}",
 	"components.cardElement.assignmentElement.dueDate": "Термін здачі",
 	"components.cardElement.assignmentElement.dueDateLabel": "Термін: {date}",
 	"components.cardElement.assignmentElement.graceMinutes": "Пільговий період",
