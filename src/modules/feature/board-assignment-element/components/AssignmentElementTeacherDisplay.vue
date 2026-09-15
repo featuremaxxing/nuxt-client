@@ -14,17 +14,21 @@
 			size="small"
 			:loading="loading"
 			data-testid="assignment-view-submissions-button"
-			@click="onViewSubmissions"
+			@click="isSubmissionsOverlayOpen = true"
 		>
 			{{ buttonLabel }}
 		</VBtn>
+
+		<AssignmentSubmissionsOverlay
+			:element="element"
+			:is-open="isSubmissionsOverlayOpen"
+			@close="isSubmissionsOverlayOpen = false"
+		/>
 	</VCardText>
 </template>
 
 <script setup lang="ts">
-// The submissions overlay itself (grading, returning) is a separate round of work -
-// this tile only loads the counts needed for the button label. Clicking the button is a
-// no-op stub for now (emits an event a parent can hook the future dialog into).
+import AssignmentSubmissionsOverlay from "./AssignmentSubmissionsOverlay.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { formatUtc } from "@/utils/date-time.utils";
 import { AssignmentStatus } from "@api-server";
@@ -36,13 +40,10 @@ const props = defineProps<{
 	element: AssignmentElement;
 }>();
 
-const emit = defineEmits<{
-	(e: "view:submissions", elementId: string): void;
-}>();
-
 const { t } = useI18n();
 const { fetchSubmissions } = useAssignmentApi();
 
+const isSubmissionsOverlayOpen = ref(false);
 const loading = ref(true);
 const total = ref(0);
 const submittedCount = ref(0);
@@ -74,10 +75,6 @@ const buttonLabel = computed(() =>
 		total: total.value,
 	})
 );
-
-const onViewSubmissions = () => {
-	emit("view:submissions", props.element.id);
-};
 </script>
 
 <style scoped lang="scss">

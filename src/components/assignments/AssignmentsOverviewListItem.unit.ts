@@ -1,5 +1,5 @@
 import AssignmentsOverviewListItem from "./AssignmentsOverviewListItem.vue";
-import { AssignmentListItemResponse } from "@api-server";
+import { AssignmentListItemResponse, AssignmentStatus } from "@api-server";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { mount } from "@vue/test-utils";
 
@@ -68,7 +68,7 @@ describe("AssignmentsOverviewListItem", () => {
 
 	it("should show the student's own submission status with a late hint", () => {
 		const { wrapper } = setup(
-			buildItem({ ownSubmissionStatus: "submitted", ownSubmissionIsLate: true })
+			buildItem({ ownSubmissionStatus: AssignmentStatus.SUBMITTED, ownSubmissionIsLate: true })
 		);
 
 		const status = wrapper.find("[data-testid='assignment-item-status']");

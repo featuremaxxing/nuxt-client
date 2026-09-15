@@ -14,6 +14,13 @@ vi.mock("@data-assignment", () => ({
 	}),
 }));
 
+vi.mock("@data-file", () => ({
+	useFileStorageApi: () => ({
+		fetchFiles: vi.fn(),
+		getFileRecordsByParentId: vi.fn(() => []),
+	}),
+}));
+
 describe("AssignmentElementTeacherDisplay", () => {
 	const setupWrapper = (element: AssignmentElement = assignmentElementResponseFactory.build()) => {
 		const wrapper = mount(AssignmentElementTeacherDisplay, {
