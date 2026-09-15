@@ -23,6 +23,8 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
 // @ts-ignore
 import { ApiValidationError } from '../models';
 // @ts-ignore
+import { AssignmentListResponse } from '../models';
+// @ts-ignore
 import { AssignmentSubmissionListResponse } from '../models';
 // @ts-ignore
 import { AssignmentSubmissionResponse } from '../models';
@@ -148,6 +150,45 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(gradeSubmissionBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List the assignment elements in the caller\'s rooms (teacher: submission counts, student: own submission status).
+         * @param {string} [roomId] restrict the list to a single room; defaults to all rooms of the caller
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        assignmentControllerListAssignments: async (roomId?: string, options: any = {}): Promise<RequestArgs> => {
+            const localVarPath = `/assignments`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (roomId !== undefined) {
+                localVarQueryParameter['roomId'] = roomId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -320,6 +361,17 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary List the assignment elements in the caller\'s rooms (teacher: submission counts, student: own submission status).
+         * @param {string} [roomId] restrict the list to a single room; defaults to all rooms of the caller
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async assignmentControllerListAssignments(roomId?: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.assignmentControllerListAssignments(roomId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary List an assignment\'s submissions (teacher: all students, student: own only).
          * @param {string} elementId The id of the assignment element.
          * @param {*} [options] Override http request option.
@@ -395,6 +447,16 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
         },
         /**
          * 
+         * @summary List the assignment elements in the caller\'s rooms (teacher: submission counts, student: own submission status).
+         * @param {string} [roomId] restrict the list to a single room; defaults to all rooms of the caller
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        assignmentControllerListAssignments(roomId?: string, options?: any): AxiosPromise<AssignmentListResponse> {
+            return localVarFp.assignmentControllerListAssignments(roomId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List an assignment\'s submissions (teacher: all students, student: own only).
          * @param {string} elementId The id of the assignment element.
          * @param {*} [options] Override http request option.
@@ -463,6 +525,16 @@ export interface AssignmentApiInterface {
      * @memberof AssignmentApiInterface
      */
     assignmentControllerGradeSubmission(submissionId: string, gradeSubmissionBodyParams: GradeSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
+
+    /**
+     * 
+     * @summary List the assignment elements in the caller\'s rooms (teacher: submission counts, student: own submission status).
+     * @param {string} [roomId] restrict the list to a single room; defaults to all rooms of the caller
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    assignmentControllerListAssignments(roomId?: string, options?: any): AxiosPromise<AssignmentListResponse>;
 
     /**
      * 
@@ -539,6 +611,18 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
      */
     public assignmentControllerGradeSubmission(submissionId: string, gradeSubmissionBodyParams: GradeSubmissionBodyParams, options?: any) {
         return AssignmentApiFp(this.configuration).assignmentControllerGradeSubmission(submissionId, gradeSubmissionBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List the assignment elements in the caller\'s rooms (teacher: submission counts, student: own submission status).
+     * @param {string} [roomId] restrict the list to a single room; defaults to all rooms of the caller
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public assignmentControllerListAssignments(roomId?: string, options?: any) {
+        return AssignmentApiFp(this.configuration).assignmentControllerListAssignments(roomId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

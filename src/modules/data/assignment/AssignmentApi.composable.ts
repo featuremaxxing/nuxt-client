@@ -2,6 +2,7 @@ import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
 	AssignmentApiFactory,
 	AssignmentApiInterface,
+	AssignmentListResponse,
 	AssignmentSubmissionListResponse,
 	AssignmentSubmissionResponse,
 	GradeSubmissionBodyParams,
@@ -86,7 +87,18 @@ export const useAssignmentApi = () => {
 		}
 	};
 
+	const listAssignments = async (roomId?: string): Promise<AssignmentListResponse | undefined> => {
+		try {
+			const response = await assignmentApi.assignmentControllerListAssignments(roomId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
 	return {
+		listAssignments,
 		fetchSubmissions,
 		createOwnSubmission,
 		submit,

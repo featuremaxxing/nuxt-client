@@ -12,6 +12,8 @@ export * from './assignment-content-body';
 export * from './assignment-element-content';
 export * from './assignment-element-content-body';
 export * from './assignment-element-response';
+export * from './assignment-list-item-response';
+export * from './assignment-list-response';
 export * from './assignment-status';
 export * from './assignment-submission-file-response';
 export * from './assignment-submission-list-response';

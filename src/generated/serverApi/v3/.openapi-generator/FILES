@@ -73,6 +73,8 @@ models/assignment-content-body.ts
 models/assignment-element-content-body.ts
 models/assignment-element-content.ts
 models/assignment-element-response.ts
+models/assignment-list-item-response.ts
+models/assignment-list-response.ts
 models/assignment-status.ts
 models/assignment-submission-file-response.ts
 models/assignment-submission-list-response.ts
