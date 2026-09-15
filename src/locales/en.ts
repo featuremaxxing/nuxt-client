@@ -624,6 +624,7 @@ export default {
 	"pages.assignments.past": "Past",
 	"pages.assignments.empty": "No assignments available",
 	"pages.assignments.submissions": "Submissions: {submitted}/{total}",
+	"pages.room.assignments.title": "Assignments",
 	"pages.tasks.tabs.assignments": "Assignments",
 	"pages.tasks.tabs.classic": "Classic",
 	"components.datePicker.validation.format": "Please use format {datePlaceHolder}",

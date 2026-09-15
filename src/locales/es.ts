@@ -637,6 +637,7 @@ export default {
 	"pages.assignments.past": "Anteriores",
 	"pages.assignments.empty": "No hay tareas disponibles",
 	"pages.assignments.submissions": "Entregas: {submitted}/{total}",
+	"pages.room.assignments.title": "Tareas",
 	"pages.tasks.tabs.assignments": "Tareas",
 	"pages.tasks.tabs.classic": "Clásico",
 	"components.datePicker.validation.format": "Por favor utilice el formato {datePlaceHolder}",

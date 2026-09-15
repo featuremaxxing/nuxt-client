@@ -635,6 +635,7 @@ export default {
 	"pages.assignments.past": "Минулі",
 	"pages.assignments.empty": "Немає доступних завдань",
 	"pages.assignments.submissions": "Здані: {submitted}/{total}",
+	"pages.room.assignments.title": "Завдання",
 	"pages.tasks.tabs.assignments": "Завдання",
 	"pages.tasks.tabs.classic": "Класичні",
 	"components.datePicker.validation.format": "Використовуйте формат {datePlaceHolder}",
