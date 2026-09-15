@@ -134,4 +134,30 @@ describe("AssignmentElementStudentDisplay", () => {
 		const commentInput = wrapper.find("[data-testid='assignment-comment-input'] textarea");
 		expect((commentInput.element as HTMLTextAreaElement).value).toBe("bereits eingegeben");
 	});
+
+	it("should label the teacher's feedback after the submission was returned", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: false,
+			submissions: [
+				buildSubmission({
+					id: "submission-1",
+					status: AssignmentStatus.RETURNED,
+					returnedAt: "2099-01-20T10:00:00.000Z",
+					points: 8,
+					feedbackComment: "Gut strukturiert!",
+				}),
+			],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const feedback = wrapper.find("[data-testid='assignment-teacher-comment']");
+		expect(feedback.exists()).toBe(true);
+		expect(feedback.text()).toContain("components.cardElement.assignmentElement.teacherComment");
+		expect(feedback.text()).toContain("Gut strukturiert!");
+	});
 });

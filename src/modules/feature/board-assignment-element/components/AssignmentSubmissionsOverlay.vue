@@ -84,7 +84,7 @@
 								rows="2"
 								auto-grow
 								density="compact"
-								:label="t('components.cardElement.assignmentElement.feedback')"
+								:label="t('components.cardElement.assignmentElement.teacherComment')"
 								data-testid="submission-feedback-input"
 								@update:model-value="(value: string) => setDraftFeedback(submission, value)"
 							/>
