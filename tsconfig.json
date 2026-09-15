@@ -21,6 +21,7 @@
 		"paths": {
 			"@data-access": ["./src/modules/data/data-access"],
 			"@data-app": ["./src/modules/data/application"],
+			"@data-assignment": ["./src/modules/data/assignment"],
 			"@data-board": ["./src/modules/data/board"],
 			"@data-classes": ["./src/modules/data/classes"],
 			"@data-course-rooms": ["./src/modules/data/course-rooms"],
@@ -43,6 +44,7 @@
 			"@data-users": ["./src/modules/data/users"],
 			"@data-notification": ["./src/modules/data/notification"],
 			"@feature-auto-logout": ["./src/modules/feature/auto-logout"],
+			"@feature-board-assignment-element": ["./src/modules/feature/board-assignment-element"],
 			"@feature-board-file-element": ["./src/modules/feature/board-file-element"],
 			"@feature-board-text-element": ["./src/modules/feature/board-text-element"],
 			"@feature-board-link-element": ["./src/modules/feature/board-link-element"],

@@ -3,6 +3,7 @@ import { AnyContentElement } from "@/types/board/ContentElement";
 import { createTestEnvStore } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { ContentElementType } from "@api-server";
+import { AssignmentContentElement } from "@feature-board-assignment-element";
 import { CollaborativeTextEditorElement } from "@feature-board-collaborative-text-editor-element";
 import { DeletedElement } from "@feature-board-deleted-element";
 import { DrawingContentElement } from "@feature-board-drawing-element";
@@ -27,6 +28,7 @@ describe("ContentElementList", () => {
 				FEATURE_COLUMN_BOARD_EXTERNAL_TOOLS_ENABLED: true,
 				FEATURE_COLUMN_BOARD_FILE_FOLDER_ENABLED: true,
 				FEATURE_COLUMN_BOARD_H5P_ENABLED: true,
+				FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: true,
 				FEATURE_TEAMS_ENABLED: true,
 				FEATURE_COLUMN_BOARD_COLLABORATIVE_TEXT_EDITOR_ENABLED: true,
 				FEATURE_TLDRAW_ENABLED: true,
@@ -96,6 +98,10 @@ describe("ContentElementList", () => {
 					elementType: ContentElementType.H5P,
 					component: H5pElement,
 				},
+				{
+					elementType: ContentElementType.ASSIGNMENT,
+					component: AssignmentContentElement,
+				},
 			];
 
 			it.each(elementComponents)("should render $elementType-elements", ({ elementType, component }) => {
@@ -157,6 +163,36 @@ describe("ContentElementList", () => {
 			});
 
 			expect(wrapper.findComponent(FolderContentElement).exists()).toBe(false);
+		});
+	});
+
+	describe("when FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED is false", () => {
+		beforeEach(() => {
+			setActivePinia(createTestingPinia());
+			createTestEnvStore({
+				FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: false,
+			});
+		});
+
+		const setup = (props: { elements: AnyContentElement[]; isEditMode: boolean; isDetailView: boolean }) => {
+			const wrapper = shallowMount(ContentElementList, {
+				global: {
+					plugins: [createTestingI18n(), createTestingVuetify()],
+				},
+				props: { ...props, rowIndex: 0, columnIndex: 0 },
+			});
+
+			return { wrapper };
+		};
+
+		it("should not render AssignmentContentElement", () => {
+			const { wrapper } = setup({
+				elements: [{ type: ContentElementType.ASSIGNMENT } as AnyContentElement],
+				isEditMode: false,
+				isDetailView: false,
+			});
+
+			expect(wrapper.findComponent(AssignmentContentElement).exists()).toBe(false);
 		});
 	});
 });

@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -22,6 +22,8 @@
 export enum CopyElementType {
     ROOM = 'ROOM',
     BOARD = 'BOARD',
+    ASSIGNMENT_ELEMENT = 'ASSIGNMENT_ELEMENT',
+    ASSIGNMENT_SUBMISSION = 'ASSIGNMENT_SUBMISSION',
     CARD = 'CARD',
     COLLABORATIVE_TEXT_EDITOR_ELEMENT = 'COLLABORATIVE_TEXT_EDITOR_ELEMENT',
     COLUMN = 'COLUMN',

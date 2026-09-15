@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -17,15 +17,15 @@
 /**
  * 
  * @export
- * @interface UpdateSubmissionItemBodyParams
+ * @enum {string}
  */
-export interface UpdateSubmissionItemBodyParams {
-    /**
-     * Boolean indicating whether the submission is completed.
-     * @type {boolean}
-     * @memberof UpdateSubmissionItemBodyParams
-     */
-    completed: boolean;
+export enum InputFormat {
+    PLAIN_TEXT = 'plainText',
+    RICH_TEXT_CK5_SIMPLE = 'richTextCk5Simple',
+    RICH_TEXT_CK4 = 'richTextCk4',
+    RICH_TEXT_CK5 = 'richTextCk5',
+    RICH_TEXT_CK5_NEWS = 'richTextCk5News'
 }
+
 
 

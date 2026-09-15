@@ -3,6 +3,9 @@ import { AnyContentElement } from "@/types/board/ContentElement";
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import { createApplicationError } from "@/utils/create-application-error.factory";
 import {
+	AssignmentContentBody,
+	AssignmentElementContentBody,
+	AssignmentElementResponse,
 	BoardApiFactory,
 	BoardCardApiFactory,
 	BoardColumnApiFactory,
@@ -186,6 +189,19 @@ export const useBoardApi = () => {
 				// H5pElementContent is not type equal with H5pContentBody
 				content: element.content as H5pContentBody,
 				type: ContentElementType.H5P,
+			};
+
+			return body;
+		}
+
+		const isAssignmentElement = (element: AnyContentElement): element is AssignmentElementResponse =>
+			element.type === ContentElementType.ASSIGNMENT;
+
+		if (isAssignmentElement(element)) {
+			const body: AssignmentElementContentBody = {
+				// AssignmentElementContent is not type equal with AssignmentContentBody (nullable vs optional fields)
+				content: element.content as AssignmentContentBody,
+				type: ContentElementType.ASSIGNMENT,
 			};
 
 			return body;

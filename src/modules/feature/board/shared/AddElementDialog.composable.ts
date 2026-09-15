@@ -11,6 +11,7 @@ import {
 import { useEnvConfig } from "@data-env";
 import { useAddCollaboraFile } from "@feature-collabora";
 import {
+	mdiClipboardTextOutline,
 	mdiFileDocumentOutline,
 	mdiFolderOpenOutline,
 	mdiFormatText,
@@ -157,6 +158,15 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.h5pElement.subtitle"),
 				action: () => onElementClick(ContentElementType.H5P),
 				testId: "create-element-h5p",
+			});
+		}
+
+		if (envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED) {
+			options.push({
+				icon: mdiClipboardTextOutline,
+				label: t("components.elementTypeSelection.elements.assignmentElement.subtitle"),
+				action: () => onElementClick(ContentElementType.ASSIGNMENT),
+				testId: "create-element-assignment",
 			});
 		}
 

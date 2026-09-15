@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } from '../base';
 // @ts-ignore
 import { ApiValidationError } from '../models';
+// @ts-ignore
+import { AssignmentElementResponse } from '../models';
 // @ts-ignore
 import { CardListResponse } from '../models';
 // @ts-ignore
@@ -428,7 +430,7 @@ export const BoardCardApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse>> {
+        async cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.cardControllerCreateElement(cardId, createContentElementBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -530,7 +532,7 @@ export const BoardCardApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse> {
+        cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse> {
             return localVarFp.cardControllerCreateElement(cardId, createContentElementBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
@@ -625,7 +627,7 @@ export interface BoardCardApiInterface {
      * @throws {RequiredError}
      * @memberof BoardCardApiInterface
      */
-    cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse>;
+    cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse>;
 
     /**
      * 
