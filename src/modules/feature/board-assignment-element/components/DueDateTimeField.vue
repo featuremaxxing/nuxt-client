@@ -21,7 +21,7 @@
 // DateTimePicker.vue was removed in the date/time-utils rework upstream; this combines
 // the two remaining single-purpose pickers instead of reviving it, to keep this out of
 // the way of future upstream syncs to that area.
-import { formatUtc, toCombinedDateTimeIso } from "@/utils/date-time.utils";
+import { ISO_DATE_FORMAT, parseUtc, toCombinedDateTimeIso } from "@/utils/date-time.utils";
 import { DatePicker, TimePicker } from "@ui-date-time-picker";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -45,8 +45,13 @@ const timePart = ref<string | undefined>();
 watch(
 	() => props.modelValue,
 	(value) => {
-		datePart.value = value ? formatUtc(value, "date") : undefined;
-		timePart.value = value ? formatUtc(value, "time") : undefined;
+		// DatePicker's `date` prop wants an ISO date (it locale-formats internally for
+		// display); formatUtc(..., "date") instead returns an already locale-formatted
+		// string ("15.09.2026"), which DatePicker then fails to parse. Derive both parts
+		// from the same local moment so they never disagree across a day boundary.
+		const local = value ? parseUtc(value).local() : undefined;
+		datePart.value = local?.format(ISO_DATE_FORMAT);
+		timePart.value = local?.format("HH:mm");
 	},
 	{ immediate: true }
 );
