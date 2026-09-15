@@ -283,15 +283,13 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         assignmentControllerSubmit: async (submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options: any = {}): Promise<RequestArgs> => {
             // verify required parameter 'submissionId' is not null or undefined
             assertParamExists('assignmentControllerSubmit', 'submissionId', submissionId)
-            // verify required parameter 'submitSubmissionBodyParams' is not null or undefined
-            assertParamExists('assignmentControllerSubmit', 'submitSubmissionBodyParams', submitSubmissionBodyParams)
             const localVarPath = `/assignments/submissions/{submissionId}/submit`
                 .replace(`{${"submissionId"}}`, encodeURIComponent(String(submissionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -405,7 +403,7 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -489,7 +487,7 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -571,7 +569,7 @@ export interface AssignmentApiInterface {
      * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
@@ -665,7 +663,7 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
      * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi
