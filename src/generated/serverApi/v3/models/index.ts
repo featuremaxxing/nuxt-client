@@ -333,6 +333,7 @@ export * from './short-node-response';
 export * from './single-column-board-response';
 export * from './submission-status-list-response';
 export * from './submission-status-response';
+export * from './submit-submission-body-params';
 export * from './successful-response';
 export * from './system-for-ldap-login-response';
 export * from './system-type';

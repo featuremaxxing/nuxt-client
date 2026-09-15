@@ -4,6 +4,13 @@
 			{{ element.content.title || t("components.cardElement.assignmentElement.untitled") }}
 		</div>
 
+		<RenderHTML
+			v-if="element.content.text"
+			class="assignment-description"
+			:html="element.content.text"
+			data-testid="assignment-description"
+		/>
+
 		<VChip v-if="startDateLabel" size="small" class="mb-2" data-testid="assignment-start-date-chip">
 			{{ startDateLabel }}
 		</VChip>
@@ -33,6 +40,7 @@ import { AssignmentElement } from "@/types/board/ContentElement";
 import { formatUtc } from "@/utils/date-time.utils";
 import { AssignmentStatus } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
+import { RenderHTML } from "@feature-render-html";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -81,5 +89,8 @@ const buttonLabel = computed(() =>
 .assignment-title {
 	font-weight: 600;
 	margin-bottom: 4px;
+}
+.assignment-description {
+	margin-bottom: 8px;
 }
 </style>

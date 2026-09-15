@@ -61,6 +61,13 @@
 							</VBtn>
 						</div>
 
+						<div v-if="submission.comment" class="submission-comment mt-2" data-testid="submission-comment">
+							<span class="text-caption">
+								{{ t("components.cardElement.assignmentElement.studentComment") }}:
+							</span>
+							{{ submission.comment }}
+						</div>
+
 						<template v-if="submission.id !== null">
 							<VTextField
 								:model-value="draftPoints[submission.id] ?? submission.points ?? null"
@@ -252,5 +259,8 @@ const onClose = () => {
 .submission-name {
 	font-weight: 600;
 	margin-right: 8px;
+}
+.submission-comment {
+	word-break: break-word;
 }
 </style>

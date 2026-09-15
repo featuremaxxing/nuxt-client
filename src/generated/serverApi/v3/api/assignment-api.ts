@@ -30,6 +30,8 @@ import { AssignmentSubmissionListResponse } from '../models';
 import { AssignmentSubmissionResponse } from '../models';
 // @ts-ignore
 import { GradeSubmissionBodyParams } from '../models';
+// @ts-ignore
+import { SubmitSubmissionBodyParams } from '../models';
 /**
  * AssignmentApi - axios parameter creator
  * @export
@@ -281,12 +283,15 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
+         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        assignmentControllerSubmit: async (submissionId: string, options: any = {}): Promise<RequestArgs> => {
+        assignmentControllerSubmit: async (submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options: any = {}): Promise<RequestArgs> => {
             // verify required parameter 'submissionId' is not null or undefined
             assertParamExists('assignmentControllerSubmit', 'submissionId', submissionId)
+            // verify required parameter 'submitSubmissionBodyParams' is not null or undefined
+            assertParamExists('assignmentControllerSubmit', 'submitSubmissionBodyParams', submitSubmissionBodyParams)
             const localVarPath = `/assignments/submissions/{submissionId}/submit`
                 .replace(`{${"submissionId"}}`, encodeURIComponent(String(submissionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -306,9 +311,12 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
 
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(submitSubmissionBodyParams, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -397,11 +405,12 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
+         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async assignmentControllerSubmit(submissionId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentSubmissionResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.assignmentControllerSubmit(submissionId, options);
+        async assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentSubmissionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -480,11 +489,12 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
          * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
+         * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        assignmentControllerSubmit(submissionId: string, options?: any): AxiosPromise<AssignmentSubmissionResponse> {
-            return localVarFp.assignmentControllerSubmit(submissionId, options).then((request) => request(axios, basePath));
+        assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse> {
+            return localVarFp.assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -561,11 +571,12 @@ export interface AssignmentApiInterface {
      * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
+     * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
      */
-    assignmentControllerSubmit(submissionId: string, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
+    assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
 
 }
 
@@ -654,11 +665,12 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
      * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
+     * @param {SubmitSubmissionBodyParams} submitSubmissionBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi
      */
-    public assignmentControllerSubmit(submissionId: string, options?: any) {
-        return AssignmentApiFp(this.configuration).assignmentControllerSubmit(submissionId, options).then((request) => request(this.axios, this.basePath));
+    public assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any) {
+        return AssignmentApiFp(this.configuration).assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options).then((request) => request(this.axios, this.basePath));
     }
 }

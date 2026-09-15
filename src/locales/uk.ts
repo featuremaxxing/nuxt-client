@@ -631,6 +631,8 @@ export default {
 	"components.cardElement.assignmentElement.feedback": "Відгук",
 	"components.cardElement.assignmentElement.returnSubmission": "Повернути",
 	"components.cardElement.assignmentElement.downloadFile": "Завантажити",
+	"components.cardElement.assignmentElement.comment": "Коментар до роботи (необов'язково)",
+	"components.cardElement.assignmentElement.studentComment": "Коментар",
 	"components.cardElement.assignmentElement.status.open": "Відкрито",
 	"components.cardElement.assignmentElement.status.submitted": "Здано",
 	"components.cardElement.assignmentElement.status.inReview": "На перевірці",

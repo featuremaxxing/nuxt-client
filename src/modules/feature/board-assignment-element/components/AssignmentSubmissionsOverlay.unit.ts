@@ -132,6 +132,29 @@ describe("AssignmentSubmissionsOverlay", () => {
 		});
 	});
 
+	it("should show the student's comment when present", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [buildSubmission({ comment: "Bitteespitzen beachten" })],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-comment']").text()).toContain("Bitteespitzen beachten");
+	});
+
+	it("should not show a comment row when there is no comment", async () => {
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-comment']").exists()).toBe(false);
+	});
+
 	it("should emit close when the close button is clicked", async () => {
 		const { wrapper } = setup();
 

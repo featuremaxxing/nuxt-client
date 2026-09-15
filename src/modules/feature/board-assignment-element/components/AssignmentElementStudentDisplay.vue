@@ -4,6 +4,13 @@
 			{{ element.content.title || t("components.cardElement.assignmentElement.untitled") }}
 		</div>
 
+		<RenderHTML
+			v-if="element.content.text"
+			class="assignment-description"
+			:html="element.content.text"
+			data-testid="assignment-description"
+		/>
+
 		<VChip v-if="dueDateLabel" size="small" class="mb-2" data-testid="assignment-due-date-chip">
 			{{ dueDateLabel }}
 		</VChip>
@@ -26,6 +33,17 @@
 				<div v-if="ownSubmission.feedbackComment">{{ ownSubmission.feedbackComment }}</div>
 			</div>
 
+			<VTextarea
+				v-if="canStillSubmit"
+				v-model="comment"
+				:label="t('components.cardElement.assignmentElement.comment')"
+				rows="2"
+				auto-grow
+				density="compact"
+				data-testid="assignment-comment-input"
+				class="mb-2"
+			/>
+
 			<VFileInput
 				v-if="canStillSubmit"
 				:label="uploadLabel"
@@ -45,9 +63,10 @@
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecordParent } from "@/types/file/File";
 import { formatUtc } from "@/utils/date-time.utils";
-import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import { AssignmentStatus, AssignmentSubmissionResponse, SubmitSubmissionBodyParams } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
+import { RenderHTML } from "@feature-render-html";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -65,6 +84,7 @@ const ownSubmission = ref<AssignmentSubmissionResponse | undefined>(undefined);
 const isSubmittable = ref(true);
 const maxPoints = ref<number | null>(null);
 const dueDateIso = ref<string | null>(null);
+const comment = ref("");
 
 const load = async () => {
 	loading.value = true;
@@ -74,6 +94,7 @@ const load = async () => {
 		isSubmittable.value = list.isSubmittable;
 		maxPoints.value = list.maxPoints ?? null;
 		dueDateIso.value = list.dueDate ?? null;
+		comment.value = ownSubmission.value?.comment ?? comment.value;
 	}
 	loading.value = false;
 };
@@ -131,7 +152,11 @@ const onFileSelected = async (files: File | File[] | null) => {
 		}
 
 		await upload(file, submissionId, FileRecordParent.BOARDNODES);
-		await submit(submissionId);
+		const body: SubmitSubmissionBodyParams = {};
+		if (comment.value.trim() !== "") {
+			body.comment = comment.value.trim();
+		}
+		await submit(submissionId, body);
 		await load();
 	} finally {
 		uploading.value = false;
@@ -143,6 +168,9 @@ const onFileSelected = async (files: File | File[] | null) => {
 .assignment-title {
 	font-weight: 600;
 	margin-bottom: 4px;
+}
+.assignment-description {
+	margin-bottom: 8px;
 }
 .assignment-file,
 .assignment-feedback {

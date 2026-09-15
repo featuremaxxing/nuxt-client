@@ -6,6 +6,7 @@ import {
 	AssignmentSubmissionListResponse,
 	AssignmentSubmissionResponse,
 	GradeSubmissionBodyParams,
+	SubmitSubmissionBodyParams,
 } from "@api-server";
 import { notifyError } from "@data-app";
 
@@ -41,9 +42,12 @@ export const useAssignmentApi = () => {
 		}
 	};
 
-	const submit = async (submissionId: string): Promise<AssignmentSubmissionResponse | undefined> => {
+	const submit = async (
+		submissionId: string,
+		body?: SubmitSubmissionBodyParams
+	): Promise<AssignmentSubmissionResponse | undefined> => {
 		try {
-			const response = await assignmentApi.assignmentControllerSubmit(submissionId);
+			const response = await assignmentApi.assignmentControllerSubmit(submissionId, body);
 			return response.data;
 		} catch (error) {
 			showError(error);

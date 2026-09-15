@@ -620,6 +620,8 @@ export default {
 	"components.cardElement.assignmentElement.feedback": "Feedback",
 	"components.cardElement.assignmentElement.returnSubmission": "Return",
 	"components.cardElement.assignmentElement.downloadFile": "Download",
+	"components.cardElement.assignmentElement.comment": "Note on your submission (optional)",
+	"components.cardElement.assignmentElement.studentComment": "Note",
 	"components.cardElement.assignmentElement.status.open": "Open",
 	"components.cardElement.assignmentElement.status.submitted": "Submitted",
 	"components.cardElement.assignmentElement.status.inReview": "In review",
