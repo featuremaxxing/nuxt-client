@@ -89,11 +89,17 @@ export interface AssignmentSubmissionResponse {
      */
     returnedAt?: string | null;
     /**
-     * the submitting student\'s optional note
+     * the submitting student's optional note
      * @type {string}
      * @memberof AssignmentSubmissionResponse
      */
     comment?: string | null;
+    /**
+     * the teacher’s audio feedback; withheld from students until the submission has been returned
+     * @type {AssignmentSubmissionFileResponse}
+     * @memberof AssignmentSubmissionResponse
+     */
+    feedbackAudio?: AssignmentSubmissionFileResponse | null;
 }
 
 

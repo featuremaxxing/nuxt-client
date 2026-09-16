@@ -5,11 +5,14 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchSubmissionsMock, gradeSubmissionMock, returnSubmissionMock } = vi.hoisted(() => ({
-	fetchSubmissionsMock: vi.fn(),
-	gradeSubmissionMock: vi.fn(),
-	returnSubmissionMock: vi.fn(),
-}));
+const { fetchSubmissionsMock, gradeSubmissionMock, returnSubmissionMock, fetchFilesMock, getFileRecordsByParentIdMock } =
+	vi.hoisted(() => ({
+		fetchSubmissionsMock: vi.fn(),
+		gradeSubmissionMock: vi.fn(),
+		returnSubmissionMock: vi.fn(),
+		fetchFilesMock: vi.fn(),
+		getFileRecordsByParentIdMock: vi.fn(),
+	}));
 
 vi.mock("@data-assignment", () => ({
 	useAssignmentApi: () => ({
@@ -21,8 +24,9 @@ vi.mock("@data-assignment", () => ({
 
 vi.mock("@data-file", () => ({
 	useFileStorageApi: () => ({
-		fetchFiles: vi.fn(),
-		getFileRecordsByParentId: vi.fn(() => []),
+		fetchFiles: fetchFilesMock,
+		getFileRecordsByParentId: getFileRecordsByParentIdMock,
+		upload: vi.fn(),
 	}),
 }));
 
@@ -37,6 +41,9 @@ const buildSubmission = (overrides: Partial<AssignmentSubmissionResponse> = {}):
 	file: { fileRecordId: "file-1", name: "essay.pdf" },
 	points: null,
 	feedbackComment: null,
+	returnedAt: null,
+	comment: null,
+	feedbackAudio: null,
 	...overrides,
 });
 
@@ -54,6 +61,8 @@ describe("AssignmentSubmissionsOverlay", () => {
 		});
 		gradeSubmissionMock.mockResolvedValue(undefined);
 		returnSubmissionMock.mockResolvedValue(undefined);
+		fetchFilesMock.mockResolvedValue(undefined);
+		getFileRecordsByParentIdMock.mockReturnValue([]);
 	});
 
 	afterEach(() => {
@@ -162,5 +171,102 @@ describe("AssignmentSubmissionsOverlay", () => {
 		await wrapper.find("[data-testid='submissions-overlay-close']").trigger("click");
 
 		expect(wrapper.emitted("close")).toHaveLength(1);
+	});
+
+	it("should fetch the file records of every submission for previews and audio", async () => {
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(fetchFilesMock).toHaveBeenCalledWith("submission-1", "boardnodes");
+		expect(wrapper.find("[data-testid='submission-file-row']").exists()).toBe(true);
+	});
+
+	it("should filter submissions by status", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({ userId: "user-1", id: "submission-1", status: AssignmentStatus.OPEN, lastName: "Zimmermann" }),
+				buildSubmission({ userId: "user-2", id: "submission-2", status: AssignmentStatus.RETURNED, lastName: "Adler" }),
+			],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+		expect(wrapper.findAll("[data-testid='submission-block']")).toHaveLength(2);
+
+		const chips = wrapper.findAll("[data-testid='assignment-filter-chip']");
+		const returnedChip = chips.find((chip) => chip.text().includes("filter.returned"));
+		await returnedChip?.trigger("click");
+
+		const blocks = wrapper.findAll("[data-testid='submission-block']");
+		expect(blocks).toHaveLength(1);
+		expect(blocks[0].text()).toContain("Adler");
+	});
+
+	it("should sort submissions by name", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({ userId: "user-1", id: "submission-1", firstName: "Zoe", lastName: "Zimmermann" }),
+				buildSubmission({ userId: "user-2", id: "submission-2", firstName: "Anna", lastName: "Adler" }),
+			],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const names = wrapper.findAll("[data-testid='submission-name']").map((node) => node.text());
+		expect(names[0]).toContain("Adler");
+		expect(names[1]).toContain("Zimmermann");
+	});
+
+	it("should build a csv file with all submissions and download it", async () => {
+		const originalCreateObjectUrl = URL.createObjectURL;
+		let createdBlob: Blob | undefined;
+		URL.createObjectURL = vi.fn((blob: Blob) => {
+			createdBlob = blob;
+			return "blob:csv";
+		});
+
+		try {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [buildSubmission({ points: 7, comment: "Anmerkung", feedbackComment: "Gut" })],
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='assignment-csv-button']").trigger("click");
+
+			expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+			expect(createdBlob).toBeInstanceOf(Blob);
+			// Blob.text() strips a leading BOM, so the BOM is asserted on byte level
+			const bytes = new Uint8Array(await createdBlob!.arrayBuffer());
+			expect([bytes[0], bytes[1], bytes[2]]).toEqual([0xef, 0xbb, 0xbf]);
+			const csv = await createdBlob!.text();
+			expect(csv).toContain("Admin, Anna");
+			expect(csv).toContain("Gut");
+			expect(csv).toContain("Anmerkung");
+		} finally {
+			URL.createObjectURL = originalCreateObjectUrl;
+		}
+	});
+
+	it("should offer the archive download button", async () => {
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='assignment-archive-button']").exists()).toBe(true);
 	});
 });

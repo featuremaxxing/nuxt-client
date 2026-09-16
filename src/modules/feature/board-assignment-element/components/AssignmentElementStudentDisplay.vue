@@ -36,6 +36,14 @@
 				<div v-if="ownSubmission.feedbackComment" data-testid="assignment-teacher-comment">
 					{{ ownSubmission.feedbackComment }}
 				</div>
+				<audio
+					v-if="feedbackAudioUrl"
+					:src="feedbackAudioUrl"
+					controls
+					class="mt-2"
+					preload="none"
+					data-testid="assignment-feedback-audio"
+				/>
 			</div>
 
 			<VTextarea
@@ -81,7 +89,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { fetchSubmissions, createOwnSubmission, submit } = useAssignmentApi();
-const { upload } = useFileStorageApi();
+const { upload, fetchFiles, getFileRecordsByParentId } = useFileStorageApi();
 
 const loading = ref(true);
 const uploading = ref(false);
@@ -90,6 +98,7 @@ const isSubmittable = ref(true);
 const maxPoints = ref<number | null>(null);
 const dueDateIso = ref<string | null>(null);
 const comment = ref("");
+const feedbackAudioUrl = ref<string | undefined>(undefined);
 
 const load = async () => {
 	loading.value = true;
@@ -100,6 +109,21 @@ const load = async () => {
 		maxPoints.value = list.maxPoints ?? null;
 		dueDateIso.value = list.dueDate ?? null;
 		comment.value = ownSubmission.value?.comment ?? comment.value;
+
+		// the audio feedback is revealed together with points/comment (on return)
+		if (isReturned.value && ownSubmission.value?.feedbackAudio && ownSubmission.value.id) {
+			try {
+				await fetchFiles(ownSubmission.value.id, FileRecordParent.BOARDNODES);
+				const audioRecord = getFileRecordsByParentId(ownSubmission.value.id).find((record) =>
+					record.name.startsWith("feedback-audio-")
+				);
+				feedbackAudioUrl.value = audioRecord?.url;
+			} catch {
+				feedbackAudioUrl.value = undefined;
+			}
+		} else {
+			feedbackAudioUrl.value = undefined;
+		}
 	}
 	loading.value = false;
 };
