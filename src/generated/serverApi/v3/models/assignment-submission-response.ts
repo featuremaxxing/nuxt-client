@@ -89,7 +89,7 @@ export interface AssignmentSubmissionResponse {
      */
     returnedAt?: string | null;
     /**
-     * the submitting student's optional note
+     * the submitting student\'s optional note
      * @type {string}
      * @memberof AssignmentSubmissionResponse
      */
