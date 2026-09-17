@@ -1,7 +1,8 @@
 <template>
 	<VDialog
 		:model-value="isOpen"
-		max-width="860"
+		max-width="1200"
+		:fullscreen="smAndDown"
 		scrollable
 		data-testid="assignment-submissions-overlay"
 		@update:model-value="onClose"
@@ -13,273 +14,187 @@
 					{{ element.content.title || t("components.cardElement.assignmentElement.untitled") }}
 				</span>
 				<VSpacer />
+				<VChip size="small" class="mr-2" data-testid="submissions-overlay-count">
+					{{ submittedCount }}/{{ submissions.length }}
+				</VChip>
 				<VBtn icon variant="text" data-testid="submissions-overlay-close" @click="onClose">
 					<VIcon :icon="mdiClose" />
 				</VBtn>
 			</VCardTitle>
 
+			<div v-if="!loading && submissions.length > 0" class="px-4 pb-2">
+				<VProgressLinear :model-value="gradedRatio" height="6" rounded color="success" bg-color="surface-variant" />
+				<div class="text-caption text-medium-emphasis mt-1" data-testid="submissions-overlay-progress">
+					{{
+						t("components.cardElement.assignmentElement.submissionsProgress", { graded: gradedCount, open: openCount })
+					}}
+				</div>
+			</div>
+
 			<VDivider />
 
 			<VCardText>
-				<div class="d-flex align-center flex-wrap gap-2 mb-3">
-					<VChip
-						v-for="filter in statusFilters"
-						:key="filter.key"
-						:color="filterStatus === filter.key ? 'primary' : undefined"
-						data-testid="assignment-filter-chip"
-						clickable
-						@click="filterStatus = filter.key"
-					>
-						{{ filter.label }}
-					</VChip>
+				<div class="d-flex align-center flex-wrap ga-2 mb-3">
+					<VChipGroup v-model="filterStatus" mandatory selected-class="text-primary">
+						<VChip
+							v-for="filter in statusFilters"
+							:key="filter.key"
+							:value="filter.key"
+							size="small"
+							filter
+							data-testid="assignment-filter-chip"
+						>
+							{{ filter.label }}
+						</VChip>
+					</VChipGroup>
 					<VSpacer />
 					<VSelect
 						v-model="sortBy"
 						:items="sortOptions"
 						density="compact"
 						hide-details
-						style="max-width: 220px"
+						style="max-width: 200px"
 						data-testid="assignment-sort-select"
 					/>
-				</div>
-
-				<div class="d-flex justify-end gap-2 mb-3">
-					<VBtn
-						variant="tonal"
-						size="small"
-						:loading="isCsvExporting"
-						data-testid="assignment-csv-button"
-						@click="exportCsv"
-					>
-						{{ t("components.cardElement.assignmentElement.exportCsv") }}
-					</VBtn>
-					<VBtn
-						variant="tonal"
-						size="small"
-						:loading="isArchiveExporting"
-						data-testid="assignment-archive-button"
-						@click="downloadArchive"
-					>
-						{{ t("components.cardElement.assignmentElement.downloadArchive") }}
-					</VBtn>
+					<VMenu>
+						<template #activator="{ props: menuProps }">
+							<VBtn icon variant="text" v-bind="menuProps" data-testid="assignment-export-menu">
+								<VIcon :icon="mdiDotsVertical" />
+							</VBtn>
+						</template>
+						<VList density="compact">
+							<VListItem :disabled="isCsvExporting" data-testid="assignment-csv-button" @click="exportCsv">
+								<template #prepend><VIcon :icon="mdiFileDelimited" size="small" /></template>
+								<VListItemTitle>{{ t("components.cardElement.assignmentElement.exportCsv") }}</VListItemTitle>
+							</VListItem>
+							<VListItem
+								:disabled="isArchiveExporting"
+								data-testid="assignment-archive-button"
+								@click="downloadArchive"
+							>
+								<template #prepend><VIcon :icon="mdiFolderZipOutline" size="small" /></template>
+								<VListItemTitle>{{ t("components.cardElement.assignmentElement.downloadArchive") }}</VListItemTitle>
+							</VListItem>
+						</VList>
+					</VMenu>
 				</div>
 
 				<div v-if="loading" class="text-caption">{{ t("common.labels.loading") }}</div>
 
-				<div v-else class="d-flex flex-column gap-4">
-					<div
-						v-for="submission in visibleSubmissions"
-						:key="submission.userId"
-						class="submission-block"
-						data-testid="submission-block"
+				<div v-else class="submissions-layout">
+					<VList
+						v-if="!smAndDown || selectedSubmission === undefined"
+						class="submissions-list"
+						density="compact"
+						data-testid="submissions-list"
 					>
-						<div class="d-flex align-center flex-wrap">
-							<span class="submission-name" data-testid="submission-name">
-								{{ submission.firstName }} {{ submission.lastName }}
-							</span>
-							<VChip size="x-small" :color="statusColor(submission)" class="mr-2" data-testid="submission-status">
-								{{ statusLabel(submission) }}
-							</VChip>
-							<VChip v-if="submission.isLate" size="x-small" color="warning" data-testid="submission-late">
-								{{ t("components.cardElement.assignmentElement.status.late") }}
-							</VChip>
-							<VSpacer />
-							<span v-if="submission.submittedAt" class="text-caption" data-testid="submission-date">
-								{{ formatUtc(submission.submittedAt, "dateTime") }}
-							</span>
+						<div v-if="visibleSubmissions.length === 0" class="text-caption text-medium-emphasis pa-4">
+							{{ t("components.cardElement.assignmentElement.noSubmissionsForFilter") }}
 						</div>
-
-						<div
-							v-if="submissionFileRecord(submission) || submission.file"
-							class="d-flex align-center mt-2"
-							data-testid="submission-file-row"
+						<VListItem
+							v-for="submission in visibleSubmissions"
+							:key="submission.userId"
+							class="submission-block"
+							:active="submission.id === selectedSubmissionId"
+							data-testid="submission-block"
+							@click="selectedSubmissionId = submission.id"
 						>
-							<PreviewImage
-								v-if="previewUrl(submission)"
-								:src="previewUrl(submission) ?? ''"
-								:alt="submissionFileRecord(submission)?.name ?? ''"
-								class="submission-thumbnail mr-3"
-								data-testid="submission-file-thumbnail"
-								@click="openFile(submission)"
-							/>
-							<VIcon v-else :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
-							<span data-testid="submission-file-name">
-								{{ submissionFileRecord(submission)?.name ?? submission.file?.name }}
-							</span>
-							<VSpacer />
-							<VBtn
-								v-if="isPdfFile(submission)"
-								variant="text"
-								size="small"
-								data-testid="submission-view"
-								@click="openFile(submission)"
-							>
-								{{ t("components.cardElement.assignmentElement.viewFile") }}
-							</VBtn>
-							<VBtn
-								v-if="isAnnotatable(submission)"
-								variant="tonal"
-								size="small"
-								:disabled="annotateBusy"
-								data-testid="submission-annotate"
-								@click="openAnnotator(submission)"
-							>
-								{{ t("components.cardElement.assignmentElement.annotate") }}
-							</VBtn>
-							<VBtn
-								variant="tonal"
-								size="small"
-								:loading="downloadingId === submission.id"
-								data-testid="submission-download"
-								@click="downloadSubmissionFile(submission)"
-							>
-								{{ t("components.cardElement.assignmentElement.downloadFile") }}
-							</VBtn>
-						</div>
-
-						<div
-							v-for="record in latestFeedbackFileRecords(submission)"
-							:key="record.id"
-							class="d-flex align-center mt-2"
-							data-testid="submission-feedback-file"
-						>
-							<VIcon :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
-							<span>{{ record.name }}</span>
-							<VSpacer />
-							<VBtn
-								v-if="isPdfMimeType(record.mimeType) || isImageMimeType(record.mimeType)"
-								variant="tonal"
-								size="small"
-								:disabled="annotateBusy"
-								:data-testid="`submission-feedback-annotate-${record.id}`"
-								@click="startAnnotator(submission, record)"
-							>
-								{{ t("components.cardElement.assignmentElement.annotator.continue") }}
-							</VBtn>
-							<VBtn
-								v-if="isViewableFeedbackFile(record)"
-								variant="text"
-								size="small"
-								:data-testid="`submission-feedback-file-view-${record.id}`"
-								@click="openFeedbackFile(record)"
-							>
-								{{ t("components.cardElement.assignmentElement.viewFile") }}
-							</VBtn>
-							<VBtn
-								variant="text"
-								size="small"
-								:data-testid="`submission-feedback-file-download-${record.id}`"
-								@click="downloadFile(record.url, record.name)"
-							>
-								{{ t("components.cardElement.assignmentElement.downloadFile") }}
-							</VBtn>
-						</div>
-
-						<div
-							v-if="feedbackAudioRecord(submission)"
-							class="d-flex align-center mt-2"
-							data-testid="submission-feedback-audio"
-						>
-							<VIcon :icon="mdiMicrophone" size="small" class="mr-2" />
-							<audio
-								:src="feedbackAudioRecord(submission)?.url"
-								controls
-								class="flex-grow-1"
-								data-testid="submission-audio-player"
-								preload="none"
-							/>
-						</div>
-
-						<div v-if="submission.comment" class="submission-comment mt-2" data-testid="submission-comment">
-							<span class="text-caption">
-								{{ t("components.cardElement.assignmentElement.studentComment") }}:
-							</span>
-							{{ submission.comment }}
-						</div>
-
-						<template v-if="submission.id !== null">
-							<div class="d-flex align-center mt-3" data-testid="submission-audio-feedback-row">
-								<template v-if="recordingSubmissionId === submission.id">
-									<VBtn size="small" color="error" data-testid="submission-record-stop" @click="stopRecording">
-										{{ t("components.cardElement.assignmentElement.audioStop") }}
-									</VBtn>
-									<span class="text-caption ml-2">{{ t("components.cardElement.assignmentElement.audioRecording") }}</span>
-								</template>
-								<template v-else-if="recordedAudio && recordingTargetId === submission.id">
-									<audio :src="recordedAudio.url" controls class="flex-grow-1" data-testid="submission-recorded-preview" />
-									<VBtn
-										variant="tonal"
-										size="small"
-										class="ml-2"
-										:loading="uploadingAudioId === submission.id"
-										data-testid="submission-audio-upload"
-										@click="uploadRecording(submission)"
-									>
-										{{ t("components.cardElement.assignmentElement.audioUpload") }}
-									</VBtn>
-									<VBtn
-										variant="text"
-										size="small"
-										data-testid="submission-audio-discard"
-										@click="discardRecording"
-									>
-										{{ t("common.actions.cancel") }}
-									</VBtn>
-								</template>
-								<template v-else>
-									<VBtn
-										v-if="AudioRecorder.isSupported()"
-										variant="tonal"
-										size="small"
-										:loading="uploadingAudioId === submission.id"
-										data-testid="submission-record"
-										@click="startRecording(submission)"
-									>
-										<VIcon :icon="mdiMicrophone" size="small" class="mr-1" />
-										{{ t("components.cardElement.assignmentElement.audioRecord") }}
-									</VBtn>
-								</template>
+							<div class="d-flex align-center ga-2">
+								<span class="submission-name flex-grow-1 text-truncate" data-testid="submission-name">
+									{{ submission.lastName }}, {{ submission.firstName }}
+								</span>
+								<VIcon v-if="isGraded(submission)" :icon="mdiCheckCircle" size="x-small" color="success" />
 							</div>
+							<div class="d-flex align-center ga-2 mt-1">
+								<VChip size="x-small" :color="statusColor(submission)">{{ statusLabel(submission) }}</VChip>
+								<VChip v-if="submission.isLate" size="x-small" color="warning">
+									{{ t("components.cardElement.assignmentElement.status.late") }}
+								</VChip>
+							</div>
+						</VListItem>
+					</VList>
 
-							<VTextField
-								:model-value="draftPoints[submission.id] ?? submission.points ?? null"
-								type="number"
-								density="compact"
-								:label="pointsLabel"
-								:min="0"
-								:max="maxPoints ?? undefined"
-								data-testid="submission-points-input"
-								@update:model-value="(value: string) => setDraftPoints(submission, value)"
-							/>
-							<VTextarea
-								:model-value="draftFeedback[submission.id] ?? submission.feedbackComment ?? ''"
-								rows="2"
-								auto-grow
-								density="compact"
-								:label="t('components.cardElement.assignmentElement.teacherComment')"
-								data-testid="submission-feedback-input"
-								@update:model-value="(value: string) => setDraftFeedback(submission, value)"
-							/>
-							<div class="d-flex justify-end gap-2">
+					<div v-if="!smAndDown || selectedSubmission !== undefined" class="submissions-detail">
+						<div v-if="smAndDown" class="mb-2">
+							<VBtn
+								variant="text"
+								size="small"
+								:prepend-icon="mdiChevronLeft"
+								data-testid="submission-back"
+								@click="selectedSubmissionId = null"
+							>
+								{{ t("components.cardElement.assignmentElement.submissionsTitle") }}
+							</VBtn>
+						</div>
+
+						<div v-if="selectedSubmission === undefined" class="text-caption text-medium-emphasis pa-4">
+							{{ t("components.cardElement.assignmentElement.selectSubmission") }}
+						</div>
+
+						<template v-else>
+							<div class="d-flex align-center justify-space-between mb-2">
 								<VBtn
-									variant="tonal"
+									icon
+									variant="text"
 									size="small"
-									:loading="savingId === submission.id"
-									data-testid="submission-save-grade"
-									@click="onSaveGrade(submission)"
+									:disabled="!hasPreviousSubmission"
+									:title="t('components.cardElement.assignmentElement.previousSubmission')"
+									data-testid="submission-previous"
+									@click="selectAdjacentSubmission(-1)"
 								>
-									{{ t("common.actions.save") }}
+									<VIcon :icon="mdiChevronLeft" />
 								</VBtn>
 								<VBtn
-									variant="flat"
+									icon
+									variant="text"
 									size="small"
-									:loading="returningId === submission.id"
-									data-testid="submission-return"
-									@click="onReturnSubmission(submission)"
+									:disabled="!hasNextSubmission"
+									:title="t('components.cardElement.assignmentElement.nextSubmission')"
+									data-testid="submission-next"
+									@click="selectAdjacentSubmission(1)"
 								>
-									{{ t("components.cardElement.assignmentElement.returnSubmission") }}
+									<VIcon :icon="mdiChevronRight" />
 								</VBtn>
 							</div>
+
+							<AssignmentSubmissionDetail
+								:submission="selectedSubmission"
+								:submission-file="submissionFileRecord(selectedSubmission)"
+								:preview-url="previewUrl(selectedSubmission)"
+								:feedback-files="latestFeedbackFileRecords(selectedSubmission)"
+								:feedback-audio-url="feedbackAudioRecord(selectedSubmission)?.url"
+								:max-points="maxPoints"
+								:points="draftPoints[selectedSubmission.id ?? ''] ?? selectedSubmission.points ?? null"
+								:feedback-comment="
+									draftFeedback[selectedSubmission.id ?? ''] ?? selectedSubmission.feedbackComment ?? ''
+								"
+								:is-dirty="isDirty(selectedSubmission)"
+								:busy="{
+									saving: savingId === selectedSubmission.id,
+									returning: returningId === selectedSubmission.id,
+									downloading: downloadingId === selectedSubmission.id,
+									annotating: annotateBusy,
+									uploadingAudio: uploadingAudioId === selectedSubmission.id,
+								}"
+								:recording="{
+									isRecording: recordingSubmissionId === selectedSubmission.id,
+									recorded: recordingTargetId === selectedSubmission.id ? recordedAudio : undefined,
+								}"
+								@view-file="openFile(selectedSubmission)"
+								@annotate-file="openAnnotator(selectedSubmission)"
+								@download-file="downloadSubmissionFile(selectedSubmission)"
+								@view-feedback="openFeedbackFile"
+								@continue-feedback="onContinueFeedback"
+								@download-feedback="(record) => downloadFile(record.url, record.name)"
+								@start-recording="startRecording(selectedSubmission)"
+								@stop-recording="stopRecording"
+								@upload-recording="uploadRecording(selectedSubmission)"
+								@discard-recording="discardRecording"
+								@update:points="onUpdatePoints"
+								@update:feedback="onUpdateFeedback"
+								@save="onSaveGrade(selectedSubmission)"
+								@return="onReturnSubmission(selectedSubmission)"
+							/>
 						</template>
 					</div>
 				</div>
@@ -298,32 +213,37 @@
 </template>
 
 <script setup lang="ts">
+import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
+import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
+import AssignmentSubmissionDetail from "./AssignmentSubmissionDetail.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecord, FileRecordParent } from "@/types/file/File";
-import { formatUtc } from "@/utils/date-time.utils";
-import { downloadFile, isImageMimeType, isPdfMimeType } from "@/utils/fileHelper";
 import { AudioRecorder } from "@/utils/audio-recorder";
-import { AssignmentStatus, AssignmentSubmissionFileResponse, AssignmentSubmissionResponse } from "@api-server";
+import { formatUtc } from "@/utils/date-time.utils";
+import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
+import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
+import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
-import { mdiClose, mdiFileDocumentOutline, mdiMicrophone } from "@icons/material";
-import { PreviewImage } from "@ui-preview-image";
-import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
+import {
+	mdiCheckCircle,
+	mdiChevronLeft,
+	mdiChevronRight,
+	mdiClose,
+	mdiDotsVertical,
+	mdiFileDelimited,
+	mdiFolderZipOutline,
+} from "@icons/material";
 import { LightBoxContentType, useLightBox } from "@ui-light-box";
 import JSZip from "jszip";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
-import {
-	isFeedbackAudioName,
-	isFeedbackName,
-	latestFeedbackFileNames,
-} from "../feedback-files.util";
+import { useDisplay } from "vuetify";
 
-// Teacher view of all submissions below one assignment element: overview with
-// filters and sorting, file preview, audio feedback recording, PDF/image pen
-// annotation (saved as a feedback file), draft grading (save), final return
-// and CSV/archive export.
+// Teacher view of all submissions below one assignment element: a list to page
+// through on the left and the selected student's correction workspace on the
+// right (AssignmentSubmissionDetail) - filters, sorting, export and the PDF/image
+// annotator dialog are owned here.
 const props = defineProps<{
 	element: AssignmentElement;
 	isOpen: boolean;
@@ -334,6 +254,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { smAndDown } = useDisplay();
 const { fetchSubmissions, gradeSubmission, returnSubmission } = useAssignmentApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
@@ -349,6 +270,7 @@ const returningId = ref<string | null>(null);
 const downloadingId = ref<string | null>(null);
 const filterStatus = ref<string>("all");
 const sortBy = ref<string>("name");
+const selectedSubmissionId = ref<string | null>(null);
 const recordingSubmissionId = ref<string | null>(null);
 const recordingTargetId = ref<string | null>(null);
 const recordedAudio = ref<{ url: string; blob: Blob } | undefined>(undefined);
@@ -359,12 +281,6 @@ const isArchiveExporting = ref(false);
 let recorder: AudioRecorder | undefined;
 
 const maxPoints = computed(() => props.element.content.maxPoints ?? null);
-
-const pointsLabel = computed(() =>
-	maxPoints.value === null
-		? t("components.cardElement.assignmentElement.pointsLabel")
-		: `${t("components.cardElement.assignmentElement.pointsLabel")} (0–${maxPoints.value})`
-);
 
 const statusFilters = computed(() => [
 	{ key: "all", label: t("components.cardElement.assignmentElement.filter.all") },
@@ -387,6 +303,17 @@ const STATUS_ORDER: Record<string, number> = {
 	inReview: 2,
 	returned: 3,
 };
+
+const submittedCount = computed(() => submissions.value.filter((s) => s.status !== AssignmentStatus.OPEN).length);
+
+const isGraded = (submission: AssignmentSubmissionResponse) =>
+	submission.status === AssignmentStatus.RETURNED || submission.points !== null;
+
+const gradedCount = computed(() => submissions.value.filter(isGraded).length);
+const openCount = computed(() => submissions.value.length - gradedCount.value);
+const gradedRatio = computed(() =>
+	submissions.value.length === 0 ? 0 : (gradedCount.value / submissions.value.length) * 100
+);
 
 const visibleSubmissions = computed(() => {
 	let result = [...submissions.value];
@@ -415,6 +342,31 @@ const visibleSubmissions = computed(() => {
 	return result;
 });
 
+const selectedSubmission = computed(() => visibleSubmissions.value.find((s) => s.id === selectedSubmissionId.value));
+
+const selectedIndex = computed(() =>
+	selectedSubmission.value ? visibleSubmissions.value.indexOf(selectedSubmission.value) : -1
+);
+const hasPreviousSubmission = computed(() => selectedIndex.value > 0);
+const hasNextSubmission = computed(
+	() => selectedIndex.value >= 0 && selectedIndex.value < visibleSubmissions.value.length - 1
+);
+
+const selectAdjacentSubmission = (offset: number) => {
+	const target = visibleSubmissions.value[selectedIndex.value + offset];
+	if (target) {
+		selectedSubmissionId.value = target.id;
+	}
+};
+
+// keep a valid selection whenever the visible list changes (filter/sort/reload) -
+// falls back to the first visible submission, or none when the list is empty
+watch(visibleSubmissions, (list) => {
+	if (!list.some((s) => s.id === selectedSubmissionId.value)) {
+		selectedSubmissionId.value = list[0]?.id ?? null;
+	}
+});
+
 const load = async () => {
 	loading.value = true;
 	const list = await fetchSubmissions(props.element.id);
@@ -430,19 +382,6 @@ const load = async () => {
 
 	loading.value = false;
 };
-
-watch(
-	() => props.isOpen,
-	(isOpen) => {
-		if (isOpen) {
-			draftPoints.value = {};
-			draftFeedback.value = {};
-			filterStatus.value = "all";
-			sortBy.value = "name";
-			void load();
-		}
-	}
-);
 
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
@@ -499,22 +438,6 @@ const openFile = (submission: AssignmentSubmissionResponse) => {
 	});
 };
 
-const submissionMimeType = (submission: AssignmentSubmissionResponse) => submissionFileRecord(submission)?.mimeType;
-
-const isPdfFile = (submission: AssignmentSubmissionResponse) => {
-	const mimeType = submissionMimeType(submission);
-
-	return mimeType !== undefined && isPdfMimeType(mimeType);
-};
-
-const isImageFile = (submission: AssignmentSubmissionResponse) => {
-	const mimeType = submissionMimeType(submission);
-
-	return mimeType !== undefined && isImageMimeType(mimeType);
-};
-
-const isAnnotatable = (submission: AssignmentSubmissionResponse) => isPdfFile(submission) || isImageFile(submission);
-
 const annotateBusy = computed(() => annotatorSaving.value);
 
 const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
@@ -567,14 +490,6 @@ const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => 
 	}
 };
 
-const isViewableFeedbackFile = (record: FileRecord): boolean => {
-	if (isPdfMimeType(record.mimeType)) {
-		return true;
-	}
-
-	return isImageMimeType(record.mimeType) && isPreviewPossible(record.previewStatus);
-};
-
 const openFeedbackFile = (record: FileRecord) => {
 	if (isPdfMimeType(record.mimeType)) {
 		lightBox.open({
@@ -607,6 +522,31 @@ const setDraftFeedback = (submission: AssignmentSubmissionResponse, value: strin
 	if (submission.id) {
 		draftFeedback.value[submission.id] = value;
 	}
+};
+
+// wrapped so the template can bind them without inlining a closure over
+// selectedSubmission (which the template type checker cannot narrow past undefined)
+const onContinueFeedback = (record: FileRecord) => {
+	if (selectedSubmission.value) startAnnotator(selectedSubmission.value, record);
+};
+
+const onUpdatePoints = (value: string) => {
+	if (selectedSubmission.value) setDraftPoints(selectedSubmission.value, value);
+};
+
+const onUpdateFeedback = (value: string) => {
+	if (selectedSubmission.value) setDraftFeedback(selectedSubmission.value, value);
+};
+
+const isDirty = (submission: AssignmentSubmissionResponse) => {
+	if (!submission.id) return false;
+
+	const pointsDirty =
+		submission.id in draftPoints.value && draftPoints.value[submission.id] !== (submission.points ?? null);
+	const feedbackDirty =
+		submission.id in draftFeedback.value && draftFeedback.value[submission.id] !== (submission.feedbackComment ?? "");
+
+	return pointsDirty || feedbackDirty;
 };
 
 const gradeBody = (submissionId: string, submission: AssignmentSubmissionResponse) => {
@@ -707,8 +647,7 @@ const statusColor = (submission: AssignmentSubmissionResponse) => {
 };
 
 const nameOf = (submission: AssignmentSubmissionResponse) =>
-	`${submission.lastName ?? ""}, ${submission.firstName ?? ""}`.replace(/^, |, $/, "").trim() ||
-	(submission.id ?? "—");
+	`${submission.lastName ?? ""}, ${submission.firstName ?? ""}`.replace(/^, |, $/, "").trim() || (submission.id ?? "—");
 
 const exportCsv = () => {
 	isCsvExporting.value = true;
@@ -800,6 +739,11 @@ watch(
 	() => props.isOpen,
 	(isOpen) => {
 		if (isOpen) {
+			draftPoints.value = {};
+			draftFeedback.value = {};
+			filterStatus.value = "all";
+			sortBy.value = "name";
+			selectedSubmissionId.value = null;
 			discardRecording();
 			void load();
 		}
@@ -809,29 +753,26 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.submission-block {
-	border: 1px solid rgba(0, 0, 0, 0.12);
-	border-radius: 8px;
-	padding: 12px;
-}
-.submission-name {
-	font-weight: 600;
-	margin-right: 8px;
-}
-.submission-comment {
-	word-break: break-word;
-}
-.submission-thumbnail {
-	width: 72px;
-	height: 48px;
-	border-radius: 4px;
-	object-fit: cover;
-	cursor: pointer;
-}
-.gap-2 {
-	gap: 8px;
-}
-.gap-4 {
+.submissions-layout {
+	display: flex;
 	gap: 16px;
+	align-items: flex-start;
+}
+.submissions-list {
+	flex: 0 0 240px;
+	max-height: 65vh;
+	overflow-y: auto;
+	border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.submissions-detail {
+	flex: 1 1 auto;
+	min-width: 0;
+	max-height: 65vh;
+	overflow-y: auto;
+	padding: 0 4px;
+}
+.submission-block {
+	border-radius: 8px;
+	margin-bottom: 4px;
 }
 </style>

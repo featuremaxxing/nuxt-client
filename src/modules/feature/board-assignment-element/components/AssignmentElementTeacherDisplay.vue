@@ -11,10 +11,40 @@
 			data-testid="assignment-description"
 		/>
 
-		<VChip v-if="startDateLabel" size="small" class="mb-2" data-testid="assignment-start-date-chip">
-			{{ startDateLabel }}
-		</VChip>
-		<VChip v-if="dueDateLabel" size="small" class="mb-2">{{ dueDateLabel }}</VChip>
+		<div class="d-flex flex-wrap ga-2 mb-2">
+			<VChip
+				v-if="startDateLabel"
+				size="small"
+				variant="tonal"
+				:prepend-icon="mdiClockOutline"
+				data-testid="assignment-start-date-chip"
+			>
+				{{ startDateLabel }}
+			</VChip>
+			<VChip v-if="dueDateLabel" size="small" variant="tonal" :prepend-icon="mdiClockOutline">{{ dueDateLabel }}</VChip>
+		</div>
+
+		<VSkeletonLoader v-if="loading" type="text" width="200" data-testid="assignment-progress-skeleton" />
+		<template v-else>
+			<VProgressLinear
+				:model-value="submittedRatio"
+				height="6"
+				rounded
+				color="primary"
+				bg-color="surface-variant"
+				class="mb-1"
+			/>
+			<div class="text-caption text-medium-emphasis mb-2" data-testid="assignment-progress-label">
+				{{
+					t("components.cardElement.assignmentElement.submittedOf", { submitted: submittedCount, total }) +
+					" · " +
+					t("components.cardElement.assignmentElement.submissionsProgress", {
+						graded: gradedCount,
+						open: total - gradedCount,
+					})
+				}}
+			</div>
+		</template>
 
 		<VBtn
 			variant="tonal"
@@ -41,6 +71,7 @@ import { formatUtc } from "@/utils/date-time.utils";
 import { AssignmentStatus } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { RenderHTML } from "@feature-render-html";
+import { mdiClockOutline } from "@icons/material";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -55,6 +86,7 @@ const isSubmissionsOverlayOpen = ref(false);
 const loading = ref(true);
 const total = ref(0);
 const submittedCount = ref(0);
+const gradedCount = ref(0);
 const dueDateIso = ref<string | null>(null);
 
 onMounted(async () => {
@@ -62,10 +94,15 @@ onMounted(async () => {
 	if (list) {
 		total.value = list.submissions.length;
 		submittedCount.value = list.submissions.filter((s) => s.status !== AssignmentStatus.OPEN).length;
+		gradedCount.value = list.submissions.filter(
+			(s) => s.status === AssignmentStatus.RETURNED || s.points !== null
+		).length;
 		dueDateIso.value = list.dueDate ?? null;
 	}
 	loading.value = false;
 });
+
+const submittedRatio = computed(() => (total.value === 0 ? 0 : (submittedCount.value / total.value) * 100));
 
 const dueDateLabel = computed(() => {
 	const formatted = dueDateIso.value ? formatUtc(dueDateIso.value, "dateTime") : undefined;
@@ -73,7 +110,9 @@ const dueDateLabel = computed(() => {
 });
 
 const startDateLabel = computed(() => {
-	const formatted = props.element.content.startDate ? formatUtc(props.element.content.startDate, "dateTime") : undefined;
+	const formatted = props.element.content.startDate
+		? formatUtc(props.element.content.startDate, "dateTime")
+		: undefined;
 	return formatted ? t("components.cardElement.assignmentElement.startDateLabel", { date: formatted }) : undefined;
 });
 

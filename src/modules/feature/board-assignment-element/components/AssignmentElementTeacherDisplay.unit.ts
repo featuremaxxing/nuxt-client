@@ -62,4 +62,34 @@ describe("AssignmentElementTeacherDisplay", () => {
 
 		expect(wrapper.find("[data-testid='assignment-start-date-chip']").exists()).toBe(false);
 	});
+
+	it("should show a loading skeleton before the submission counts arrive", () => {
+		fetchSubmissionsMock.mockReturnValue(new Promise(() => undefined));
+		const { wrapper } = setupWrapper();
+
+		expect(wrapper.find("[data-testid='assignment-progress-skeleton']").exists()).toBe(true);
+		expect(wrapper.find("[data-testid='assignment-progress-label']").exists()).toBe(false);
+	});
+
+	it("should show submitted and graded counts once submissions are loaded", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				{ id: "1", userId: "u1", status: "returned", isLate: false, points: 8 },
+				{ id: "2", userId: "u2", status: "submitted", isLate: false, points: null },
+				{ id: "3", userId: "u3", status: "open", isLate: false, points: null },
+			],
+		});
+		const { wrapper } = setupWrapper();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='assignment-progress-skeleton']").exists()).toBe(false);
+		const label = wrapper.find("[data-testid='assignment-progress-label']").text();
+		expect(label).toContain("submittedOf");
+		expect(label).toContain("submissionsProgress");
+	});
 });

@@ -20,6 +20,17 @@ export const feedbackKind = (name: string): FeedbackFileKind | undefined => {
 	return undefined;
 };
 
+// Feedback files are named "feedback-<kind>-<timestamp>.<ext>" (see uploadRecording/
+// onAnnotatorSave in AssignmentSubmissionsOverlay.vue). Extracting that timestamp lets the
+// UI show "Korrektur (17.09.2026, 16:53)" instead of the raw, meaningless file name.
+export const feedbackFileTimestamp = (name: string): number | undefined => {
+	const match = name.match(/^feedback-(?:pdf|img|audio)-(\d+)\./);
+	if (!match) return undefined;
+
+	const timestamp = Number(match[1]);
+	return Number.isFinite(timestamp) ? timestamp : undefined;
+};
+
 // The server returns feedback files newest first. When re-annotating a correction a
 // new version is created, so only the newest correction per kind is relevant.
 export const latestFeedbackFileNames = (

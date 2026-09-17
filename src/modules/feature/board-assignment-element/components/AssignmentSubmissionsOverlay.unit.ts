@@ -7,15 +7,21 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchSubmissionsMock, gradeSubmissionMock, returnSubmissionMock, fetchFilesMock, getFileRecordsByParentIdMock, uploadMock } =
-	vi.hoisted(() => ({
-		fetchSubmissionsMock: vi.fn(),
-		gradeSubmissionMock: vi.fn(),
-		returnSubmissionMock: vi.fn(),
-		fetchFilesMock: vi.fn(),
-		getFileRecordsByParentIdMock: vi.fn(),
-		uploadMock: vi.fn(),
-	}));
+const {
+	fetchSubmissionsMock,
+	gradeSubmissionMock,
+	returnSubmissionMock,
+	fetchFilesMock,
+	getFileRecordsByParentIdMock,
+	uploadMock,
+} = vi.hoisted(() => ({
+	fetchSubmissionsMock: vi.fn(),
+	gradeSubmissionMock: vi.fn(),
+	returnSubmissionMock: vi.fn(),
+	fetchFilesMock: vi.fn(),
+	getFileRecordsByParentIdMock: vi.fn(),
+	uploadMock: vi.fn(),
+}));
 
 vi.mock("@data-assignment", () => ({
 	useAssignmentApi: () => ({
@@ -77,12 +83,13 @@ describe("AssignmentSubmissionsOverlay", () => {
 		const wrapper = mount(AssignmentSubmissionsOverlay, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
-				// VDialog teleports into the document body - stub it to render inline
+				// VDialog and VMenu teleport into the document body - stub them to render inline
 				stubs: {
 					VDialog: { template: "<div><slot /></div>" },
 					VCard: { template: "<div><slot /></div>" },
 					VCardTitle: { template: "<div><slot /></div>" },
 					VCardText: { template: "<div><slot /></div>" },
+					VMenu: { template: "<div><slot name='activator' :props='{}' /><slot /></div>" },
 				},
 			},
 			props: { element, isOpen },
@@ -193,7 +200,12 @@ describe("AssignmentSubmissionsOverlay", () => {
 			lateUntil: null,
 			isSubmittable: true,
 			submissions: [
-				buildSubmission({ userId: "user-1", id: "submission-1", status: AssignmentStatus.OPEN, lastName: "Zimmermann" }),
+				buildSubmission({
+					userId: "user-1",
+					id: "submission-1",
+					status: AssignmentStatus.OPEN,
+					lastName: "Zimmermann",
+				}),
 				buildSubmission({ userId: "user-2", id: "submission-2", status: AssignmentStatus.RETURNED, lastName: "Adler" }),
 			],
 		});
@@ -309,7 +321,9 @@ describe("AssignmentSubmissionsOverlay", () => {
 		expect(wrapper.find("[data-testid='submission-file-name']").text()).toContain("essay.pdf");
 		const feedbackRows = wrapper.findAll("[data-testid='submission-feedback-file']");
 		expect(feedbackRows).toHaveLength(1);
-		expect(feedbackRows[0].text()).toContain("feedback-pdf-1.pdf");
+		// the raw file name is not shown to the teacher - only a readable "Korrektur (date)" label
+		expect(feedbackRows[0].text()).not.toContain("feedback-pdf-1.pdf");
+		expect(feedbackRows[0].find("[data-testid='submission-feedback-annotate-record-fb']").exists()).toBe(true);
 	});
 
 	it("should open the annotator for a pdf submission and upload the correction with a feedback prefix", async () => {
@@ -434,8 +448,9 @@ describe("AssignmentSubmissionsOverlay", () => {
 
 		const rows = wrapper.findAll("[data-testid='submission-feedback-file']");
 		expect(rows).toHaveLength(1);
-		expect(rows[0].text()).toContain("feedback-pdf-2.pdf");
-		expect(rows[0].text()).not.toContain("feedback-pdf-1.pdf");
+		// only the newest correction (record-pdf-2) is offered - the raw name is never shown
+		expect(rows[0].find("[data-testid='submission-feedback-annotate-record-pdf-2']").exists()).toBe(true);
+		expect(rows[0].find("[data-testid='submission-feedback-annotate-record-pdf-1']").exists()).toBe(false);
 
 		// "continue editing" opens the annotator with the existing correction
 		await rows[0].find("[data-testid='submission-feedback-annotate-record-pdf-2']").trigger("click");
@@ -468,5 +483,67 @@ describe("AssignmentSubmissionsOverlay", () => {
 		await vi.dynamicImportSettled();
 
 		expect(wrapper.find("[data-testid='submission-annotate']").exists()).toBe(false);
+	});
+
+	it("should auto-select the first submission and switch the detail when another student is picked", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({ userId: "user-1", id: "submission-1", firstName: "Anna", lastName: "Adler" }),
+				buildSubmission({ userId: "user-2", id: "submission-2", firstName: "Ben", lastName: "Berger" }),
+			],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Adler");
+
+		const blocks = wrapper.findAll("[data-testid='submission-block']");
+		await blocks[1].trigger("click");
+
+		expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Berger");
+	});
+
+	it("should show an empty state when the filter has no matches", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [buildSubmission({ status: AssignmentStatus.SUBMITTED })],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const chips = wrapper.findAll("[data-testid='assignment-filter-chip']");
+		const openChip = chips.find((chip) => chip.text().includes("filter.open"));
+		await openChip?.trigger("click");
+
+		expect(wrapper.text()).toContain("noSubmissionsForFilter");
+		expect(wrapper.find("[data-testid='submission-detail-name']").exists()).toBe(false);
+	});
+
+	it("should show the graded/open progress summary", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({ userId: "user-1", id: "submission-1", status: AssignmentStatus.RETURNED, points: 8 }),
+				buildSubmission({ userId: "user-2", id: "submission-2", status: AssignmentStatus.SUBMITTED, points: null }),
+			],
+		});
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const progress = wrapper.find("[data-testid='submissions-overlay-progress']").text();
+		expect(progress).toContain("submissionsProgress");
 	});
 });
