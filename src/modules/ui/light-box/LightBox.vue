@@ -1,5 +1,5 @@
 <template>
-	<VDialog v-model="isLightBoxOpen" fullscreen data-testid="light-box">
+	<VDialog v-model="isLightBoxOpen" fullscreen :z-index="3000" data-testid="light-box">
 		<v-toolbar>
 			<v-btn :aria-label="t('common.labels.close')" :icon="mdiClose" data-testid="light-box-close-btn" @click="close" />
 

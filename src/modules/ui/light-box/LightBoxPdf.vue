@@ -106,11 +106,13 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .pdf-viewer {
-	/* the LightBox toolbar is 64px - without an explicit height the scroll
-	   container collapses and the lazy page rendering never triggers */
-	height: calc(100vh - 64px);
-	height: calc(100dvh - 64px);
-	width: 100%;
+	/* pinned to the dialog area below the 64px toolbar - the surrounding light box
+	   flex layout clips tall pages, and app navigation can stack above the dialog */
+	position: absolute;
+	top: 64px;
+	right: 0;
+	bottom: 0;
+	left: 0;
 	overflow: auto;
 	display: flex;
 	flex-direction: column;
@@ -121,7 +123,7 @@ onBeforeUnmount(() => {
 
 .pdf-page-slot {
 	min-height: 80px;
-	width: 100%;
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;

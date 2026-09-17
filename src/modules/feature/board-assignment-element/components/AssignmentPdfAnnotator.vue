@@ -3,6 +3,7 @@
 		:model-value="isOpen"
 		fullscreen
 		scrollable
+		:z-index="3000"
 		data-testid="assignment-pdf-annotator"
 		@update:model-value="(value: boolean) => !value && emit('cancel')"
 	>
