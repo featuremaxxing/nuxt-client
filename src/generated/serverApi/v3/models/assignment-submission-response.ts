@@ -100,6 +100,12 @@ export interface AssignmentSubmissionResponse {
      * @memberof AssignmentSubmissionResponse
      */
     feedbackAudio?: AssignmentSubmissionFileResponse | null;
+    /**
+     * the teacher’s feedback files (annotated corrections), newest first; withheld from students until the submission has been returned
+     * @type {Array<AssignmentSubmissionFileResponse>}
+     * @memberof AssignmentSubmissionResponse
+     */
+    feedbackFiles?: Array<AssignmentSubmissionFileResponse> | null;
 }
 
 

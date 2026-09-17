@@ -5,11 +5,13 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchSubmissionsMock, createOwnSubmissionMock, submitMock, uploadMock } = vi.hoisted(() => ({
+const { fetchSubmissionsMock, createOwnSubmissionMock, submitMock, uploadMock, fetchFilesMock, getFileRecordsByParentIdMock } = vi.hoisted(() => ({
 	fetchSubmissionsMock: vi.fn(),
 	createOwnSubmissionMock: vi.fn(),
 	submitMock: vi.fn(),
 	uploadMock: vi.fn(),
+	fetchFilesMock: vi.fn(),
+	getFileRecordsByParentIdMock: vi.fn(),
 }));
 
 vi.mock("@data-assignment", () => ({
@@ -23,6 +25,8 @@ vi.mock("@data-assignment", () => ({
 vi.mock("@data-file", () => ({
 	useFileStorageApi: () => ({
 		upload: uploadMock,
+		fetchFiles: fetchFilesMock,
+		getFileRecordsByParentId: getFileRecordsByParentIdMock,
 	}),
 }));
 
@@ -56,6 +60,8 @@ describe("AssignmentElementStudentDisplay", () => {
 		createOwnSubmissionMock.mockResolvedValue(buildSubmission({ id: "new-submission" }));
 		submitMock.mockResolvedValue(buildSubmission());
 		uploadMock.mockResolvedValue(undefined);
+		fetchFilesMock.mockResolvedValue(undefined);
+		getFileRecordsByParentIdMock.mockReturnValue([]);
 	});
 
 	afterEach(() => {
@@ -162,5 +168,69 @@ describe("AssignmentElementStudentDisplay", () => {
 		expect(wrapper.find("[data-testid='assignment-feedback-heading']").text()).toContain(
 			"components.cardElement.assignmentElement.feedbackHeading"
 		);
+	});
+
+	it("should show the teacher's feedback files after the return", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: false,
+			submissions: [
+				buildSubmission({
+					id: "submission-1",
+					status: AssignmentStatus.RETURNED,
+					returnedAt: "2099-01-20T10:00:00.000Z",
+					feedbackFiles: [
+						{ fileRecordId: "record-fb", name: "feedback-pdf-1.pdf" },
+						{ fileRecordId: "record-img", name: "feedback-img-1.png" },
+					],
+				} as AssignmentSubmissionResponse),
+			],
+		});
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-fb",
+				name: "feedback-pdf-1.pdf",
+				url: "https://api/files/feedback-pdf-1.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+			{
+				id: "record-img",
+				name: "feedback-img-1.png",
+				url: "https://api/files/feedback-img-1.png",
+				mimeType: "image/png",
+				previewStatus: "justified-impossible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const rows = wrapper.findAll("[data-testid='assignment-feedback-file']");
+		expect(rows).toHaveLength(2);
+
+		// pdf: viewable via the pdf lightbox; image without preview: download only
+		expect(rows[0].find("[data-testid='assignment-feedback-file-view-record-fb']").exists()).toBe(true);
+		expect(rows[1].find("[data-testid='assignment-feedback-file-view-record-img']").exists()).toBe(false);
+		expect(rows[1].find("[data-testid='assignment-feedback-file-download-record-img']").exists()).toBe(true);
+	});
+
+	it("should not show feedback files before the submission is returned", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-fb",
+				name: "feedback-pdf-1.pdf",
+				url: "https://api/files/feedback-pdf-1.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.findAll("[data-testid='assignment-feedback-file']")).toHaveLength(0);
 	});
 });

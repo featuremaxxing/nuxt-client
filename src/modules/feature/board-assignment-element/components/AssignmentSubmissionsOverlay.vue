@@ -108,11 +108,58 @@
 							</span>
 							<VSpacer />
 							<VBtn
+								v-if="isPdfFile(submission)"
+								variant="text"
+								size="small"
+								data-testid="submission-view"
+								@click="openFile(submission)"
+							>
+								{{ t("components.cardElement.assignmentElement.viewFile") }}
+							</VBtn>
+							<VBtn
+								v-if="isAnnotatable(submission)"
+								variant="tonal"
+								size="small"
+								:disabled="annotateBusy"
+								data-testid="submission-annotate"
+								@click="openAnnotator(submission)"
+							>
+								{{ t("components.cardElement.assignmentElement.annotate") }}
+							</VBtn>
+							<VBtn
 								variant="tonal"
 								size="small"
 								:loading="downloadingId === submission.id"
 								data-testid="submission-download"
 								@click="downloadSubmissionFile(submission)"
+							>
+								{{ t("components.cardElement.assignmentElement.downloadFile") }}
+							</VBtn>
+						</div>
+
+						<div
+							v-for="record in feedbackFileRecords(submission)"
+							:key="record.id"
+							class="d-flex align-center mt-2"
+							data-testid="submission-feedback-file"
+						>
+							<VIcon :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
+							<span>{{ record.name }}</span>
+							<VSpacer />
+							<VBtn
+								v-if="isViewableFeedbackFile(record)"
+								variant="text"
+								size="small"
+								:data-testid="`submission-feedback-file-view-${record.id}`"
+								@click="openFeedbackFile(record)"
+							>
+								{{ t("components.cardElement.assignmentElement.viewFile") }}
+							</VBtn>
+							<VBtn
+								variant="text"
+								size="small"
+								:data-testid="`submission-feedback-file-download-${record.id}`"
+								@click="downloadFile(record.url, record.name)"
 							>
 								{{ t("components.cardElement.assignmentElement.downloadFile") }}
 							</VBtn>
@@ -228,30 +275,39 @@
 				</div>
 			</VCardText>
 		</VCard>
+
+		<AssignmentPdfAnnotator
+			:is-open="annotatorSource !== undefined"
+			:source="annotatorSource"
+			:error-message="annotateError ? t('components.cardElement.assignmentElement.annotateSaveError') : undefined"
+			@cancel="closeAnnotator"
+			@save="onAnnotatorSave"
+		/>
 	</VDialog>
 </template>
 
 <script setup lang="ts">
 import { AssignmentElement } from "@/types/board/ContentElement";
-import { FileRecordParent } from "@/types/file/File";
+import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { formatUtc } from "@/utils/date-time.utils";
-import { downloadFile } from "@/utils/fileHelper";
+import { downloadFile, isImageMimeType, isPdfMimeType } from "@/utils/fileHelper";
 import { AudioRecorder } from "@/utils/audio-recorder";
 import { AssignmentStatus, AssignmentSubmissionFileResponse, AssignmentSubmissionResponse } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
 import { mdiClose, mdiFileDocumentOutline, mdiMicrophone } from "@icons/material";
 import { PreviewImage } from "@ui-preview-image";
-import { convertDownloadToPreviewUrl, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
+import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
 import { LightBoxContentType, useLightBox } from "@ui-light-box";
 import JSZip from "jszip";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 
 // Teacher view of all submissions below one assignment element: overview with
-// filters and sorting, file preview, audio feedback recording, draft grading
-// (save) and final return, CSV and archive export. The PDF pen-annotation of
-// the original brief remains a later round - this covers the file-based V1 flow.
+// filters and sorting, file preview, audio feedback recording, PDF/image pen
+// annotation (saved as a feedback file), draft grading (save), final return
+// and CSV/archive export.
 const props = defineProps<{
 	element: AssignmentElement;
 	isOpen: boolean;
@@ -266,6 +322,7 @@ const { fetchSubmissions, gradeSubmission, returnSubmission } = useAssignmentApi
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 
+const FEEDBACK_PREFIX = "feedback-";
 const FEEDBACK_AUDIO_PREFIX = "feedback-audio-";
 
 const loading = ref(false);
@@ -375,13 +432,18 @@ watch(
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
 
-const isFeedbackAudioName = (name: string) => name.startsWith(FEEDBACK_AUDIO_PREFIX);
+const isFeedbackName = (name: string) => name.startsWith(FEEDBACK_PREFIX);
 
 const submissionFileRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => !isFeedbackAudioName(record.name));
+	recordsOf(submission).find((record) => !isFeedbackName(record.name));
 
 const feedbackAudioRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => isFeedbackAudioName(record.name));
+	recordsOf(submission).find((record) => record.name.startsWith(FEEDBACK_AUDIO_PREFIX));
+
+const feedbackFileRecords = (submission: AssignmentSubmissionResponse) =>
+	recordsOf(submission).filter(
+		(record) => isFeedbackName(record.name) && !record.name.startsWith(FEEDBACK_AUDIO_PREFIX)
+	);
 
 const previewUrl = (submission: AssignmentSubmissionResponse) => {
 	const record = submissionFileRecord(submission);
@@ -399,7 +461,12 @@ const openFile = (submission: AssignmentSubmissionResponse) => {
 	}
 
 	if (isPdfMimeType(record.mimeType)) {
-		window.open(record.url, "_blank");
+		lightBox.open({
+			type: LightBoxContentType.PDF,
+			downloadUrl: record.url,
+			name: record.name,
+		});
+
 		return;
 	}
 
@@ -408,6 +475,93 @@ const openFile = (submission: AssignmentSubmissionResponse) => {
 		downloadUrl: record.url,
 		name: record.name,
 		previewUrl: previewUrl(submission),
+	});
+};
+
+const submissionMimeType = (submission: AssignmentSubmissionResponse) => submissionFileRecord(submission)?.mimeType;
+
+const isPdfFile = (submission: AssignmentSubmissionResponse) => {
+	const mimeType = submissionMimeType(submission);
+
+	return mimeType !== undefined && isPdfMimeType(mimeType);
+};
+
+const isImageFile = (submission: AssignmentSubmissionResponse) => {
+	const mimeType = submissionMimeType(submission);
+
+	return mimeType !== undefined && isImageMimeType(mimeType);
+};
+
+const isAnnotatable = (submission: AssignmentSubmissionResponse) => isPdfFile(submission) || isImageFile(submission);
+
+const annotateBusy = computed(() => annotatorSaving.value);
+
+const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
+const annotatorSaving = ref(false);
+const annotateError = ref(false);
+let annotatorSubmissionId: string | null = null;
+
+const openAnnotator = (submission: AssignmentSubmissionResponse) => {
+	const record = submissionFileRecord(submission);
+	if (!record) return;
+
+	annotateError.value = false;
+	annotatorSubmissionId = submission.id ?? null;
+	annotatorSource.value = {
+		kind: isPdfMimeType(record.mimeType) ? "pdf" : "image",
+		url: record.url,
+		name: record.name,
+	};
+};
+
+const closeAnnotator = () => {
+	annotatorSource.value = undefined;
+};
+
+const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => {
+	if (!annotatorSubmissionId) return;
+
+	annotatorSaving.value = true;
+	try {
+		const file = new File([blob], name, { type: blob.type });
+		await upload(file, annotatorSubmissionId, FileRecordParent.BOARDNODES);
+		annotateError.value = false;
+		closeAnnotator();
+		await load();
+	} catch {
+		// the file storage RPC can fail on broken records - keep the annotator open
+		// so the teacher does not lose their strokes, and show the error in place
+		annotateError.value = true;
+	} finally {
+		annotatorSaving.value = false;
+	}
+};
+
+const isViewableFeedbackFile = (record: FileRecord): boolean => {
+	if (isPdfMimeType(record.mimeType)) {
+		return true;
+	}
+
+	return isImageMimeType(record.mimeType) && isPreviewPossible(record.previewStatus);
+};
+
+const openFeedbackFile = (record: FileRecord) => {
+	if (isPdfMimeType(record.mimeType)) {
+		lightBox.open({
+			type: LightBoxContentType.PDF,
+			downloadUrl: record.url,
+			name: record.name,
+		});
+
+		return;
+	}
+
+	lightBox.open({
+		type: LightBoxContentType.IMAGE,
+		downloadUrl: record.url,
+		name: record.name,
+		previewUrl: convertDownloadToPreviewUrl(record.url),
+		alt: record.name,
 	});
 };
 

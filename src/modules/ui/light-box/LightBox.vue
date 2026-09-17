@@ -40,6 +40,11 @@
 					@error="handleVideoError"
 					@click.stop
 				/>
+				<LightBoxPdf
+					v-if="isLightBoxPdfType() && lightBoxOptions && isLightBoxOpen"
+					:url="lightBoxOptions.downloadUrl"
+					@click.stop
+				/>
 				<ErrorAlert v-if="hasAudioError" class="error-alert">
 					{{ t("components.cardElement.fileElement.audioFormatError") }}
 				</ErrorAlert>
@@ -59,8 +64,11 @@ import { ErrorAlert } from "@ui-alert";
 import { AudioPlayer } from "@ui-audio-player";
 import { PreviewImage } from "@ui-preview-image";
 import { onKeyStroke } from "@vueuse/core";
-import { ref, watch } from "vue";
+import { defineAsyncComponent, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+
+// the pdf viewer (pdfjs) is only fetched when a PDF is actually opened
+const LightBoxPdf = defineAsyncComponent(() => import("./LightBoxPdf.vue"));
 
 const { t } = useI18n();
 
@@ -94,6 +102,7 @@ watch(isLightBoxOpen, () => {
 const isLightBoxImageType = () => lightBoxOptions.value?.type === LightBoxContentType.IMAGE;
 const isLightBoxAudioType = () => lightBoxOptions.value?.type === LightBoxContentType.AUDIO;
 const isLightBoxVideoType = () => lightBoxOptions.value?.type === LightBoxContentType.VIDEO;
+const isLightBoxPdfType = () => lightBoxOptions.value?.type === LightBoxContentType.PDF;
 </script>
 
 <style scoped>

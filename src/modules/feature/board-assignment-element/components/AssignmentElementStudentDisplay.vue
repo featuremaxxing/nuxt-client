@@ -44,6 +44,33 @@
 					preload="none"
 					data-testid="assignment-feedback-audio"
 				/>
+				<div
+					v-for="record in feedbackFileRecords"
+					:key="record.id"
+					class="d-flex align-center mt-2"
+					data-testid="assignment-feedback-file"
+				>
+					<VIcon :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
+					<span class="text-body-2">{{ record.name }}</span>
+					<VSpacer />
+					<VBtn
+						v-if="isPdfMimeType(record.mimeType) || (isImageMimeType(record.mimeType) && isPreviewPossible(record.previewStatus))"
+						variant="text"
+						size="small"
+						:data-testid="`assignment-feedback-file-view-${record.id}`"
+						@click="openFeedbackFile(record)"
+					>
+						{{ t("components.cardElement.assignmentElement.viewFile") }}
+					</VBtn>
+					<VBtn
+						variant="text"
+						size="small"
+						:data-testid="`assignment-feedback-file-download-${record.id}`"
+						@click="downloadFile(record.url, record.name)"
+					>
+						{{ t("components.cardElement.assignmentElement.downloadFile") }}
+					</VBtn>
+				</div>
 			</div>
 
 			<VTextarea
@@ -74,12 +101,15 @@
 
 <script setup lang="ts">
 import { AssignmentElement } from "@/types/board/ContentElement";
-import { FileRecordParent } from "@/types/file/File";
+import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { formatUtc } from "@/utils/date-time.utils";
+import { downloadFile, convertDownloadToPreviewUrl, isImageMimeType, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
 import { AssignmentStatus, AssignmentSubmissionResponse, SubmitSubmissionBodyParams } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
 import { RenderHTML } from "@feature-render-html";
+import { mdiFileDocumentOutline } from "@icons/material";
+import { LightBoxContentType, useLightBox } from "@ui-light-box";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -90,6 +120,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const { fetchSubmissions, createOwnSubmission, submit } = useAssignmentApi();
 const { upload, fetchFiles, getFileRecordsByParentId } = useFileStorageApi();
+const lightBox = useLightBox();
 
 const loading = ref(true);
 const uploading = ref(false);
@@ -99,6 +130,7 @@ const maxPoints = ref<number | null>(null);
 const dueDateIso = ref<string | null>(null);
 const comment = ref("");
 const feedbackAudioUrl = ref<string | undefined>(undefined);
+const feedbackFileRecords = ref<FileRecord[]>([]);
 
 const load = async () => {
 	loading.value = true;
@@ -110,22 +142,48 @@ const load = async () => {
 		dueDateIso.value = list.dueDate ?? null;
 		comment.value = ownSubmission.value?.comment ?? comment.value;
 
-		// the audio feedback is revealed together with points/comment (on return)
-		if (isReturned.value && ownSubmission.value?.feedbackAudio && ownSubmission.value.id) {
+		// feedback (audio + annotated corrections) is revealed together with
+		// points/comment once the teacher has returned the submission
+		if (isReturned.value && ownSubmission.value?.id) {
 			try {
 				await fetchFiles(ownSubmission.value.id, FileRecordParent.BOARDNODES);
-				const audioRecord = getFileRecordsByParentId(ownSubmission.value.id).find((record) =>
-					record.name.startsWith("feedback-audio-")
-				);
-				feedbackAudioUrl.value = audioRecord?.url;
+				const records = getFileRecordsByParentId(ownSubmission.value.id);
+				const isFeedback = (name: string) => name.startsWith("feedback-");
+				const isFeedbackAudio = (name: string) => name.startsWith("feedback-audio-");
+
+				feedbackAudioUrl.value = records.find(
+					(record) => isFeedbackAudio(record.name) && ownSubmission.value?.feedbackAudio?.name === record.name
+				)?.url;
+				feedbackFileRecords.value =
+					ownSubmission.value.feedbackFiles && ownSubmission.value.feedbackFiles.length > 0
+						? records.filter((record) => isFeedback(record.name) && !isFeedbackAudio(record.name))
+						: [];
 			} catch {
 				feedbackAudioUrl.value = undefined;
+				feedbackFileRecords.value = [];
 			}
 		} else {
 			feedbackAudioUrl.value = undefined;
+			feedbackFileRecords.value = [];
 		}
 	}
 	loading.value = false;
+};
+
+const openFeedbackFile = (record: FileRecord) => {
+	if (isPdfMimeType(record.mimeType)) {
+		lightBox.open({ type: LightBoxContentType.PDF, downloadUrl: record.url, name: record.name });
+
+		return;
+	}
+
+	lightBox.open({
+		type: LightBoxContentType.IMAGE,
+		downloadUrl: record.url,
+		name: record.name,
+		previewUrl: convertDownloadToPreviewUrl(record.url),
+		alt: record.name,
+	});
 };
 
 onMounted(load);

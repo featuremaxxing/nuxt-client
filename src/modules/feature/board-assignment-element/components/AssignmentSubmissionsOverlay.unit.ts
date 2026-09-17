@@ -1,17 +1,20 @@
+import AssignmentPdfAnnotator from "./AssignmentPdfAnnotator.vue";
 import AssignmentSubmissionsOverlay from "./AssignmentSubmissionsOverlay.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
+import { FileRecordParent } from "@/types/file/File";
 import { assignmentElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchSubmissionsMock, gradeSubmissionMock, returnSubmissionMock, fetchFilesMock, getFileRecordsByParentIdMock } =
+const { fetchSubmissionsMock, gradeSubmissionMock, returnSubmissionMock, fetchFilesMock, getFileRecordsByParentIdMock, uploadMock } =
 	vi.hoisted(() => ({
 		fetchSubmissionsMock: vi.fn(),
 		gradeSubmissionMock: vi.fn(),
 		returnSubmissionMock: vi.fn(),
 		fetchFilesMock: vi.fn(),
 		getFileRecordsByParentIdMock: vi.fn(),
+		uploadMock: vi.fn(),
 	}));
 
 vi.mock("@data-assignment", () => ({
@@ -26,7 +29,7 @@ vi.mock("@data-file", () => ({
 	useFileStorageApi: () => ({
 		fetchFiles: fetchFilesMock,
 		getFileRecordsByParentId: getFileRecordsByParentIdMock,
-		upload: vi.fn(),
+		upload: uploadMock,
 	}),
 }));
 
@@ -63,6 +66,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 		returnSubmissionMock.mockResolvedValue(undefined);
 		fetchFilesMock.mockResolvedValue(undefined);
 		getFileRecordsByParentIdMock.mockReturnValue([]);
+		uploadMock.mockResolvedValue(undefined);
 	});
 
 	afterEach(() => {
@@ -268,5 +272,108 @@ describe("AssignmentSubmissionsOverlay", () => {
 		await vi.dynamicImportSettled();
 
 		expect(wrapper.find("[data-testid='assignment-archive-button']").exists()).toBe(true);
+	});
+
+	it("should keep feedback files out of the submission file slot and list them separately", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "essay.pdf",
+				url: "https://api/files/essay.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+			{
+				id: "record-fb",
+				name: "feedback-pdf-1.pdf",
+				url: "https://api/files/feedback-pdf-1.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-file-name']").text()).toContain("essay.pdf");
+		const feedbackRows = wrapper.findAll("[data-testid='submission-feedback-file']");
+		expect(feedbackRows).toHaveLength(1);
+		expect(feedbackRows[0].text()).toContain("feedback-pdf-1.pdf");
+	});
+
+	it("should open the annotator for a pdf submission and upload the correction with a feedback prefix", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "essay.pdf",
+				url: "https://api/files/essay.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-annotate']").exists()).toBe(true);
+		await wrapper.find("[data-testid='submission-annotate']").trigger("click");
+
+		const annotator = wrapper.findComponent(AssignmentPdfAnnotator);
+		expect(annotator.exists()).toBe(true);
+
+		const blob = new Blob(["annotated"], { type: "application/pdf" });
+		annotator.vm.$emit("save", { blob, name: "feedback-pdf-123.pdf" });
+		await vi.dynamicImportSettled();
+
+		expect(uploadMock).toHaveBeenCalledTimes(1);
+		const [file, parentId, parentType] = uploadMock.mock.calls[0];
+		expect(file.name).toBe("feedback-pdf-123.pdf");
+		expect(file.type).toBe("application/pdf");
+		expect(parentId).toBe("submission-1");
+		expect(parentType).toBe(FileRecordParent.BOARDNODES);
+		// the overlay reloads so the new feedback file shows up
+		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(2);
+	});
+
+	it("should keep the annotator open and show an error when the upload fails", async () => {
+		uploadMock.mockRejectedValue(new Error("storage broken"));
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "essay.pdf",
+				url: "https://api/files/essay.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+		await wrapper.find("[data-testid='submission-annotate']").trigger("click");
+
+		const annotator = wrapper.findComponent(AssignmentPdfAnnotator);
+		annotator.vm.$emit("save", { blob: new Blob(["x"]), name: "feedback-pdf-123.pdf" });
+		await vi.dynamicImportSettled();
+
+		expect(annotator.props("isOpen")).toBe(true);
+		expect(annotator.props("errorMessage")).toBeTruthy();
+		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("should not offer the annotate button for non-visual files", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "notes.txt",
+				url: "https://api/files/notes.txt",
+				mimeType: "text/plain",
+				previewStatus: "justified-impossible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='submission-annotate']").exists()).toBe(false);
 	});
 });
