@@ -3,7 +3,7 @@
 // application's main bundle.
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?worker";
 
 export const MAX_RENDER_DIMENSION = 2400;
 
@@ -11,7 +11,9 @@ let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | undefined;
 
 const getPdfjs = (): Promise<typeof import("pdfjs-dist")> => {
 	pdfjsPromise ??= import("pdfjs-dist").then((lib) => {
-		lib.GlobalWorkerOptions.workerSrc = workerUrl;
+		// the worker runs as a bundled Vite chunk (correct js mime type); serving the
+		// raw .mjs via nginx would fail the browser's strict module mime check
+		lib.GlobalWorkerOptions.workerPort = new PdfWorker();
 
 		return lib;
 	});
