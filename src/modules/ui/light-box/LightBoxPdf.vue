@@ -129,7 +129,9 @@ onBeforeUnmount(() => {
 
 .pdf-page {
 	display: block;
-	max-width: 100%;
+	/* the canvas renders at up to 2400px for sharpness - cap the display size to a
+	   readable page width instead of showing the intrinsic resolution */
+	max-width: min(100%, 900px);
 	height: auto;
 	box-shadow: 0 1px 6px rgb(0 0 0 / 25%);
 	background: #ffffff;

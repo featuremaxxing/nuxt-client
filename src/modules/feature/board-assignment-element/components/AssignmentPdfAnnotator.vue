@@ -432,7 +432,9 @@ const save = async () => {
 
 .annotator-canvas-stack {
 	position: relative;
-	max-width: 100%;
+	/* keep the page at a workable size on large screens - the canvas itself renders
+	   at high resolution for sharp pen strokes */
+	max-width: min(100%, 1100px);
 	max-height: 100%;
 	display: inline-flex;
 }
