@@ -110,6 +110,7 @@ import { useFileStorageApi } from "@data-file";
 import { RenderHTML } from "@feature-render-html";
 import { mdiFileDocumentOutline } from "@icons/material";
 import { LightBoxContentType, useLightBox } from "@ui-light-box";
+import { isFeedbackAudioName, latestFeedbackFileNames } from "../feedback-files.util";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -148,16 +149,14 @@ const load = async () => {
 			try {
 				await fetchFiles(ownSubmission.value.id, FileRecordParent.BOARDNODES);
 				const records = getFileRecordsByParentId(ownSubmission.value.id);
-				const isFeedback = (name: string) => name.startsWith("feedback-");
-				const isFeedbackAudio = (name: string) => name.startsWith("feedback-audio-");
 
 				feedbackAudioUrl.value = records.find(
-					(record) => isFeedbackAudio(record.name) && ownSubmission.value?.feedbackAudio?.name === record.name
+					(record) => isFeedbackAudioName(record.name) && ownSubmission.value?.feedbackAudio?.name === record.name
 				)?.url;
-				feedbackFileRecords.value =
-					ownSubmission.value.feedbackFiles && ownSubmission.value.feedbackFiles.length > 0
-						? records.filter((record) => isFeedback(record.name) && !isFeedbackAudio(record.name))
-						: [];
+				// only the newest correction per kind (pdf/image) is relevant - re-annotating
+				// a correction creates a new version, the server returns feedback files newest first
+				const latestNames = latestFeedbackFileNames(ownSubmission.value.feedbackFiles);
+				feedbackFileRecords.value = records.filter((record) => latestNames.has(record.name));
 			} catch {
 				feedbackAudioUrl.value = undefined;
 				feedbackFileRecords.value = [];

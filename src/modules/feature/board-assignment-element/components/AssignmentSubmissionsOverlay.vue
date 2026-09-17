@@ -138,7 +138,7 @@
 						</div>
 
 						<div
-							v-for="record in feedbackFileRecords(submission)"
+							v-for="record in latestFeedbackFileRecords(submission)"
 							:key="record.id"
 							class="d-flex align-center mt-2"
 							data-testid="submission-feedback-file"
@@ -146,6 +146,16 @@
 							<VIcon :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
 							<span>{{ record.name }}</span>
 							<VSpacer />
+							<VBtn
+								v-if="isPdfMimeType(record.mimeType) || isImageMimeType(record.mimeType)"
+								variant="tonal"
+								size="small"
+								:disabled="annotateBusy"
+								:data-testid="`submission-feedback-annotate-${record.id}`"
+								@click="startAnnotator(submission, record)"
+							>
+								{{ t("components.cardElement.assignmentElement.annotator.continue") }}
+							</VBtn>
 							<VBtn
 								v-if="isViewableFeedbackFile(record)"
 								variant="text"
@@ -279,6 +289,7 @@
 		<AssignmentPdfAnnotator
 			:is-open="annotatorSource !== undefined"
 			:source="annotatorSource"
+			:student-name="annotatorStudentName"
 			:error-message="annotateError ? t('components.cardElement.assignmentElement.annotateSaveError') : undefined"
 			@cancel="closeAnnotator"
 			@save="onAnnotatorSave"
@@ -303,6 +314,11 @@ import JSZip from "jszip";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
+import {
+	isFeedbackAudioName,
+	isFeedbackName,
+	latestFeedbackFileNames,
+} from "../feedback-files.util";
 
 // Teacher view of all submissions below one assignment element: overview with
 // filters and sorting, file preview, audio feedback recording, PDF/image pen
@@ -322,7 +338,6 @@ const { fetchSubmissions, gradeSubmission, returnSubmission } = useAssignmentApi
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 
-const FEEDBACK_PREFIX = "feedback-";
 const FEEDBACK_AUDIO_PREFIX = "feedback-audio-";
 
 const loading = ref(false);
@@ -432,18 +447,24 @@ watch(
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
 
-const isFeedbackName = (name: string) => name.startsWith(FEEDBACK_PREFIX);
-
 const submissionFileRecord = (submission: AssignmentSubmissionResponse) =>
 	recordsOf(submission).find((record) => !isFeedbackName(record.name));
 
 const feedbackAudioRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => record.name.startsWith(FEEDBACK_AUDIO_PREFIX));
+	recordsOf(submission).find((record) => isFeedbackAudioName(record.name));
 
-const feedbackFileRecords = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).filter(
-		(record) => isFeedbackName(record.name) && !record.name.startsWith(FEEDBACK_AUDIO_PREFIX)
+// Only the newest correction per kind (pdf/image) is offered - re-annotating a
+// correction creates a new version and the server returns feedback files newest first.
+const latestFeedbackFileRecords = (submission: AssignmentSubmissionResponse): FileRecord[] => {
+	const latestNames = latestFeedbackFileNames(submission.feedbackFiles);
+	const byName = new Map(
+		recordsOf(submission)
+			.filter((record) => isFeedbackName(record.name) && !isFeedbackAudioName(record.name))
+			.map((record) => [record.name, record])
 	);
+
+	return [...latestNames].map((name) => byName.get(name)).filter((record): record is FileRecord => !!record);
+};
 
 const previewUrl = (submission: AssignmentSubmissionResponse) => {
 	const record = submissionFileRecord(submission);
@@ -499,14 +520,23 @@ const annotateBusy = computed(() => annotatorSaving.value);
 const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
 const annotatorSaving = ref(false);
 const annotateError = ref(false);
+const annotatorStudentName = ref<string | undefined>(undefined);
 let annotatorSubmissionId: string | null = null;
+
+const studentNameOf = (submission: AssignmentSubmissionResponse) =>
+	`${submission.firstName ?? ""} ${submission.lastName ?? ""}`.trim() || undefined;
 
 const openAnnotator = (submission: AssignmentSubmissionResponse) => {
 	const record = submissionFileRecord(submission);
 	if (!record) return;
 
+	startAnnotator(submission, record);
+};
+
+const startAnnotator = (submission: AssignmentSubmissionResponse, record: FileRecord) => {
 	annotateError.value = false;
 	annotatorSubmissionId = submission.id ?? null;
+	annotatorStudentName.value = studentNameOf(submission);
 	annotatorSource.value = {
 		kind: isPdfMimeType(record.mimeType) ? "pdf" : "image",
 		url: record.url,

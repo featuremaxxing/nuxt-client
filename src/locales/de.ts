@@ -670,6 +670,7 @@ export default {
 	"components.cardElement.assignmentElement.annotateSaveError":
 		"Die Korrektur konnte nicht gespeichert werden. Bitte erneut versuchen.",
 	"components.cardElement.assignmentElement.annotator.pen": "Stift",
+	"components.cardElement.assignmentElement.annotator.continue": "Weiter korrigieren",
 	"components.cardElement.assignmentElement.annotator.eraser": "Radierer",
 	"components.cardElement.assignmentElement.annotator.undo": "Rückgängig",
 	"components.cardElement.assignmentElement.annotator.widthThin": "Dünne Linie",

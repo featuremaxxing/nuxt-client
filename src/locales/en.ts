@@ -648,6 +648,7 @@ export default {
 	"components.cardElement.assignmentElement.annotate": "Correct",
 	"components.cardElement.assignmentElement.annotateSaveError": "The correction could not be saved. Please try again.",
 	"components.cardElement.assignmentElement.annotator.pen": "Pen",
+	"components.cardElement.assignmentElement.annotator.continue": "Continue editing",
 	"components.cardElement.assignmentElement.annotator.eraser": "Eraser",
 	"components.cardElement.assignmentElement.annotator.undo": "Undo",
 	"components.cardElement.assignmentElement.annotator.widthThin": "Thin line",

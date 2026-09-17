@@ -662,6 +662,7 @@ export default {
 	"components.cardElement.assignmentElement.annotateSaveError":
 		"No se pudo guardar la corrección. Por favor, inténtalo de nuevo.",
 	"components.cardElement.assignmentElement.annotator.pen": "Bolígrafo",
+	"components.cardElement.assignmentElement.annotator.continue": "Seguir corrigiendo",
 	"components.cardElement.assignmentElement.annotator.eraser": "Borrador",
 	"components.cardElement.assignmentElement.annotator.undo": "Deshacer",
 	"components.cardElement.assignmentElement.annotator.widthThin": "Línea fina",

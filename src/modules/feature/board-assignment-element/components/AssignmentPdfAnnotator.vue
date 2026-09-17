@@ -10,7 +10,8 @@
 		<VCard>
 			<VToolbar density="compact" color="var(--color-secondary)" data-testid="annotator-toolbar">
 				<VToolbarTitle class="text-body-2 text-truncate">
-					{{ source?.name }}
+					<span v-if="studentName" data-testid="annotator-student-name">{{ studentName }}&nbsp;–&nbsp;</span>
+					<span>{{ source?.name }}</span>
 				</VToolbarTitle>
 				<VSpacer />
 				<template v-if="!loading">
@@ -164,6 +165,7 @@ const props = defineProps<{
 	isOpen: boolean;
 	source: AnnotatorSource | undefined;
 	errorMessage?: string;
+	studentName?: string;
 }>();
 
 const emit = defineEmits<{

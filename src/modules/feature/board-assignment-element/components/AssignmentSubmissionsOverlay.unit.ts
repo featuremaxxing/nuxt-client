@@ -275,6 +275,17 @@ describe("AssignmentSubmissionsOverlay", () => {
 	});
 
 	it("should keep feedback files out of the submission file slot and list them separately", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({
+					feedbackFiles: [{ fileRecordId: "record-fb", name: "feedback-pdf-1.pdf" }],
+				}),
+			],
+		});
 		getFileRecordsByParentIdMock.mockReturnValue([
 			{
 				id: "record-sub",
@@ -358,6 +369,88 @@ describe("AssignmentSubmissionsOverlay", () => {
 		expect(annotator.props("isOpen")).toBe(true);
 		expect(annotator.props("errorMessage")).toBeTruthy();
 		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("should pass the student name to the annotator", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "essay.pdf",
+				url: "https://api/files/essay.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+		await wrapper.find("[data-testid='submission-annotate']").trigger("click");
+
+		const annotator = wrapper.findComponent(AssignmentPdfAnnotator);
+		expect(annotator.props("studentName")).toBe("Anna Admin");
+	});
+
+	it("should offer the newest correction per kind for further editing and hide older versions", async () => {
+		fetchSubmissionsMock.mockResolvedValue({
+			maxPoints: 10,
+			dueDate: null,
+			lateUntil: null,
+			isSubmittable: true,
+			submissions: [
+				buildSubmission({
+					feedbackFiles: [
+						{ fileRecordId: "record-pdf-2", name: "feedback-pdf-2.pdf" },
+						{ fileRecordId: "record-pdf-1", name: "feedback-pdf-1.pdf" },
+					],
+				}),
+			],
+		});
+		getFileRecordsByParentIdMock.mockReturnValue([
+			{
+				id: "record-sub",
+				name: "essay.pdf",
+				url: "https://api/files/essay.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+			{
+				id: "record-pdf-1",
+				name: "feedback-pdf-1.pdf",
+				url: "https://api/files/feedback-pdf-1.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+			{
+				id: "record-pdf-2",
+				name: "feedback-pdf-2.pdf",
+				url: "https://api/files/feedback-pdf-2.pdf",
+				mimeType: "application/pdf",
+				previewStatus: "possible",
+			},
+		]);
+		const { wrapper } = setup();
+
+		await vi.dynamicImportSettled();
+
+		const rows = wrapper.findAll("[data-testid='submission-feedback-file']");
+		expect(rows).toHaveLength(1);
+		expect(rows[0].text()).toContain("feedback-pdf-2.pdf");
+		expect(rows[0].text()).not.toContain("feedback-pdf-1.pdf");
+
+		// "continue editing" opens the annotator with the existing correction
+		await rows[0].find("[data-testid='submission-feedback-annotate-record-pdf-2']").trigger("click");
+		const annotator = wrapper.findComponent(AssignmentPdfAnnotator);
+		expect(annotator.props("source")).toMatchObject({
+			kind: "pdf",
+			url: "https://api/files/feedback-pdf-2.pdf",
+		});
+
+		annotator.vm.$emit("save", { blob: new Blob(["v3"], { type: "application/pdf" }), name: "feedback-pdf-3.pdf" });
+		await vi.dynamicImportSettled();
+
+		expect(uploadMock).toHaveBeenCalledTimes(1);
+		expect(uploadMock.mock.calls[0][0].name).toBe("feedback-pdf-3.pdf");
+		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(2);
 	});
 
 	it("should not offer the annotate button for non-visual files", async () => {

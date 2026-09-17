@@ -659,6 +659,7 @@ export default {
 	"components.cardElement.assignmentElement.annotate": "Виправити",
 	"components.cardElement.assignmentElement.annotateSaveError": "Не вдалося зберегти виправлення. Спробуйте ще раз.",
 	"components.cardElement.assignmentElement.annotator.pen": "Ручка",
+	"components.cardElement.assignmentElement.annotator.continue": "Продовжити виправлення",
 	"components.cardElement.assignmentElement.annotator.eraser": "Гумка",
 	"components.cardElement.assignmentElement.annotator.undo": "Скасувати",
 	"components.cardElement.assignmentElement.annotator.widthThin": "Тонка лінія",
