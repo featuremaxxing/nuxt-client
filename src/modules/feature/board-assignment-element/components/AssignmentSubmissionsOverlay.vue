@@ -560,7 +560,9 @@ const openFeedbackFile = (record: FileRecord) => {
 		type: LightBoxContentType.IMAGE,
 		downloadUrl: record.url,
 		name: record.name,
-		previewUrl: convertDownloadToPreviewUrl(record.url),
+		// show the original image - the preview service only delivers small
+		// thumbnails (max 500px), which look blurry in a fullscreen light box
+		previewUrl: record.url,
 		alt: record.name,
 	});
 };

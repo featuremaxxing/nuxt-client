@@ -106,17 +106,22 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .pdf-viewer {
-	height: 100%;
+	/* the LightBox toolbar is 64px - without an explicit height the scroll
+	   container collapses and the lazy page rendering never triggers */
+	height: calc(100vh - 64px);
+	height: calc(100dvh - 64px);
+	width: 100%;
 	overflow: auto;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 12px;
-	padding: 12px 0;
+	padding: 12px;
 }
 
 .pdf-page-slot {
 	min-height: 80px;
+	width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -124,7 +129,8 @@ onBeforeUnmount(() => {
 
 .pdf-page {
 	display: block;
-	max-width: calc(100vw - 24px);
+	max-width: 100%;
+	height: auto;
 	box-shadow: 0 1px 6px rgb(0 0 0 / 25%);
 	background: #ffffff;
 }

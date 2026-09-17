@@ -103,7 +103,7 @@
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { formatUtc } from "@/utils/date-time.utils";
-import { downloadFile, convertDownloadToPreviewUrl, isImageMimeType, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
+import { downloadFile, isImageMimeType, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
 import { AssignmentStatus, AssignmentSubmissionResponse, SubmitSubmissionBodyParams } from "@api-server";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
@@ -181,7 +181,8 @@ const openFeedbackFile = (record: FileRecord) => {
 		type: LightBoxContentType.IMAGE,
 		downloadUrl: record.url,
 		name: record.name,
-		previewUrl: convertDownloadToPreviewUrl(record.url),
+		// show the original image - preview thumbnails (max 500px) look blurry fullscreen
+		previewUrl: record.url,
 		alt: record.name,
 	});
 };
