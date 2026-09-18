@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -53,6 +53,8 @@ export enum CopyElementType {
     MEDIA_LINE = 'MEDIA_LINE',
     MEDIA_EXTERNAL_TOOL_ELEMENT = 'MEDIA_EXTERNAL_TOOL_ELEMENT',
     METADATA = 'METADATA',
+    POLL_ELEMENT = 'POLL_ELEMENT',
+    POLL_VOTE = 'POLL_VOTE',
     RICHTEXT_ELEMENT = 'RICHTEXT_ELEMENT',
     SUBMISSION_GROUP = 'SUBMISSION_GROUP',
     TASK = 'TASK',

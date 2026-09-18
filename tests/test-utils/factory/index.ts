@@ -50,6 +50,7 @@ export * from "./newsCardItemFactory";
 export * from "./newsResponseFactory";
 export * from "./parentNodeInfoFactory";
 export * from "./parentStatisticFactory";
+export * from "./pollElementResponseFactory";
 export * from "./provisioningOptionsDataFactory";
 export * from "./registrationFactory";
 export * from "./richTextElementContentFactory";

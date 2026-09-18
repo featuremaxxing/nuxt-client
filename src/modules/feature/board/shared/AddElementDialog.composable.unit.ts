@@ -640,6 +640,55 @@ describe("ElementTypeSelection Composable", () => {
 			});
 		});
 
+		describe("when the PollElement action is called", () => {
+			it("should call add element function with right argument", () => {
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_POLL_ENABLED: true } as Partial<ConfigResponse>,
+				});
+				const { askType } = useAddElementDialog(addElementMock, cardId);
+
+				askType();
+
+				const option = elementTypeOptions.value.find((opt) => opt.testId === "create-element-poll");
+				option?.action();
+
+				expect(addElementMock).toHaveBeenCalledTimes(1);
+				expect(addElementMock).toHaveBeenCalledWith({
+					type: "poll",
+					cardId,
+				});
+			});
+
+			it("should set isDialogOpen to false", () => {
+				const { elementTypeOptions, addElementMock, closeDialogMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_POLL_ENABLED: true } as Partial<ConfigResponse>,
+				});
+				const { askType } = useAddElementDialog(addElementMock, cardId);
+
+				askType();
+
+				const option = elementTypeOptions.value.find((opt) => opt.testId === "create-element-poll");
+				option?.action();
+
+				expect(closeDialogMock).toHaveBeenCalledTimes(1);
+			});
+		});
+
+		describe("when the poll feature flag is disabled", () => {
+			it("should not offer the poll menu entry", () => {
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_POLL_ENABLED: false } as Partial<ConfigResponse>,
+				});
+				const { askType } = useAddElementDialog(addElementMock, cardId);
+
+				askType();
+
+				const option = elementTypeOptions.value.find((opt) => opt.testId === "create-element-poll");
+
+				expect(option).toBeUndefined();
+			});
+		});
+
 		describe("when the collabora file element is clicked", () => {
 			it("should set isDialogOpen to false", () => {
 				const { elementTypeOptions, addElementMock, cardId, closeDialogMock } = setup();

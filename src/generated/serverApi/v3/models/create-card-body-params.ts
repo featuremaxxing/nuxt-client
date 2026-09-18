@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -48,7 +48,8 @@ export enum CreateCardBodyParamsRequiredEmptyElements {
     VIDEO_CONFERENCE = 'videoConference',
     FILE_FOLDER = 'fileFolder',
     DELETED = 'deleted',
-    H5P = 'h5p'
+    H5P = 'h5p',
+    POLL = 'poll'
 }
 
 

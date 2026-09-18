@@ -37,6 +37,7 @@ import { FileContentElement } from "@feature-board-file-element";
 import { FolderContentElement } from "@feature-board-folder-element";
 import { H5pElement } from "@feature-board-h5p-element";
 import { LinkContentElement } from "@feature-board-link-element";
+import { PollContentElement } from "@feature-board-poll-element";
 import { RichTextContentElement } from "@feature-board-text-element";
 import { VideoConferenceContentElement } from "@feature-board-video-conference-element";
 import { PropType } from "vue";
@@ -142,6 +143,11 @@ const mapToComponent = (type: ContentElementType) => {
 		case ContentElementType.H5P:
 			if (envConfig.value.FEATURE_COLUMN_BOARD_H5P_ENABLED) {
 				return H5pElement;
+			}
+			break;
+		case ContentElementType.POLL:
+			if (envConfig.value.FEATURE_COLUMN_BOARD_POLL_ENABLED) {
+				return PollContentElement;
 			}
 			break;
 		default:
