@@ -11,12 +11,16 @@
 			</template>
 
 			<template v-else>
-				<PollChart :data="chartDataFor(question)" :chart-type="question.chartType" />
+				<PollChart
+					:data="chartDataFor(question)"
+					:chart-type="question.chartType"
+					:element-id="element.id"
+					:question-id="question.id"
+				/>
 
 				<ul class="poll-results-breakdown">
 					<li v-for="option in question.options" :key="option.id">
-						{{ option.text }}: {{ countFor(question.id, option.id) }}
-						({{ percentFor(question.id, option.id) }}%)
+						{{ option.text }}: {{ countFor(question.id, option.id) }} ({{ percentFor(question.id, option.id) }}%)
 					</li>
 				</ul>
 
@@ -40,11 +44,12 @@
 </template>
 
 <script setup lang="ts">
-import { PollElement } from "@/types/board/ContentElement";
 import { ChartDatum } from "../poll-chart.util";
+import { formatVoterName } from "../poll-voter.util";
+import PollChart from "./charts/PollChart.vue";
+import { PollElement } from "@/types/board/ContentElement";
 import { PollAnswerMode, PollQuestionResponse, PollQuestionResultResponse, PollVoterResponse } from "@api-server";
 import { useI18n } from "vue-i18n";
-import PollChart from "./charts/PollChart.vue";
 
 const props = defineProps<{
 	element: PollElement;
@@ -82,10 +87,8 @@ const votersFor = (questionId: string, optionId: string): PollVoterResponse[] =>
 		voter.answers.some((answer) => answer.questionId === questionId && answer.selectedOptionIds.includes(optionId))
 	);
 
-// PollVoterResponse only carries a userId (no firstName/lastName) - resolving it to a display
-// name would need a userId -> room-member lookup that isn't wired into board content elements
-// anywhere yet. Falling back to the raw userId here; name resolution is a known follow-up.
-const voterName = (voter: PollVoterResponse): string => voter.userId;
+const voterName = (voter: PollVoterResponse): string =>
+	formatVoterName(voter, t("components.cardElement.pollElement.unknownUser"));
 </script>
 
 <style scoped lang="scss">

@@ -16,8 +16,9 @@
 			{{ t("components.cardElement.pollElement.votedCount", { voted: totalVotes, total: participantCount }) }}
 		</span>
 
+		<VSpacer v-if="isEditor || canOpenAnalysis" />
+
 		<template v-if="isEditor">
-			<VSpacer />
 			<VBtn
 				v-if="element.content.pollStatus !== PollStatus.OPEN"
 				variant="tonal"
@@ -53,17 +54,27 @@
 				</VList>
 			</VMenu>
 		</template>
+
+		<VBtn
+			v-if="canOpenAnalysis"
+			variant="text"
+			:icon="mdiFullscreen"
+			data-testid="poll-open-analysis"
+			:aria-label="t('components.cardElement.pollElement.analysis')"
+			@click="emit('open:analysis')"
+		/>
 	</VCardText>
 </template>
 
 <script setup lang="ts">
+import { collectCardChartSvgsByQuestionId } from "../poll-chart-dom.util";
 import { buildPollResultsCsv, buildPollResultsPdf } from "../poll-export.util";
 import { svgToPng } from "../svg-to-png.util";
 import { PollElement } from "@/types/board/ContentElement";
 import { downloadBlob } from "@/utils/fileHelper";
-import { PollAnswerMode, PollQuestionResultResponse, PollStatus } from "@api-server";
+import { PollAnswerMode, PollQuestionResultResponse, PollStatus, PollVoterResponse } from "@api-server";
 import { useCardStore } from "@data-board";
-import { mdiTrayArrowDown } from "@icons/material";
+import { mdiFullscreen, mdiTrayArrowDown } from "@icons/material";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -73,6 +84,12 @@ const props = defineProps<{
 	totalVotes: number;
 	participantCount: number;
 	results?: PollQuestionResultResponse[];
+	voters?: PollVoterResponse[];
+	canOpenAnalysis?: boolean;
+}>();
+
+const emit = defineEmits<{
+	(e: "open:analysis"): void;
 }>();
 
 const { t } = useI18n();
@@ -119,10 +136,14 @@ const remainingTimeLabel = computed(() => {
 });
 
 const onExportCsv = () => {
-	const csv = buildPollResultsCsv(props.element.content, {
-		participantCount: props.participantCount,
-		perQuestion: props.results ?? [],
-	});
+	const csv = buildPollResultsCsv(
+		props.element.content,
+		{
+			participantCount: props.participantCount,
+			perQuestion: props.results ?? [],
+		},
+		props.voters
+	);
 	// BOM prefix must stay the literal escape sequence below - eslint --fix has been known to
 	// rewrite it into an actual invisible BOM character; re-check with `git diff` after linting.
 	const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -132,13 +153,19 @@ const onExportCsv = () => {
 const onExportPdf = async () => {
 	const chartPngBlobs: Record<string, Blob> = {};
 
-	const svgElements = document.querySelectorAll<SVGSVGElement>('[data-testid="poll-chart-svg"]');
+	// Looked up by question id, not by position in the document: a global, position-based query
+	// would silently mis-pair charts with questions as soon as more than one rendering of this
+	// poll's charts exists in the DOM (e.g. a fullscreen analysis overlay), or when a TEXT
+	// question without a chart is interleaved between chart questions.
+	const svgByQuestionId = collectCardChartSvgsByQuestionId(props.element.id);
 	const questionsWithCharts = props.element.content.questions.filter(
 		(question) => question.answerMode !== PollAnswerMode.TEXT
 	);
-	for (let i = 0; i < svgElements.length && i < questionsWithCharts.length; i++) {
+	for (const question of questionsWithCharts) {
+		const svg = svgByQuestionId[question.id];
+		if (!svg) continue;
 		try {
-			chartPngBlobs[questionsWithCharts[i].id] = await svgToPng(svgElements[i]);
+			chartPngBlobs[question.id] = await svgToPng(svg);
 		} catch {
 			// If rasterization fails for a single chart, the PDF still gets built without that
 			// image - the numeric breakdown is drawn from data directly either way.

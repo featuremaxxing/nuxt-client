@@ -49,7 +49,15 @@ describe("PollResults", () => {
 
 	it("shows the numeric breakdown per option", () => {
 		const { wrapper } = setupWrapper({
-			results: [{ questionId: "q1", counts: [{ optionId: "o1", count: 8 }, { optionId: "o2", count: 2 }] }],
+			results: [
+				{
+					questionId: "q1",
+					counts: [
+						{ optionId: "o1", count: 8 },
+						{ optionId: "o2", count: 2 },
+					],
+				},
+			],
 		});
 
 		expect(wrapper.text()).toContain("Gut: 8");
@@ -59,7 +67,13 @@ describe("PollResults", () => {
 	it("shows a plain answer list for a free-text question instead of a chart", () => {
 		const element = buildElement({
 			questions: [
-				{ id: "q1", text: "Was hat gefehlt?", answerMode: PollAnswerMode.TEXT, chartType: PollChartType.BAR, options: [] },
+				{
+					id: "q1",
+					text: "Was hat gefehlt?",
+					answerMode: PollAnswerMode.TEXT,
+					chartType: PollChartType.BAR,
+					options: [],
+				},
 			],
 		});
 
@@ -83,7 +97,32 @@ describe("PollResults", () => {
 		expect(wrapper.findComponent({ name: "VExpansionPanels" }).exists()).toBe(false);
 	});
 
-	it("shows a per-option voter list for non-anonymous polls for an editor", async () => {
+	it("shows a per-option voter list for non-anonymous polls for an editor, with the resolved name and never the raw userId", async () => {
+		const element = buildElement({ isAnonymous: false });
+
+		const { wrapper } = setupWrapper({
+			element,
+			results: [{ questionId: "q1", counts: [{ optionId: "o1", count: 1 }] }],
+			voters: [
+				{
+					userId: "u1",
+					firstName: "Anna",
+					lastName: "Beispiel",
+					answers: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+				},
+			],
+			isEditor: true,
+		});
+
+		expect(wrapper.findComponent({ name: "VExpansionPanels" }).exists()).toBe(true);
+
+		await wrapper.find("[data-testid='poll-voter-list-toggle-q1-o1']").trigger("click");
+
+		expect(wrapper.text()).toContain("Anna Beispiel");
+		expect(wrapper.text()).not.toContain("u1");
+	});
+
+	it("falls back to a neutral placeholder (never the raw userId) when a voter has no name", async () => {
 		const element = buildElement({ isAnonymous: false });
 
 		const { wrapper } = setupWrapper({
@@ -93,11 +132,10 @@ describe("PollResults", () => {
 			isEditor: true,
 		});
 
-		expect(wrapper.findComponent({ name: "VExpansionPanels" }).exists()).toBe(true);
-
 		await wrapper.find("[data-testid='poll-voter-list-toggle-q1-o1']").trigger("click");
 
-		expect(wrapper.text()).toContain("u1");
+		expect(wrapper.text()).toContain("components.cardElement.pollElement.unknownUser");
+		expect(wrapper.text()).not.toContain("u1");
 	});
 
 	it("does not show the voter list for a non-editor even on a non-anonymous poll", () => {

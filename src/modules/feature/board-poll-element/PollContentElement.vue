@@ -32,6 +32,9 @@
 				:total-votes="pollState.totalVotes"
 				:participant-count="pollState.participantCount"
 				:results="pollState.results"
+				:voters="pollState.voters"
+				:can-open-analysis="canOpenAnalysis"
+				@open:analysis="showAnalysis = true"
 			/>
 
 			<PollResults
@@ -42,12 +45,9 @@
 				:is-editor="canManagePoll"
 			/>
 
-			<PollVoteForm
-				v-else-if="showVoteForm"
-				:element="element"
-				:existing-answers="pollState.myVote"
-				@voted="onVoted"
-			/>
+			<PollAnalysisDialog v-if="canOpenAnalysis" v-model="showAnalysis" :element="element" :is-editor="canManagePoll" />
+
+			<PollVoteForm v-else-if="showVoteForm" :element="element" :existing-answers="pollState.myVote" @voted="onVoted" />
 
 			<VCardText v-else-if="hasVoted && !element.content.showResultsLive">
 				<p>{{ t("components.cardElement.pollElement.voteRecorded") }}</p>
@@ -60,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import PollAnalysisDialog from "./components/analysis/PollAnalysisDialog.vue";
 import PollElementEdit from "./components/PollElementEdit.vue";
 import PollResults from "./components/PollResults.vue";
 import PollStatusBar from "./components/PollStatusBar.vue";
@@ -104,6 +105,12 @@ const canManagePoll = computed(() => allowedOperations.value.updateElement);
 const pollState = computed(() => getState(element.value.id));
 const hasVoted = computed(() => !!pollState.value.myVote);
 const isChangingVote = ref(false);
+const showAnalysis = ref(false);
+
+// Teachers can always open the fullscreen analysis; students only once the poll is closed (see
+// the plan's "Vollbild-Auswertung" section). This is UI-level gating only - the server already
+// enforces the real visibility rule by never sending `voters` to non-managers.
+const canOpenAnalysis = computed(() => canManagePoll.value || element.value.content.pollStatus === PollStatus.CLOSED);
 
 // Teachers/editors always see the aggregate results (never the vote form for themselves).
 // Students/voters see results only once they voted and either the poll shows live results or is

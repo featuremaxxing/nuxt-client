@@ -1,5 +1,11 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { formatVoterName } from "./poll-voter.util";
 import { PollAnswerMode, PollElementContent, PollQuestionResultResponse, PollVoterResponse } from "@api-server";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+
+// This module builds plain-text/PDF exports outside of Vue/i18n context, so the fallback name for
+// a voter without firstName/lastName is a plain German string (matching the rest of this file's
+// hardcoded German column headers, e.g. "Frage"/"Option"/"Anzahl") rather than a translated label.
+const UNKNOWN_VOTER_LABEL = "Unbekannte Person";
 
 export interface PollResultsForExport {
 	participantCount: number;
@@ -70,9 +76,7 @@ export const buildPollResultsCsv = (
 		rows.push(["Name", "Frage", "Antwort"]);
 
 		voters.forEach((voter) => {
-			// PollVoterResponse only carries a userId (no firstName/lastName); name resolution is a
-			// known follow-up (see PollResults.vue for the same fallback).
-			const name = voter.userId;
+			const name = formatVoterName(voter, UNKNOWN_VOTER_LABEL);
 			voter.answers.forEach((answer) => {
 				const question = poll.questions.find((entry) => entry.id === answer.questionId);
 				if (!question) return;

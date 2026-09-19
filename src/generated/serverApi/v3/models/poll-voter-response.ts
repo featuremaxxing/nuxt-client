@@ -29,6 +29,18 @@ export interface PollVoterResponse {
     userId: string;
     /**
      * 
+     * @type {string}
+     * @memberof PollVoterResponse
+     */
+    firstName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PollVoterResponse
+     */
+    lastName?: string;
+    /**
+     * 
      * @type {Array<PollAnswerResponse>}
      * @memberof PollVoterResponse
      */

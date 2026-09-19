@@ -5,6 +5,7 @@ import {
 	computeStackedSegments,
 	percentOf,
 	totalOf,
+	truncateLabel,
 } from "./poll-chart.util";
 
 const dimensions = { width: 200, height: 100 };
@@ -12,7 +13,12 @@ const dimensions = { width: 200, height: 100 };
 describe("poll-chart.util", () => {
 	describe("totalOf", () => {
 		it("sums all values", () => {
-			expect(totalOf([{ label: "a", value: 3 }, { label: "b", value: 5 }])).toBe(8);
+			expect(
+				totalOf([
+					{ label: "a", value: 3 },
+					{ label: "b", value: 5 },
+				])
+			).toBe(8);
 		});
 
 		it("returns 0 for an empty array", () => {
@@ -175,6 +181,117 @@ describe("poll-chart.util", () => {
 			);
 
 			segments.forEach((segment) => expect(segment.width).toBe(0));
+		});
+	});
+
+	describe("dataIndex", () => {
+		it("computeHorizontalBars assigns dataIndex matching the original data order", () => {
+			const bars = computeHorizontalBars(
+				[
+					{ label: "A", value: 1 },
+					{ label: "B", value: 2 },
+				],
+				dimensions
+			);
+
+			expect(bars[0].dataIndex).toBe(0);
+			expect(bars[1].dataIndex).toBe(1);
+		});
+
+		it("computeColumns assigns dataIndex matching the original data order", () => {
+			const columns = computeColumns(
+				[
+					{ label: "A", value: 1 },
+					{ label: "B", value: 2 },
+				],
+				dimensions
+			);
+
+			expect(columns[0].dataIndex).toBe(0);
+			expect(columns[1].dataIndex).toBe(1);
+		});
+
+		it("computeStackedSegments assigns dataIndex matching the original data order", () => {
+			const segments = computeStackedSegments(
+				[
+					{ label: "A", value: 1 },
+					{ label: "B", value: 2 },
+				],
+				dimensions
+			);
+
+			expect(segments[0].dataIndex).toBe(0);
+			expect(segments[1].dataIndex).toBe(1);
+		});
+
+		it("computeDonutSegments keeps the original data index even when a leading entry is filtered out for having zero votes", () => {
+			const segments = computeDonutSegments(
+				[
+					{ label: "Zero", value: 0 },
+					{ label: "A", value: 3 },
+					{ label: "B", value: 7 },
+				],
+				dimensions
+			);
+
+			expect(segments).toHaveLength(2);
+			expect(segments[0].label).toBe("A");
+			expect(segments[0].dataIndex).toBe(1);
+			expect(segments[1].label).toBe("B");
+			expect(segments[1].dataIndex).toBe(2);
+		});
+	});
+
+	describe("padding", () => {
+		it("computeHorizontalBars accepts a per-side padding object in addition to a single number", () => {
+			const numberPadded = computeHorizontalBars([{ label: "A", value: 4 }], dimensions, 8);
+			const objectPadded = computeHorizontalBars([{ label: "A", value: 4 }], dimensions, {
+				top: 8,
+				right: 8,
+				bottom: 8,
+				left: 8,
+			});
+
+			expect(objectPadded[0].width).toBeCloseTo(numberPadded[0].width);
+			expect(objectPadded[0].x).toBe(numberPadded[0].x);
+		});
+
+		it("computeColumns accepts a per-side padding object", () => {
+			const columns = computeColumns([{ label: "A", value: 4 }], dimensions, { top: 4, right: 4, bottom: 20, left: 4 });
+
+			expect(columns[0].height).toBeLessThan(dimensions.height);
+		});
+
+		it("computeStackedSegments accepts a per-side padding object", () => {
+			const segments = computeStackedSegments([{ label: "A", value: 4 }], dimensions, {
+				top: 0,
+				right: 20,
+				bottom: 0,
+				left: 4,
+			});
+
+			expect(segments[0].x).toBe(4);
+			expect(segments[0].width).toBeCloseTo(dimensions.width - 4 - 20);
+		});
+	});
+
+	describe("truncateLabel", () => {
+		it("leaves short text unchanged", () => {
+			expect(truncateLabel("Ja", 200, 10)).toBe("Ja");
+		});
+
+		it("truncates long text with a trailing ellipsis", () => {
+			const longText = "Eine sehr sehr sehr lange Antwortoption, die niemals hineinpasst";
+			const result = truncateLabel(longText, 40, 10);
+
+			expect(result.length).toBeLessThan(longText.length);
+			expect(result.endsWith("…")).toBe(true);
+		});
+
+		it("handles the boundary where text exactly fits the available space", () => {
+			// averageGlyphWidth = 10 * 0.55 = 5.5, maxChars = floor(11 / 5.5) = 2
+			expect(truncateLabel("Ja", 11, 10)).toBe("Ja");
+			expect(truncateLabel("Nein", 11, 10)).toBe("N…");
 		});
 	});
 });

@@ -33,7 +33,13 @@ describe("poll-export.util", () => {
 			const csv = buildPollResultsCsv(poll, {
 				participantCount: 10,
 				perQuestion: [
-					{ questionId: "q1", counts: [{ optionId: "o1", count: 8 }, { optionId: "o2", count: 2 }] },
+					{
+						questionId: "q1",
+						counts: [
+							{ optionId: "o1", count: 8 },
+							{ optionId: "o2", count: 2 },
+						],
+					},
 					{ questionId: "q2", counts: [], textAnswers: ["mehr Beispiele"] },
 				],
 			});
@@ -52,7 +58,13 @@ describe("poll-export.util", () => {
 			const csv = buildPollResultsCsv(poll, {
 				participantCount: 0,
 				perQuestion: [
-					{ questionId: "q1", counts: [{ optionId: "o1", count: 0 }, { optionId: "o2", count: 0 }] },
+					{
+						questionId: "q1",
+						counts: [
+							{ optionId: "o1", count: 0 },
+							{ optionId: "o2", count: 0 },
+						],
+					},
 					{ questionId: "q2", counts: [], textAnswers: [] },
 				],
 			});
@@ -72,6 +84,8 @@ describe("poll-export.util", () => {
 			const voters: PollVoterResponse[] = [
 				{
 					userId: "u1",
+					firstName: "Anna",
+					lastName: "Beispiel",
 					answers: [
 						{ questionId: "q1", selectedOptionIds: ["o1"] },
 						{ questionId: "q2", selectedOptionIds: [], textAnswer: "Tempo" },
@@ -84,7 +98,13 @@ describe("poll-export.util", () => {
 				{
 					participantCount: 1,
 					perQuestion: [
-						{ questionId: "q1", counts: [{ optionId: "o1", count: 1 }, { optionId: "o2", count: 0 }] },
+						{
+							questionId: "q1",
+							counts: [
+								{ optionId: "o1", count: 1 },
+								{ optionId: "o2", count: 0 },
+							],
+						},
 						{ questionId: "q2", counts: [], textAnswers: ["Tempo"] },
 					],
 				},
@@ -93,8 +113,29 @@ describe("poll-export.util", () => {
 
 			expect(csv).toContain("Einzelantworten");
 			expect(csv).toContain("Name;Frage;Antwort");
-			expect(csv).toContain("u1;Wie fandet ihr die Stunde?;Gut");
-			expect(csv).toContain("u1;Was hat gefehlt?;Tempo");
+			expect(csv).toContain("Anna Beispiel;Wie fandet ihr die Stunde?;Gut");
+			expect(csv).toContain("Anna Beispiel;Was hat gefehlt?;Tempo");
+			// A raw userId must never leak into the export as the displayed name.
+			expect(csv).not.toContain("u1;");
+		});
+
+		it("falls back to a neutral placeholder (never the raw userId) when a voter has no name", () => {
+			const nonAnonymousPoll: PollElementContent = { ...poll, isAnonymous: false };
+			const voters: PollVoterResponse[] = [
+				{ userId: "u1", answers: [{ questionId: "q1", selectedOptionIds: ["o1"] }] },
+			];
+
+			const csv = buildPollResultsCsv(
+				nonAnonymousPoll,
+				{
+					participantCount: 1,
+					perQuestion: [{ questionId: "q1", counts: [{ optionId: "o1", count: 1 }] }],
+				},
+				voters
+			);
+
+			expect(csv).toContain("Unbekannte Person;Wie fandet ihr die Stunde?;Gut");
+			expect(csv).not.toContain("u1;");
 		});
 
 		it("omits the individual-answers block for anonymous polls even if voter data is passed", () => {

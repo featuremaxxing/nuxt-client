@@ -14,20 +14,32 @@ export interface ChartDimensions {
 	height: number;
 }
 
+export interface Padding {
+	top: number;
+	right: number;
+	bottom: number;
+	left: number;
+}
+
+export type PaddingInput = number | Partial<Padding>;
+
 export interface HorizontalBarGeometry {
 	label: string;
 	value: number;
 	percent: number;
+	dataIndex: number;
 	x: number;
 	y: number;
 	width: number;
 	height: number;
+	labelY: number;
 }
 
 export interface ColumnGeometry {
 	label: string;
 	value: number;
 	percent: number;
+	dataIndex: number;
 	x: number;
 	y: number;
 	width: number;
@@ -38,6 +50,7 @@ export interface DonutSegmentGeometry {
 	label: string;
 	value: number;
 	percent: number;
+	dataIndex: number;
 	pathD: string;
 }
 
@@ -45,11 +58,47 @@ export interface StackedSegmentGeometry {
 	label: string;
 	value: number;
 	percent: number;
+	dataIndex: number;
 	x: number;
 	width: number;
 }
 
 const DEFAULT_PADDING = 8;
+
+/**
+ * Normalizes the padding argument accepted by the geometry functions below: either a single
+ * number applied to all four sides (kept for backward compatibility with existing callers), or a
+ * partial per-side object where any side left unspecified falls back to `DEFAULT_PADDING`.
+ */
+export const resolvePadding = (padding: PaddingInput = DEFAULT_PADDING): Padding => {
+	if (typeof padding === "number") {
+		return { top: padding, right: padding, bottom: padding, left: padding };
+	}
+	return {
+		top: padding.top ?? DEFAULT_PADDING,
+		right: padding.right ?? DEFAULT_PADDING,
+		bottom: padding.bottom ?? DEFAULT_PADDING,
+		left: padding.left ?? DEFAULT_PADDING,
+	};
+};
+
+/**
+ * Truncates `text` with a trailing ellipsis so it roughly fits within `availablePx`, using a
+ * simple average-glyph-width heuristic (no DOM/canvas access, so this stays usable both in the
+ * util's own tests and inside the rasterized SVG export path). Not pixel-perfect by design - just
+ * good enough that labels stop overflowing their allotted space.
+ */
+export const truncateLabel = (text: string, availablePx: number, fontSizePx: number): string => {
+	const averageGlyphWidth = fontSizePx * 0.55;
+	if (averageGlyphWidth <= 0) return text;
+
+	const maxChars = Math.floor(availablePx / averageGlyphWidth);
+	if (maxChars <= 0) return "";
+	if (text.length <= maxChars) return text;
+	if (maxChars === 1) return "…";
+
+	return `${text.slice(0, maxChars - 1)}…`;
+};
 
 export const totalOf = (data: ChartDatum[]): number => data.reduce((sum, datum) => sum + datum.value, 0);
 
@@ -63,26 +112,32 @@ export const percentOf = (value: number, total: number): number => (total > 0 ? 
 export const computeHorizontalBars = (
 	data: ChartDatum[],
 	dimensions: ChartDimensions,
-	padding = DEFAULT_PADDING
+	padding: PaddingInput = DEFAULT_PADDING,
+	labelHeight = 12
 ): HorizontalBarGeometry[] => {
+	const { top, right, bottom, left } = resolvePadding(padding);
 	const total = totalOf(data);
 	const maxValue = Math.max(...data.map((datum) => datum.value), 0);
 	const rowCount = data.length || 1;
-	const availableHeight = Math.max(dimensions.height - padding * 2, 0);
+	const availableHeight = Math.max(dimensions.height - top - bottom, 0);
 	const rowHeight = availableHeight / rowCount;
-	const barHeight = Math.max(rowHeight - padding, 1);
-	const maxBarWidth = Math.max(dimensions.width - padding * 2, 0);
+	const barHeight = Math.max(rowHeight - labelHeight, 1);
+	const maxBarWidth = Math.max(dimensions.width - left - right, 0);
 
 	return data.map((datum, index) => {
 		const width = maxValue > 0 ? (datum.value / maxValue) * maxBarWidth : 0;
+		const rowTop = top + index * rowHeight;
+		const barY = rowTop + labelHeight;
 		return {
 			label: datum.label,
 			value: datum.value,
 			percent: percentOf(datum.value, total),
-			x: padding,
-			y: padding + index * rowHeight + (rowHeight - barHeight) / 2,
+			dataIndex: index,
+			x: left,
+			y: barY,
 			width,
 			height: barHeight,
+			labelY: rowTop + labelHeight - 2,
 		};
 	});
 };
@@ -94,15 +149,16 @@ export const computeHorizontalBars = (
 export const computeColumns = (
 	data: ChartDatum[],
 	dimensions: ChartDimensions,
-	padding = DEFAULT_PADDING
+	padding: PaddingInput = DEFAULT_PADDING
 ): ColumnGeometry[] => {
+	const { top, right, bottom, left } = resolvePadding(padding);
 	const total = totalOf(data);
 	const maxValue = Math.max(...data.map((datum) => datum.value), 0);
 	const columnCount = data.length || 1;
-	const availableWidth = Math.max(dimensions.width - padding * 2, 0);
+	const availableWidth = Math.max(dimensions.width - left - right, 0);
 	const columnSlot = availableWidth / columnCount;
-	const columnWidth = Math.max(columnSlot - padding, 1);
-	const maxColumnHeight = Math.max(dimensions.height - padding * 2, 0);
+	const columnWidth = Math.max(columnSlot - left, 1);
+	const maxColumnHeight = Math.max(dimensions.height - top - bottom, 0);
 
 	return data.map((datum, index) => {
 		const height = maxValue > 0 ? (datum.value / maxValue) * maxColumnHeight : 0;
@@ -110,8 +166,9 @@ export const computeColumns = (
 			label: datum.label,
 			value: datum.value,
 			percent: percentOf(datum.value, total),
-			x: padding + index * columnSlot + (columnSlot - columnWidth) / 2,
-			y: padding + (maxColumnHeight - height),
+			dataIndex: index,
+			x: left + index * columnSlot + (columnSlot - columnWidth) / 2,
+			y: top + (maxColumnHeight - height),
 			width: columnWidth,
 			height,
 		};
@@ -165,8 +222,9 @@ export const computeDonutSegments = (
 
 	let angle = 0;
 	return data
-		.filter((datum) => datum.value > 0)
-		.map((datum) => {
+		.map((datum, dataIndex) => ({ datum, dataIndex }))
+		.filter(({ datum }) => datum.value > 0)
+		.map(({ datum, dataIndex }) => {
 			const percent = percentOf(datum.value, total);
 			const sweep = (datum.value / total) * 360;
 			const startAngle = angle;
@@ -177,6 +235,7 @@ export const computeDonutSegments = (
 				label: datum.label,
 				value: datum.value,
 				percent,
+				dataIndex,
 				pathD: donutArcPath(cx, cy, outerR, innerR, startAngle, endAngle),
 			};
 		});
@@ -189,19 +248,21 @@ export const computeDonutSegments = (
 export const computeStackedSegments = (
 	data: ChartDatum[],
 	dimensions: ChartDimensions,
-	padding = DEFAULT_PADDING
+	padding: PaddingInput = DEFAULT_PADDING
 ): StackedSegmentGeometry[] => {
+	const { right, left } = resolvePadding(padding);
 	const total = totalOf(data);
-	const maxBarWidth = Math.max(dimensions.width - padding * 2, 0);
+	const maxBarWidth = Math.max(dimensions.width - left - right, 0);
 
-	let offset = padding;
-	return data.map((datum) => {
+	let offset = left;
+	return data.map((datum, dataIndex) => {
 		const percent = percentOf(datum.value, total);
 		const width = total > 0 ? (datum.value / total) * maxBarWidth : 0;
 		const segment: StackedSegmentGeometry = {
 			label: datum.label,
 			value: datum.value,
 			percent,
+			dataIndex,
 			x: offset,
 			width,
 		};

@@ -1,8 +1,8 @@
 import PollContentElement from "./PollContentElement.vue";
 import { PollElement } from "@/types/board/ContentElement";
-import { PollStatus } from "@api-server";
 import { pollElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
+import { PollStatus } from "@api-server";
 import { mount } from "@vue/test-utils";
 import { computed } from "vue";
 
@@ -47,6 +47,7 @@ describe("PollContentElement", () => {
 					PollStatusBar: true,
 					PollResults: true,
 					PollVoteForm: true,
+					PollAnalysisDialog: true,
 				},
 			},
 			props: {
@@ -105,5 +106,29 @@ describe("PollContentElement", () => {
 		const { wrapper } = setupWrapper({ element, canEdit: true });
 
 		expect(wrapper.text()).toContain("Feedback");
+	});
+
+	it("passes canOpenAnalysis=true to the status bar and dialog for an editor, regardless of poll status", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({ element, canEdit: true });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(true);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(true);
+	});
+
+	it("passes canOpenAnalysis=false to the status bar for a non-editor while the poll is open", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(false);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(false);
+	});
+
+	it("passes canOpenAnalysis=true to the status bar for a non-editor once the poll is closed", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.CLOSED } });
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(true);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(true);
 	});
 });
