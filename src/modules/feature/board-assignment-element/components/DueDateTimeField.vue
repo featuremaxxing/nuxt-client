@@ -14,6 +14,17 @@
 			data-testid="assignment-due-time"
 			@update:time="onUpdateTime"
 		/>
+		<VBtn
+			variant="text"
+			size="small"
+			:disabled="disabled"
+			:prepend-icon="mdiClockFast"
+			class="now-button"
+			data-testid="assignment-due-now"
+			@click="setNow"
+		>
+			{{ t("common.actions.now") }}
+		</VBtn>
 	</div>
 </template>
 
@@ -21,7 +32,8 @@
 // DateTimePicker.vue was removed in the date/time-utils rework upstream; this combines
 // the two remaining single-purpose pickers instead of reviving it, to keep this out of
 // the way of future upstream syncs to that area.
-import { ISO_DATE_FORMAT, parseUtc, toCombinedDateTimeIso } from "@/utils/date-time.utils";
+import { ISO_DATE_FORMAT, nowUtc, parseUtc, toCombinedDateTimeIso } from "@/utils/date-time.utils";
+import { mdiClockFast } from "@icons/material";
 import { DatePicker, TimePicker } from "@ui-date-time-picker";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -67,16 +79,29 @@ const onUpdateTime = (value: string | undefined) => {
 	timePart.value = value;
 	emit("update:modelValue", combined.value);
 };
+
+const setNow = () => {
+	const local = nowUtc().local();
+	datePart.value = local.format(ISO_DATE_FORMAT);
+	timePart.value = local.format("HH:mm");
+	emit("update:modelValue", combined.value);
+};
 </script>
 
 <style scoped lang="scss">
 .due-date-time-field {
 	display: flex;
+	align-items: flex-start;
 	gap: 12px;
 	flex-wrap: wrap;
 
 	> * {
 		flex: 1 1 140px;
+	}
+
+	.now-button {
+		flex: 0 0 auto;
+		margin-top: 4px;
 	}
 }
 </style>
