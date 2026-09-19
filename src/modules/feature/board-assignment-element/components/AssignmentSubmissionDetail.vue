@@ -17,8 +17,22 @@
 		</div>
 
 		<template v-if="submissionFile || submission.file">
-			<div class="text-overline text-medium-emphasis mt-3" data-testid="submission-section-submission">
-				{{ t("components.cardElement.assignmentElement.sectionSubmission") }}
+			<div class="d-flex align-center mt-3">
+				<div class="text-overline text-medium-emphasis" data-testid="submission-section-submission">
+					{{ t("components.cardElement.assignmentElement.sectionSubmission") }}
+				</div>
+				<VSpacer />
+				<VSelect
+					v-if="fileVersions.length > 1"
+					:model-value="selectedVersionId"
+					:items="versionItems"
+					density="compact"
+					hide-details
+					variant="plain"
+					style="max-width: 220px"
+					data-testid="submission-version-select"
+					@update:model-value="(value: string) => emit('select-version', value)"
+				/>
 			</div>
 			<div class="d-flex align-center ga-2 mt-1" data-testid="submission-file-row">
 				<PreviewImage
@@ -127,6 +141,30 @@
 			{{ submission.comment }}
 		</div>
 
+		<div v-if="submission.peerReviews" class="peer-review-summary mt-3" data-testid="submission-peer-review-summary">
+			<span class="text-caption text-medium-emphasis">
+				{{
+					t("components.cardElement.assignmentElement.peerReview.summaryLabel", {
+						count: submission.peerReviews.count,
+					})
+				}}
+				<template v-if="submission.peerReviews.averagePoints !== null">
+					· ⌀ {{ submission.peerReviews.averagePoints.toFixed(1) }}
+				</template>
+			</span>
+			<p
+				v-for="(comment, index) in submission.peerReviews.comments"
+				:key="index"
+				class="text-body-2"
+				data-testid="submission-peer-review-comment"
+			>
+				{{ comment }}
+			</p>
+			<p class="text-caption text-medium-emphasis font-italic">
+				{{ t("components.cardElement.assignmentElement.peerReview.advisoryNotice") }}
+			</p>
+		</div>
+
 		<div v-if="submission.id === null" class="submission-none mt-4" data-testid="submission-none">
 			<p class="text-body-2">{{ t("components.cardElement.assignmentElement.noSubmissionYet") }}</p>
 			<p class="text-caption text-medium-emphasis">
@@ -174,7 +212,32 @@
 				</template>
 			</div>
 
-			<div class="d-flex align-center ga-4 flex-wrap">
+			<div
+				v-if="criteria.length > 0"
+				class="d-flex align-center ga-4 flex-wrap"
+				data-testid="submission-criteria-points"
+			>
+				<VTextField
+					v-for="criterion in criteria"
+					:key="criterion.id"
+					:model-value="criterionPoints[criterion.id] ?? null"
+					type="number"
+					density="compact"
+					:label="criterion.name"
+					:suffix="`/ ${criterion.maxPoints}`"
+					:min="0"
+					:max="criterion.maxPoints"
+					hide-details
+					style="max-width: 160px"
+					:data-testid="`submission-criterion-points-${criterion.id}`"
+					@update:model-value="(value: string) => emit('update:criterionPoints', criterion.id, value)"
+				/>
+				<span class="text-body-2 text-medium-emphasis" data-testid="submission-criteria-total">
+					{{ t("components.cardElement.assignmentElement.pointsLabel") }}: {{ criteriaPointsTotal }} / {{ maxPoints }}
+				</span>
+			</div>
+
+			<div v-else class="d-flex align-center ga-4 flex-wrap">
 				<VTextField
 					:model-value="points"
 					type="number"
@@ -235,7 +298,12 @@ import { FileRecord } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
 import { formatUtc } from "@/utils/date-time.utils";
 import { isImageMimeType, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
-import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import {
+	AssignmentStatus,
+	AssignmentSubmissionFileResponse,
+	AssignmentSubmissionResponse,
+	AssignmentSubmissionRubricCriterionResponse,
+} from "@api-server";
 import {
 	mdiEyeOutline,
 	mdiFileDocumentOutline,
@@ -255,10 +323,18 @@ const props = defineProps<{
 	submission: AssignmentSubmissionResponse;
 	submissionFile: FileRecord | undefined;
 	previewUrl: string | undefined;
+	// every version of the student's submission document, newest first, for the version
+	// switcher; empty/single-item lists collapse to no switcher at all
+	fileVersions: AssignmentSubmissionFileResponse[];
+	selectedVersionId: string | null;
 	feedbackFiles: FileRecord[];
 	feedbackAudioUrl: string | undefined;
 	maxPoints: number | null;
 	points: number | null;
+	// non-empty only for assignments with a rubric - when present, one input per criterion
+	// replaces the flat points field above
+	criteria: AssignmentSubmissionRubricCriterionResponse[];
+	criterionPoints: Record<string, number | null>;
 	feedbackComment: string;
 	isDirty: boolean;
 	busy: {
@@ -276,6 +352,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(e: "view-file"): void;
+	(e: "select-version", fileRecordId: string): void;
 	(e: "annotate-file"): void;
 	(e: "download-file"): void;
 	(e: "view-feedback", record: FileRecord): void;
@@ -286,6 +363,7 @@ const emit = defineEmits<{
 	(e: "upload-recording"): void;
 	(e: "discard-recording"): void;
 	(e: "update:points", value: string): void;
+	(e: "update:criterionPoints", criterionId: string, value: string): void;
 	(e: "update:feedback", value: string): void;
 	(e: "save"): void;
 	(e: "return"): void;
@@ -310,6 +388,23 @@ const statusColor = computed(() => {
 			return undefined;
 	}
 });
+
+const criteriaPointsTotal = computed(() =>
+	props.criteria.reduce((sum, criterion) => sum + (props.criterionPoints[criterion.id] ?? 0), 0)
+);
+
+const versionItems = computed(() =>
+	props.fileVersions.map((version) => ({
+		title:
+			version.createdAt && formatUtc(version.createdAt, "dateTime")
+				? t("components.cardElement.assignmentElement.versions.entry", {
+						version: version.version ?? "?",
+						date: formatUtc(version.createdAt, "dateTime"),
+					})
+				: version.name,
+		value: version.fileRecordId,
+	}))
+);
 
 const submissionMimeType = computed(() => props.submissionFile?.mimeType);
 

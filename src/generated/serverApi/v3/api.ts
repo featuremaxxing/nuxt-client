@@ -19,6 +19,7 @@ export * from './api/admin-students-api';
 export * from './api/admin-teachers-api';
 export * from './api/alert-api';
 export * from './api/assignment-api';
+export * from './api/peer-review-api';
 export * from './api/authentication-api';
 export * from './api/authorization-api';
 export * from './api/board-api';

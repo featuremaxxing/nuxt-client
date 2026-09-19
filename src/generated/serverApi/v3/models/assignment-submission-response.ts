@@ -13,6 +13,8 @@
  */
 
 
+import { AssignmentCriterionPointsResponse } from './assignment-criterion-points-response';
+import { AssignmentPeerReviewSummaryResponse } from './assignment-peer-review-summary-response';
 import { AssignmentStatus } from './assignment-status';
 import { AssignmentSubmissionFileResponse } from './assignment-submission-file-response';
 
@@ -106,6 +108,24 @@ export interface AssignmentSubmissionResponse {
      * @memberof AssignmentSubmissionResponse
      */
     feedbackFiles?: Array<AssignmentSubmissionFileResponse> | null;
+    /**
+     * every submission document version the student has uploaded, newest first, including the current one; never withheld
+     * @type {Array<AssignmentSubmissionFileResponse>}
+     * @memberof AssignmentSubmissionResponse
+     */
+    fileVersions?: Array<AssignmentSubmissionFileResponse> | null;
+    /**
+     * per-criterion points, only present for assignments with a rubric
+     * @type {Array<AssignmentCriterionPointsResponse>}
+     * @memberof AssignmentSubmissionResponse
+     */
+    criterionPoints?: Array<AssignmentCriterionPointsResponse> | null;
+    /**
+     * advisory summary of student peer reviews - only present for the teacher view
+     * @type {AssignmentPeerReviewSummaryResponse}
+     * @memberof AssignmentSubmissionResponse
+     */
+    peerReviews?: AssignmentPeerReviewSummaryResponse | null;
 }
 
 

@@ -27,11 +27,23 @@ export interface AssignmentSubmissionFileResponse {
      */
     fileRecordId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AssignmentSubmissionFileResponse
      */
     name: string;
+    /**
+     * when this file was uploaded
+     * @type {string}
+     * @memberof AssignmentSubmissionFileResponse
+     */
+    createdAt?: string | null;
+    /**
+     * only set for submission document versions - 1-based, oldest upload is version 1
+     * @type {number}
+     * @memberof AssignmentSubmissionFileResponse
+     */
+    version?: number | null;
 }
 
 

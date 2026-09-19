@@ -186,5 +186,17 @@ describe("TaskOverview.page", () => {
 
 			expect(wrapper.find("[data-testid='tab-assignments']").exists()).toBe(false);
 		});
+
+		it("should show the peer-review tab for students", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true, role: RoleName.STUDENT });
+
+			expect(wrapper.find("[data-testid='tab-peer-review']").exists()).toBe(true);
+		});
+
+		it("should not show the peer-review tab for teachers", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true, role: RoleName.TEACHER });
+
+			expect(wrapper.find("[data-testid='tab-peer-review']").exists()).toBe(false);
+		});
 	});
 });

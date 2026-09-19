@@ -5,6 +5,7 @@ import {
 	AssignmentListResponse,
 	AssignmentSubmissionListResponse,
 	AssignmentSubmissionResponse,
+	BatchReturnSubmissionsResponse,
 	GradeSubmissionBodyParams,
 	SubmitSubmissionBodyParams,
 } from "@api-server";
@@ -101,6 +102,18 @@ export const useAssignmentApi = () => {
 		}
 	};
 
+	const returnSubmissionsBatch = async (
+		submissionIds: string[]
+	): Promise<BatchReturnSubmissionsResponse | undefined> => {
+		try {
+			const response = await assignmentApi.assignmentControllerReturnSubmissionsBatch({ submissionIds });
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
 	return {
 		listAssignments,
 		fetchSubmissions,
@@ -109,5 +122,6 @@ export const useAssignmentApi = () => {
 		deleteOwnSubmission,
 		gradeSubmission,
 		returnSubmission,
+		returnSubmissionsBatch,
 	};
 };

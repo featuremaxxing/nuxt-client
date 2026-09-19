@@ -14,6 +14,9 @@ export const assignmentElementResponseFactory = Factory.define<AssignmentElement
 		graceMinutes: null,
 		maxPoints: 10,
 		lateUntil: null,
+		peerReviewEnabled: false,
+		peerReviewMode: "manual",
+		peerReviewCount: 1,
 	},
 	timestamps: timestampsResponseFactory.build(),
 }));

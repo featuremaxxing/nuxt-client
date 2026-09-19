@@ -29,6 +29,10 @@ import { AssignmentSubmissionListResponse } from '../models';
 // @ts-ignore
 import { AssignmentSubmissionResponse } from '../models';
 // @ts-ignore
+import { BatchReturnSubmissionsBodyParams } from '../models';
+// @ts-ignore
+import { BatchReturnSubmissionsResponse } from '../models';
+// @ts-ignore
 import { GradeSubmissionBodyParams } from '../models';
 // @ts-ignore
 import { SubmitSubmissionBodyParams } from '../models';
@@ -280,10 +284,50 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         *
+         * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        assignmentControllerReturnSubmissionsBatch: async (batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'batchReturnSubmissionsBodyParams' is not null or undefined
+            assertParamExists('assignmentControllerReturnSubmissionsBatch', 'batchReturnSubmissionsBodyParams', batchReturnSubmissionsBodyParams)
+            const localVarPath = `/assignments/submissions/return-batch`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(batchReturnSubmissionsBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -400,10 +444,21 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * 
+         *
+         * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BatchReturnSubmissionsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -484,10 +539,20 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
             return localVarFp.assignmentControllerReturnSubmission(submissionId, gradeSubmissionBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         *
+         * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options?: any): AxiosPromise<BatchReturnSubmissionsResponse> {
+            return localVarFp.assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -566,10 +631,20 @@ export interface AssignmentApiInterface {
     assignmentControllerReturnSubmission(submissionId: string, gradeSubmissionBodyParams: GradeSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
 
     /**
-     * 
+     *
+     * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
+     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options?: any): AxiosPromise<BatchReturnSubmissionsResponse>;
+
+    /**
+     *
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
@@ -660,10 +735,22 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
     }
 
     /**
-     * 
+     *
+     * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
+     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options?: any) {
+        return AssignmentApiFp(this.configuration).assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     *
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi

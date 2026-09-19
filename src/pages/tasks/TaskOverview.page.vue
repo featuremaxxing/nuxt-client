@@ -5,6 +5,9 @@
 				<VTab value="assignments" data-testid="tab-assignments">
 					{{ t("pages.tasks.tabs.assignments") }}
 				</VTab>
+				<VTab v-if="isStudent" value="peer-review" data-testid="tab-peer-review">
+					{{ t("components.cardElement.assignmentElement.peerReview.myTasks") }}
+				</VTab>
 				<VTab value="classic" data-testid="tab-tasks-classic">
 					{{ t("pages.tasks.tabs.classic") }}
 				</VTab>
@@ -17,6 +20,9 @@
 						:current-assignments="currentAssignments"
 						:past-assignments="pastAssignments"
 					/>
+				</VWindowItem>
+				<VWindowItem v-if="isStudent" value="peer-review">
+					<PeerReviewTaskList />
 				</VWindowItem>
 				<VWindowItem value="classic">
 					<SvsLoading :loading-state="onlyOnceTasksLoadingState">
@@ -60,6 +66,7 @@ import { useAppStore, useAppStoreRefs } from "@data-app";
 import { useAssignmentsOfOverview } from "@data-assignment";
 import { useEnvConfig } from "@data-env";
 import { useTasksOfOverview } from "@data-tasks";
+import { PeerReviewTaskList } from "@feature-board-assignment-element";
 import { mdiPlus } from "@icons/material";
 import { SvsLoading } from "@ui-containers";
 import { DefaultWireframe } from "@ui-layout";
@@ -85,8 +92,7 @@ const activeTab = computed({
 
 const { tasksLoadingState, status } = useTasksOfOverview();
 
-const { assignments, currentAssignments, pastAssignments, loading: assignmentsLoading } =
-	useAssignmentsOfOverview();
+const { assignments, currentAssignments, pastAssignments, loading: assignmentsLoading } = useAssignmentsOfOverview();
 
 const onlyOnceTasksLoadingState = computed(() => {
 	if (tasksLoadingState.value === "loading" && !hasLoadedOnce.value) {

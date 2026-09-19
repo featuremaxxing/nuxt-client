@@ -11,6 +11,9 @@ const {
 	fetchSubmissionsMock,
 	gradeSubmissionMock,
 	returnSubmissionMock,
+	returnSubmissionsBatchMock,
+	autoAssignMock,
+	manualAssignMock,
 	fetchFilesMock,
 	getFileRecordsByParentIdMock,
 	uploadMock,
@@ -18,6 +21,9 @@ const {
 	fetchSubmissionsMock: vi.fn(),
 	gradeSubmissionMock: vi.fn(),
 	returnSubmissionMock: vi.fn(),
+	returnSubmissionsBatchMock: vi.fn(),
+	autoAssignMock: vi.fn(),
+	manualAssignMock: vi.fn(),
 	fetchFilesMock: vi.fn(),
 	getFileRecordsByParentIdMock: vi.fn(),
 	uploadMock: vi.fn(),
@@ -28,7 +34,17 @@ vi.mock("@data-assignment", () => ({
 		fetchSubmissions: fetchSubmissionsMock,
 		gradeSubmission: gradeSubmissionMock,
 		returnSubmission: returnSubmissionMock,
+		returnSubmissionsBatch: returnSubmissionsBatchMock,
 	}),
+	usePeerReviewApi: () => ({
+		autoAssign: autoAssignMock,
+		manualAssign: manualAssignMock,
+	}),
+}));
+
+vi.mock("@data-app", () => ({
+	notifySuccess: vi.fn(),
+	notifyError: vi.fn(),
 }));
 
 vi.mock("@data-file", () => ({
@@ -70,6 +86,9 @@ describe("AssignmentSubmissionsOverlay", () => {
 		});
 		gradeSubmissionMock.mockResolvedValue(undefined);
 		returnSubmissionMock.mockResolvedValue(undefined);
+		returnSubmissionsBatchMock.mockResolvedValue({ returned: [], failed: [] });
+		autoAssignMock.mockResolvedValue({ assignedCount: 0 });
+		manualAssignMock.mockResolvedValue({ assignedCount: 1 });
 		fetchFilesMock.mockResolvedValue(undefined);
 		getFileRecordsByParentIdMock.mockReturnValue([]);
 		uploadMock.mockResolvedValue(undefined);
@@ -705,6 +724,229 @@ describe("AssignmentSubmissionsOverlay", () => {
 			expect(wrapper.find("[data-testid='submission-none']").exists()).toBe(true);
 			expect(wrapper.find("[data-testid='submission-points-input']").exists()).toBe(false);
 			expect(wrapper.find("[data-testid='submission-save-grade']").exists()).toBe(false);
+		});
+	});
+
+	describe("peer review panel", () => {
+		it("does not show the manage button when peer review is disabled", async () => {
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='peer-review-manage-button']").exists()).toBe(false);
+		});
+
+		it("opens the panel and auto-assigns reviewers", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "auto";
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='peer-review-manage-button']").trigger("click");
+			await wrapper.find("[data-testid='peer-review-auto-assign']").trigger("click");
+
+			expect(autoAssignMock).toHaveBeenCalledWith(element.id);
+		});
+
+		it("manually assigns a reviewer to a submission", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "manual";
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({ userId: "user-1", id: "submission-1" }),
+					buildSubmission({ userId: "user-2", id: "submission-2", firstName: "Ben", lastName: "Berger" }),
+				],
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='peer-review-manage-button']").trigger("click");
+			const select = wrapper
+				.findAllComponents({ name: "VSelect" })
+				.find((candidate) => candidate.attributes("data-testid") === "peer-review-reviewer-select")!;
+			await select.vm.$emit("update:modelValue", "user-2");
+
+			expect(manualAssignMock).toHaveBeenCalledWith(element.id, [
+				{ submissionId: "submission-1", reviewerUserId: "user-2" },
+			]);
+		});
+	});
+
+	describe("rubric grading", () => {
+		const criteria = [
+			{ id: "c1", name: "Content", maxPoints: 6 },
+			{ id: "c2", name: "Grammar", maxPoints: 4 },
+		];
+
+		beforeEach(() => {
+			element.content.criteria = criteria;
+		});
+
+		it("sends summed criterionPoints instead of a flat points value", async () => {
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			await wrapper.find("[data-testid='submission-criterion-points-c1'] input").setValue("5");
+			await wrapper.find("[data-testid='submission-criterion-points-c2'] input").setValue("3");
+			await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
+
+			expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", {
+				feedbackComment: null,
+				criterionPoints: [
+					{ criterionId: "c1", points: 5 },
+					{ criterionId: "c2", points: 3 },
+				],
+			});
+		});
+	});
+
+	describe("file versions", () => {
+		it("passes the submission's fileVersions through to the detail view", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({
+						fileVersions: [
+							{ fileRecordId: "file-2", name: "essay-v2.pdf", createdAt: "2026-01-02T00:00:00.000Z", version: 2 },
+							{ fileRecordId: "file-1", name: "essay-v1.pdf", createdAt: "2026-01-01T00:00:00.000Z", version: 1 },
+						],
+					}),
+				],
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='submission-version-select']").exists()).toBe(true);
+		});
+	});
+
+	describe("batch return", () => {
+		const buildGradedAndUngraded = () => [
+			buildSubmission({
+				userId: "user-1",
+				id: "submission-1",
+				firstName: "Anna",
+				lastName: "Adler",
+				status: AssignmentStatus.IN_REVIEW,
+				points: 8,
+			}),
+			buildSubmission({
+				userId: "user-2",
+				id: "submission-2",
+				firstName: "Ben",
+				lastName: "Berger",
+				status: AssignmentStatus.IN_REVIEW,
+				points: 5,
+			}),
+			buildSubmission({
+				userId: "user-3",
+				id: "submission-3",
+				firstName: "Clara",
+				lastName: "Cortez",
+				status: AssignmentStatus.SUBMITTED,
+			}),
+		];
+
+		it("only offers the batch checkbox for already-graded submissions", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildGradedAndUngraded(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.findAll("[data-testid='submission-batch-checkbox']")).toHaveLength(2);
+		});
+
+		it("shows the batch return button once a submission is selected, and hides it again once deselected", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildGradedAndUngraded(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			expect(wrapper.find("[data-testid='batch-return-button']").exists()).toBe(false);
+
+			const checkbox = wrapper.find("[data-testid='submission-batch-checkbox'] input");
+			await checkbox.setValue(true);
+			expect(wrapper.find("[data-testid='batch-return-button']").exists()).toBe(true);
+
+			await checkbox.setValue(false);
+			expect(wrapper.find("[data-testid='batch-return-button']").exists()).toBe(false);
+		});
+
+		it("selects every graded submission via 'select all graded'", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildGradedAndUngraded(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='select-all-graded']").trigger("click");
+
+			expect(wrapper.find("[data-testid='batch-return-button']").exists()).toBe(true);
+		});
+
+		it("returns the selected submissions and reloads on confirm", async () => {
+			returnSubmissionsBatchMock.mockResolvedValue({
+				returned: [buildSubmission({ userId: "user-1", id: "submission-1", status: AssignmentStatus.RETURNED })],
+				failed: [],
+			});
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildGradedAndUngraded(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='select-all-graded']").trigger("click");
+			await wrapper.find("[data-testid='batch-return-button']").trigger("click");
+			await wrapper.find("[data-testid='batch-return-confirm']").trigger("click");
+			await vi.dynamicImportSettled();
+
+			expect(returnSubmissionsBatchMock).toHaveBeenCalledWith(["submission-1", "submission-2"]);
+			expect(fetchSubmissionsMock).toHaveBeenCalledTimes(2);
+			expect(wrapper.find("[data-testid='batch-return-button']").exists()).toBe(false);
+		});
+
+		it("cancels without calling the batch endpoint", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildGradedAndUngraded(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='select-all-graded']").trigger("click");
+			await wrapper.find("[data-testid='batch-return-button']").trigger("click");
+			await wrapper.find("[data-testid='batch-return-cancel']").trigger("click");
+
+			expect(returnSubmissionsBatchMock).not.toHaveBeenCalled();
 		});
 	});
 });

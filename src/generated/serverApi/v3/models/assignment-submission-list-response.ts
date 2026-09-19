@@ -14,6 +14,7 @@
 
 
 import { AssignmentSubmissionResponse } from './assignment-submission-response';
+import { AssignmentSubmissionRubricCriterionResponse } from './assignment-submission-rubric-criterion-response';
 
 /**
  * 
@@ -51,6 +52,12 @@ export interface AssignmentSubmissionListResponse {
      * @memberof AssignmentSubmissionListResponse
      */
     submissions: Array<AssignmentSubmissionResponse>;
+    /**
+     * the grading rubric, when configured - absent/empty means flat-points grading
+     * @type {Array<AssignmentSubmissionRubricCriterionResponse>}
+     * @memberof AssignmentSubmissionListResponse
+     */
+    criteria?: Array<AssignmentSubmissionRubricCriterionResponse> | null;
 }
 
 

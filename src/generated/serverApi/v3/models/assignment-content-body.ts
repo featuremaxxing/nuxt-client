@@ -11,11 +11,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-
-
+import { AssignmentRubricCriterionBody } from './assignment-rubric-criterion-body';
 
 /**
- * 
+ *
  * @export
  * @interface AssignmentContentBody
  */
@@ -62,6 +61,12 @@ export interface AssignmentContentBody {
      * @memberof AssignmentContentBody
      */
     maxPoints?: number;
+    /**
+     *
+     * @type {Array<AssignmentRubricCriterionBody>}
+     * @memberof AssignmentContentBody
+     */
+    criteria?: Array<AssignmentRubricCriterionBody>;
 }
 
 

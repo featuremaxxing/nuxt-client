@@ -13,6 +13,7 @@
  */
 
 
+import { AssignmentRubricCriterionResponse } from './assignment-rubric-criterion-response';
 import { InputFormat } from './input-format';
 
 /**
@@ -69,6 +70,30 @@ export interface AssignmentElementContent {
      * @memberof AssignmentElementContent
      */
     lateUntil?: string | null;
+    /**
+     * the grading rubric, when configured - absent/empty means flat-points grading
+     * @type {Array<AssignmentRubricCriterionResponse>}
+     * @memberof AssignmentElementContent
+     */
+    criteria?: Array<AssignmentRubricCriterionResponse> | null;
+    /**
+     *
+     * @type {boolean}
+     * @memberof AssignmentElementContent
+     */
+    peerReviewEnabled: boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof AssignmentElementContent
+     */
+    peerReviewMode: 'manual' | 'auto';
+    /**
+     *
+     * @type {number}
+     * @memberof AssignmentElementContent
+     */
+    peerReviewCount: number;
 }
 
 

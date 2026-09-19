@@ -50,10 +50,14 @@ describe("AssignmentSubmissionDetail", () => {
 				submission: buildSubmission(),
 				submissionFile: buildFileRecord(),
 				previewUrl: undefined,
+				fileVersions: [],
+				selectedVersionId: null,
 				feedbackFiles: [],
 				feedbackAudioUrl: undefined,
 				maxPoints: 15,
 				points: null,
+				criteria: [],
+				criterionPoints: {},
 				feedbackComment: "",
 				isDirty: false,
 				busy: defaultBusy,
@@ -121,5 +125,97 @@ describe("AssignmentSubmissionDetail", () => {
 
 		expect(wrapper.emitted("save")).toHaveLength(1);
 		expect(wrapper.emitted("return")).toHaveLength(1);
+	});
+
+	describe("file versions", () => {
+		it("shows no version switcher for a single version", () => {
+			const { wrapper } = setup({
+				fileVersions: [
+					{ fileRecordId: "file-1", name: "essay.pdf", createdAt: "2026-01-02T00:00:00.000Z", version: 1 },
+				],
+			});
+
+			expect(wrapper.find("[data-testid='submission-version-select']").exists()).toBe(false);
+		});
+
+		it("shows a version switcher once more than one version exists", () => {
+			const { wrapper } = setup({
+				fileVersions: [
+					{ fileRecordId: "file-2", name: "essay-v2.pdf", createdAt: "2026-01-02T00:00:00.000Z", version: 2 },
+					{ fileRecordId: "file-1", name: "essay-v1.pdf", createdAt: "2026-01-01T00:00:00.000Z", version: 1 },
+				],
+			});
+
+			expect(wrapper.find("[data-testid='submission-version-select']").exists()).toBe(true);
+		});
+
+		it("emits select-version when an older version is picked", async () => {
+			const { wrapper } = setup({
+				fileVersions: [
+					{ fileRecordId: "file-2", name: "essay-v2.pdf", createdAt: "2026-01-02T00:00:00.000Z", version: 2 },
+					{ fileRecordId: "file-1", name: "essay-v1.pdf", createdAt: "2026-01-01T00:00:00.000Z", version: 1 },
+				],
+				selectedVersionId: "file-2",
+			});
+
+			// VSelect is a Vuetify component - drive it through its exposed vm rather than a raw DOM select
+			await wrapper.findComponent({ name: "VSelect" }).vm.$emit("update:modelValue", "file-1");
+
+			expect(wrapper.emitted("select-version")).toEqual([["file-1"]]);
+		});
+	});
+
+	describe("rubric grading", () => {
+		const criteria = [
+			{ id: "c1", name: "Content", maxPoints: 6 },
+			{ id: "c2", name: "Grammar", maxPoints: 4 },
+		];
+
+		it("shows the flat points field when no criteria are given", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find("[data-testid='submission-points-input']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='submission-criteria-points']").exists()).toBe(false);
+		});
+
+		it("shows one input per criterion instead of the flat field when criteria are given", () => {
+			const { wrapper } = setup({ criteria, criterionPoints: { c1: 5, c2: 3 } });
+
+			expect(wrapper.find("[data-testid='submission-points-input']").exists()).toBe(false);
+			expect(wrapper.find("[data-testid='submission-criterion-points-c1']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='submission-criterion-points-c2']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='submission-criteria-total']").text()).toContain("8");
+		});
+
+		it("emits update:criterionPoints for the edited criterion only", async () => {
+			const { wrapper } = setup({ criteria, criterionPoints: { c1: 5, c2: 3 } });
+
+			await wrapper.find("[data-testid='submission-criterion-points-c2'] input").setValue("4");
+
+			expect(wrapper.emitted("update:criterionPoints")).toEqual([["c2", "4"]]);
+		});
+	});
+
+	describe("peer review summary", () => {
+		it("shows nothing when there are no peer reviews", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find("[data-testid='submission-peer-review-summary']").exists()).toBe(false);
+		});
+
+		it("shows the advisory summary with comments, average and an explicit disclaimer", () => {
+			const { wrapper } = setup({
+				submission: buildSubmission({
+					peerReviews: { averagePoints: 7.5, count: 2, comments: ["well organized", "clear structure"] },
+				}),
+			});
+
+			const summary = wrapper.find("[data-testid='submission-peer-review-summary']");
+			expect(summary.exists()).toBe(true);
+			expect(summary.text()).toContain("7.5");
+			const comments = wrapper.findAll("[data-testid='submission-peer-review-comment']");
+			expect(comments).toHaveLength(2);
+			expect(summary.text()).toContain("advisoryNotice");
+		});
 	});
 });

@@ -56,6 +56,15 @@
 						style="max-width: 200px"
 						data-testid="assignment-sort-select"
 					/>
+					<VBtn
+						v-if="peerReviewEnabled"
+						icon
+						variant="text"
+						data-testid="peer-review-manage-button"
+						@click="showPeerReviewPanel = true"
+					>
+						<VIcon :icon="mdiAccountMultipleOutline" />
+					</VBtn>
 					<VMenu>
 						<template #activator="{ props: menuProps }">
 							<VBtn icon variant="text" v-bind="menuProps" data-testid="assignment-export-menu">
@@ -75,8 +84,28 @@
 								<template #prepend><VIcon :icon="mdiFolderZipOutline" size="small" /></template>
 								<VListItemTitle>{{ t("components.cardElement.assignmentElement.downloadArchive") }}</VListItemTitle>
 							</VListItem>
+							<VListItem
+								:disabled="gradedSubmissionIds.length === 0"
+								data-testid="select-all-graded"
+								@click="selectAllGraded"
+							>
+								<template #prepend><VIcon :icon="mdiCheckboxMultipleMarkedOutline" size="small" /></template>
+								<VListItemTitle>{{
+									t("components.cardElement.assignmentElement.batchReturn.selectAllGraded")
+								}}</VListItemTitle>
+							</VListItem>
 						</VList>
 					</VMenu>
+				</div>
+
+				<div v-if="selectedForBatchReturn.size > 0" class="d-flex justify-end mb-3">
+					<VBtn color="primary" size="small" data-testid="batch-return-button" @click="showBatchReturnConfirm = true">
+						{{
+							t("components.cardElement.assignmentElement.batchReturn.button", {
+								count: selectedForBatchReturn.size,
+							})
+						}}
+					</VBtn>
 				</div>
 
 				<div v-if="loading" class="text-caption">{{ t("common.labels.loading") }}</div>
@@ -103,6 +132,14 @@
 							@click="selectedUserId = submission.userId"
 						>
 							<div class="d-flex align-center ga-2">
+								<VCheckboxBtn
+									v-if="isReadyForBatchReturn(submission)"
+									:model-value="selectedForBatchReturn.has(submission.userId)"
+									density="compact"
+									data-testid="submission-batch-checkbox"
+									@click.stop
+									@update:model-value="toggleBatchSelection(submission)"
+								/>
 								<span class="submission-name flex-grow-1 text-truncate" data-testid="submission-name">
 									{{ submission.lastName }}, {{ submission.firstName }}
 								</span>
@@ -164,10 +201,16 @@
 								:submission="selectedSubmission"
 								:submission-file="submissionFileRecord(selectedSubmission)"
 								:preview-url="previewUrl(selectedSubmission)"
+								:file-versions="selectedSubmission.fileVersions ?? []"
+								:selected-version-id="
+									selectedVersionId[selectedSubmission.userId] ?? submissionFileRecord(selectedSubmission)?.id ?? null
+								"
 								:feedback-files="latestFeedbackFileRecords(selectedSubmission)"
 								:feedback-audio-url="feedbackAudioRecord(selectedSubmission)?.url"
 								:max-points="maxPoints"
 								:points="draftPoints[selectedSubmission.userId] ?? selectedSubmission.points ?? null"
+								:criteria="criteria"
+								:criterion-points="criterionPointsFor(selectedSubmission)"
 								:feedback-comment="draftFeedback[selectedSubmission.userId] ?? selectedSubmission.feedbackComment ?? ''"
 								:is-dirty="isDirty(selectedSubmission)"
 								:busy="{
@@ -182,6 +225,7 @@
 									recorded: recordingTargetUserId === selectedSubmission.userId ? recordedAudio : undefined,
 								}"
 								@view-file="openFile(selectedSubmission)"
+								@select-version="onSelectVersionOfSelected"
 								@annotate-file="openAnnotator(selectedSubmission)"
 								@download-file="downloadSubmissionFile(selectedSubmission)"
 								@view-feedback="openFeedbackFile"
@@ -192,6 +236,7 @@
 								@upload-recording="uploadRecording(selectedSubmission)"
 								@discard-recording="discardRecording"
 								@update:points="onUpdatePoints"
+								@update:criterion-points="onUpdateCriterionPoints"
 								@update:feedback="onUpdateFeedback"
 								@save="onSaveGrade(selectedSubmission)"
 								@return="onReturnSubmission(selectedSubmission)"
@@ -210,6 +255,36 @@
 			@cancel="closeAnnotator"
 			@save="onAnnotatorSave"
 		/>
+
+		<VDialog v-model="showBatchReturnConfirm" max-width="400" data-testid="batch-return-confirm-dialog">
+			<VCard>
+				<VCardTitle>{{ t("components.cardElement.assignmentElement.batchReturn.confirmTitle") }}</VCardTitle>
+				<VCardText>
+					{{
+						t("components.cardElement.assignmentElement.batchReturn.confirmBody", {
+							count: selectedForBatchReturn.size,
+						})
+					}}
+				</VCardText>
+				<VCardActions>
+					<VSpacer />
+					<VBtn variant="text" data-testid="batch-return-cancel" @click="showBatchReturnConfirm = false">
+						{{ t("common.actions.cancel") }}
+					</VBtn>
+					<VBtn color="primary" :loading="batchReturning" data-testid="batch-return-confirm" @click="onBatchReturn">
+						{{ t("components.cardElement.assignmentElement.returnSubmission") }}
+					</VBtn>
+				</VCardActions>
+			</VCard>
+		</VDialog>
+
+		<PeerReviewAssignmentPanel
+			:is-open="showPeerReviewPanel"
+			:element-id="element.id"
+			:mode="element.content.peerReviewMode"
+			:submissions="submissions"
+			@close="showPeerReviewPanel = false"
+		/>
 	</VDialog>
 </template>
 
@@ -217,6 +292,7 @@
 import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
 import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 import AssignmentSubmissionDetail from "./AssignmentSubmissionDetail.vue";
+import PeerReviewAssignmentPanel from "./PeerReviewAssignmentPanel.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
@@ -224,9 +300,12 @@ import { formatUtc } from "@/utils/date-time.utils";
 import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
 import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import { notifyError, notifySuccess } from "@data-app";
 import { useAssignmentApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
 import {
+	mdiAccountMultipleOutline,
+	mdiCheckboxMultipleMarkedOutline,
 	mdiCheckCircle,
 	mdiChevronLeft,
 	mdiChevronRight,
@@ -257,7 +336,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { smAndDown } = useDisplay();
-const { fetchSubmissions, gradeSubmission, returnSubmission } = useAssignmentApi();
+const { fetchSubmissions, gradeSubmission, returnSubmission, returnSubmissionsBatch } = useAssignmentApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 
@@ -266,6 +345,8 @@ const FEEDBACK_AUDIO_PREFIX = "feedback-audio-";
 const loading = ref(false);
 const submissions = ref<AssignmentSubmissionResponse[]>([]);
 const draftPoints = ref<Record<string, number | null>>({});
+// userId -> criterionId -> points, only used when the assignment has a rubric
+const draftCriterionPoints = ref<Record<string, Record<string, number | null>>>({});
 const draftFeedback = ref<Record<string, string>>({});
 const savingUserId = ref<string | undefined>(undefined);
 const returningUserId = ref<string | undefined>(undefined);
@@ -282,10 +363,18 @@ const recordedAudio = ref<{ url: string; blob: Blob } | undefined>(undefined);
 const uploadingAudioUserId = ref<string | undefined>(undefined);
 const isCsvExporting = ref(false);
 const isArchiveExporting = ref(false);
+// keyed by userId, same convention as selectedUserId - submission.id is only ever
+// non-null for rows that could be selected here anyway (isReadyForBatchReturn requires it)
+const selectedForBatchReturn = ref<Set<string>>(new Set());
+const showBatchReturnConfirm = ref(false);
+const batchReturning = ref(false);
 
 let recorder: AudioRecorder | undefined;
 
 const maxPoints = computed(() => props.element.content.maxPoints ?? null);
+const criteria = computed(() => props.element.content.criteria ?? []);
+const peerReviewEnabled = computed(() => props.element.content.peerReviewEnabled);
+const showPeerReviewPanel = ref(false);
 
 const statusFilters = computed(() => [
 	{ key: "all", label: t("components.cardElement.assignmentElement.filter.all") },
@@ -319,6 +408,27 @@ const openCount = computed(() => submissions.value.length - gradedCount.value);
 const gradedRatio = computed(() =>
 	submissions.value.length === 0 ? 0 : (gradedCount.value / submissions.value.length) * 100
 );
+
+// only already-graded-but-not-yet-returned submissions can be batch-returned - matches
+// what the backend accepts, so nothing selected here can end up in the "failed" list
+const isReadyForBatchReturn = (submission: AssignmentSubmissionResponse) =>
+	submission.status === AssignmentStatus.IN_REVIEW;
+
+const gradedSubmissionIds = computed(() => submissions.value.filter(isReadyForBatchReturn).map((s) => s.userId));
+
+const toggleBatchSelection = (submission: AssignmentSubmissionResponse) => {
+	if (selectedForBatchReturn.value.has(submission.userId)) {
+		selectedForBatchReturn.value.delete(submission.userId);
+	} else {
+		selectedForBatchReturn.value.add(submission.userId);
+	}
+	// replace to trigger reactivity - mutating a Set in place does not notify Vue
+	selectedForBatchReturn.value = new Set(selectedForBatchReturn.value);
+};
+
+const selectAllGraded = () => {
+	selectedForBatchReturn.value = new Set(gradedSubmissionIds.value);
+};
 
 const visibleSubmissions = computed(() => {
 	let result = [...submissions.value];
@@ -413,8 +523,27 @@ const load = async () => {
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
 
-const submissionFileRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => !isFeedbackName(record.name));
+// userId -> fileRecordId of a version explicitly picked via the version switcher;
+// falls back to the current (latest) submission file when nothing is selected
+const selectedVersionId = ref<Record<string, string>>({});
+
+const onSelectVersion = (submission: AssignmentSubmissionResponse, fileRecordId: string) => {
+	selectedVersionId.value[submission.userId] = fileRecordId;
+};
+
+const onSelectVersionOfSelected = (fileRecordId: string) => {
+	if (selectedSubmission.value) onSelectVersion(selectedSubmission.value, fileRecordId);
+};
+
+const submissionFileRecord = (submission: AssignmentSubmissionResponse) => {
+	const records = recordsOf(submission).filter((record) => !isFeedbackName(record.name));
+	// the version switcher can point at an older upload; with nothing picked, fall back to
+	// the server's notion of "latest" (submission.file) rather than array order
+	const wantedId = selectedVersionId.value[submission.userId] ?? submission.file?.fileRecordId;
+	const wanted = wantedId ? records.find((record) => record.id === wantedId) : undefined;
+
+	return wanted ?? records[0];
+};
 
 const feedbackAudioRecord = (submission: AssignmentSubmissionResponse) =>
 	recordsOf(submission).find((record) => isFeedbackAudioName(record.name));
@@ -547,6 +676,27 @@ const setDraftFeedback = (submission: AssignmentSubmissionResponse, value: strin
 	draftFeedback.value[submission.userId] = value;
 };
 
+const setDraftCriterionPoints = (submission: AssignmentSubmissionResponse, criterionId: string, value: string) => {
+	const current = draftCriterionPoints.value[submission.userId] ?? {};
+	draftCriterionPoints.value[submission.userId] = {
+		...current,
+		[criterionId]: value === "" ? null : Number(value),
+	};
+};
+
+// initial values for the criterion inputs: the submission's own saved criterionPoints,
+// falling back to null (empty) rather than 0, so an ungraded criterion reads as blank
+const criterionPointsFor = (submission: AssignmentSubmissionResponse): Record<string, number | null> => {
+	const draft = draftCriterionPoints.value[submission.userId];
+	if (draft) return draft;
+
+	const saved: Record<string, number | null> = {};
+	for (const entry of submission.criterionPoints ?? []) {
+		saved[entry.criterionId] = entry.points;
+	}
+	return saved;
+};
+
 // wrapped so the template can bind them without inlining a closure over
 // selectedSubmission (which the template type checker cannot narrow past undefined)
 const onContinueFeedback = (record: FileRecord) => {
@@ -555,6 +705,10 @@ const onContinueFeedback = (record: FileRecord) => {
 
 const onUpdatePoints = (value: string) => {
 	if (selectedSubmission.value) setDraftPoints(selectedSubmission.value, value);
+};
+
+const onUpdateCriterionPoints = (criterionId: string, value: string) => {
+	if (selectedSubmission.value) setDraftCriterionPoints(selectedSubmission.value, criterionId, value);
 };
 
 const onUpdateFeedback = (value: string) => {
@@ -567,15 +721,29 @@ const isDirty = (submission: AssignmentSubmissionResponse) => {
 	const feedbackDirty =
 		submission.userId in draftFeedback.value &&
 		draftFeedback.value[submission.userId] !== (submission.feedbackComment ?? "");
+	const criterionPointsDirty = submission.userId in draftCriterionPoints.value;
 
-	return pointsDirty || feedbackDirty;
+	return pointsDirty || feedbackDirty || criterionPointsDirty;
 };
 
 const gradeBody = (submission: AssignmentSubmissionResponse) => {
+	const feedbackComment = draftFeedback.value[submission.userId] ?? submission.feedbackComment ?? null;
+
+	if (criteria.value.length > 0) {
+		const points = criterionPointsFor(submission);
+		return {
+			feedbackComment,
+			criterionPoints: criteria.value.map((criterion) => ({
+				criterionId: criterion.id,
+				points: points[criterion.id] ?? 0,
+			})),
+		};
+	}
+
 	const points = draftPoints.value[submission.userId] ?? submission.points ?? null;
 	return {
 		points: points === null ? undefined : points,
-		feedbackComment: draftFeedback.value[submission.userId] ?? submission.feedbackComment ?? null,
+		feedbackComment,
 	};
 };
 
@@ -593,6 +761,40 @@ const onReturnSubmission = async (submission: AssignmentSubmissionResponse) => {
 	await returnSubmission(submission.id, gradeBody(submission));
 	await load();
 	returningUserId.value = undefined;
+};
+
+const onBatchReturn = async () => {
+	const submissionIds = submissions.value
+		.filter((s) => selectedForBatchReturn.value.has(s.userId) && s.id)
+		.map((s) => s.id as string);
+	if (submissionIds.length === 0) {
+		showBatchReturnConfirm.value = false;
+		return;
+	}
+
+	batchReturning.value = true;
+	try {
+		const result = await returnSubmissionsBatch(submissionIds);
+		if (result) {
+			if (result.failed.length === 0) {
+				notifySuccess(
+					t("components.cardElement.assignmentElement.batchReturn.resultSuccess", { count: result.returned.length })
+				);
+			} else {
+				notifyError(
+					t("components.cardElement.assignmentElement.batchReturn.resultPartialFailure", {
+						returned: result.returned.length,
+						failed: result.failed.length,
+					})
+				);
+			}
+		}
+		selectedForBatchReturn.value = new Set();
+		showBatchReturnConfirm.value = false;
+		await load();
+	} finally {
+		batchReturning.value = false;
+	}
 };
 
 const downloadSubmissionFile = async (submission: AssignmentSubmissionResponse) => {
@@ -673,11 +875,17 @@ const nameOf = (submission: AssignmentSubmissionResponse) =>
 const exportCsv = () => {
 	isCsvExporting.value = true;
 	try {
+		const criterionPointFor = (submission: AssignmentSubmissionResponse, criterionId: string): string => {
+			const entry = submission.criterionPoints?.find((c) => c.criterionId === criterionId);
+			return entry ? String(entry.points) : "";
+		};
+
 		const rows: string[][] = submissions.value.map((submission) => [
 			nameOf(submission),
 			statusLabel(submission),
 			submission.submittedAt ? (formatUtc(submission.submittedAt, "dateTime") ?? "") : "",
 			submission.isLate ? "x" : "",
+			...criteria.value.map((criterion) => criterionPointFor(submission, criterion.id)),
 			submission.points !== null && submission.points !== undefined ? String(submission.points) : "",
 			submission.feedbackComment ?? "",
 			submission.comment ?? "",
@@ -689,6 +897,7 @@ const exportCsv = () => {
 			t("components.cardElement.assignmentElement.csv.status"),
 			t("components.cardElement.assignmentElement.csv.submittedAt"),
 			t("components.cardElement.assignmentElement.csv.late"),
+			...criteria.value.map((criterion) => criterion.name),
 			t("components.cardElement.assignmentElement.csv.points"),
 			t("components.cardElement.assignmentElement.teacherComment"),
 			t("components.cardElement.assignmentElement.studentComment"),
@@ -761,10 +970,13 @@ watch(
 	(isOpen) => {
 		if (isOpen) {
 			draftPoints.value = {};
+			draftCriterionPoints.value = {};
 			draftFeedback.value = {};
 			filterStatus.value = "all";
 			sortBy.value = "name";
 			selectedUserId.value = undefined;
+			selectedForBatchReturn.value = new Set();
+			selectedVersionId.value = {};
 			discardRecording();
 			void load();
 		}
