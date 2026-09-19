@@ -86,6 +86,7 @@
 						v-if="!smAndDown || selectedSubmission === undefined"
 						class="submissions-list"
 						density="compact"
+						role="listbox"
 						data-testid="submissions-list"
 					>
 						<div v-if="visibleSubmissions.length === 0" class="text-caption text-medium-emphasis pa-4">
@@ -95,9 +96,11 @@
 							v-for="submission in visibleSubmissions"
 							:key="submission.userId"
 							class="submission-block"
-							:active="submission.id === selectedSubmissionId"
+							role="option"
+							:active="submission.userId === selectedUserId"
+							:aria-selected="submission.userId === selectedUserId"
 							data-testid="submission-block"
-							@click="selectedSubmissionId = submission.id"
+							@click="selectedUserId = submission.userId"
 						>
 							<div class="d-flex align-center ga-2">
 								<span class="submission-name flex-grow-1 text-truncate" data-testid="submission-name">
@@ -121,7 +124,7 @@
 								size="small"
 								:prepend-icon="mdiChevronLeft"
 								data-testid="submission-back"
-								@click="selectedSubmissionId = null"
+								@click="selectedUserId = undefined"
 							>
 								{{ t("components.cardElement.assignmentElement.submissionsTitle") }}
 							</VBtn>
@@ -164,21 +167,19 @@
 								:feedback-files="latestFeedbackFileRecords(selectedSubmission)"
 								:feedback-audio-url="feedbackAudioRecord(selectedSubmission)?.url"
 								:max-points="maxPoints"
-								:points="draftPoints[selectedSubmission.id ?? ''] ?? selectedSubmission.points ?? null"
-								:feedback-comment="
-									draftFeedback[selectedSubmission.id ?? ''] ?? selectedSubmission.feedbackComment ?? ''
-								"
+								:points="draftPoints[selectedSubmission.userId] ?? selectedSubmission.points ?? null"
+								:feedback-comment="draftFeedback[selectedSubmission.userId] ?? selectedSubmission.feedbackComment ?? ''"
 								:is-dirty="isDirty(selectedSubmission)"
 								:busy="{
-									saving: savingId === selectedSubmission.id,
-									returning: returningId === selectedSubmission.id,
-									downloading: downloadingId === selectedSubmission.id,
+									saving: savingUserId === selectedSubmission.userId,
+									returning: returningUserId === selectedSubmission.userId,
+									downloading: downloadingUserId === selectedSubmission.userId,
 									annotating: annotateBusy,
-									uploadingAudio: uploadingAudioId === selectedSubmission.id,
+									uploadingAudio: uploadingAudioUserId === selectedSubmission.userId,
 								}"
 								:recording="{
-									isRecording: recordingSubmissionId === selectedSubmission.id,
-									recorded: recordingTargetId === selectedSubmission.id ? recordedAudio : undefined,
+									isRecording: recordingUserId === selectedSubmission.userId,
+									recorded: recordingTargetUserId === selectedSubmission.userId ? recordedAudio : undefined,
 								}"
 								@view-file="openFile(selectedSubmission)"
 								@annotate-file="openAnnotator(selectedSubmission)"
@@ -235,6 +236,7 @@ import {
 	mdiFolderZipOutline,
 } from "@icons/material";
 import { LightBoxContentType, useLightBox } from "@ui-light-box";
+import { onKeyStroke } from "@vueuse/core";
 import JSZip from "jszip";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -265,16 +267,19 @@ const loading = ref(false);
 const submissions = ref<AssignmentSubmissionResponse[]>([]);
 const draftPoints = ref<Record<string, number | null>>({});
 const draftFeedback = ref<Record<string, string>>({});
-const savingId = ref<string | null>(null);
-const returningId = ref<string | null>(null);
-const downloadingId = ref<string | null>(null);
+const savingUserId = ref<string | undefined>(undefined);
+const returningUserId = ref<string | undefined>(undefined);
+const downloadingUserId = ref<string | undefined>(undefined);
 const filterStatus = ref<string>("all");
 const sortBy = ref<string>("name");
-const selectedSubmissionId = ref<string | null>(null);
-const recordingSubmissionId = ref<string | null>(null);
-const recordingTargetId = ref<string | null>(null);
+// undefined = nothing selected; unlike submission.id (null for anyone who hasn't
+// submitted yet, which several rows can share at once), userId always exists and
+// is unique per row, so it is the only safe identity to key the selection on.
+const selectedUserId = ref<string | undefined>(undefined);
+const recordingUserId = ref<string | undefined>(undefined);
+const recordingTargetUserId = ref<string | undefined>(undefined);
 const recordedAudio = ref<{ url: string; blob: Blob } | undefined>(undefined);
-const uploadingAudioId = ref<string | null>(null);
+const uploadingAudioUserId = ref<string | undefined>(undefined);
 const isCsvExporting = ref(false);
 const isArchiveExporting = ref(false);
 
@@ -342,11 +347,11 @@ const visibleSubmissions = computed(() => {
 	return result;
 });
 
-const selectedSubmission = computed(() => visibleSubmissions.value.find((s) => s.id === selectedSubmissionId.value));
+const selectedSubmission = computed(() => visibleSubmissions.value.find((s) => s.userId === selectedUserId.value));
 
-const selectedIndex = computed(() =>
-	selectedSubmission.value ? visibleSubmissions.value.indexOf(selectedSubmission.value) : -1
-);
+// same list and the same key as the selection itself, so the displayed row, the
+// prev/next buttons and the arrow keys can never disagree about which row is active
+const selectedIndex = computed(() => visibleSubmissions.value.findIndex((s) => s.userId === selectedUserId.value));
 const hasPreviousSubmission = computed(() => selectedIndex.value > 0);
 const hasNextSubmission = computed(
 	() => selectedIndex.value >= 0 && selectedIndex.value < visibleSubmissions.value.length - 1
@@ -355,15 +360,37 @@ const hasNextSubmission = computed(
 const selectAdjacentSubmission = (offset: number) => {
 	const target = visibleSubmissions.value[selectedIndex.value + offset];
 	if (target) {
-		selectedSubmissionId.value = target.id;
+		selectedUserId.value = target.userId;
 	}
 };
 
 // keep a valid selection whenever the visible list changes (filter/sort/reload) -
 // falls back to the first visible submission, or none when the list is empty
 watch(visibleSubmissions, (list) => {
-	if (!list.some((s) => s.id === selectedSubmissionId.value)) {
-		selectedSubmissionId.value = list[0]?.id ?? null;
+	if (!list.some((s) => s.userId === selectedUserId.value)) {
+		selectedUserId.value = list[0]?.userId;
+	}
+});
+
+const isEditableTarget = (target: EventTarget | null): boolean => {
+	if (!(target instanceof HTMLElement)) return false;
+	return target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+};
+
+// arrow-key paging through the list, mirroring the prev/next buttons exactly -
+// ignored while typing in a field, and while the annotator or light box sits on
+// top of this dialog. The overlay stays mounted (v-is-open, not v-if), so this
+// listener must gate on isOpen itself rather than relying on being unmounted.
+onKeyStroke(["ArrowLeft", "ArrowRight"], (event) => {
+	if (!props.isOpen) return;
+	if (annotatorSource.value !== undefined) return;
+	if (lightBox.isLightBoxOpen.value) return;
+	if (isEditableTarget(event.target)) return;
+
+	if (event.key === "ArrowLeft" && hasPreviousSubmission.value) {
+		selectAdjacentSubmission(-1);
+	} else if (event.key === "ArrowRight" && hasNextSubmission.value) {
+		selectAdjacentSubmission(1);
 	}
 });
 
@@ -513,15 +540,11 @@ const openFeedbackFile = (record: FileRecord) => {
 };
 
 const setDraftPoints = (submission: AssignmentSubmissionResponse, value: string) => {
-	if (submission.id) {
-		draftPoints.value[submission.id] = value === "" ? null : Number(value);
-	}
+	draftPoints.value[submission.userId] = value === "" ? null : Number(value);
 };
 
 const setDraftFeedback = (submission: AssignmentSubmissionResponse, value: string) => {
-	if (submission.id) {
-		draftFeedback.value[submission.id] = value;
-	}
+	draftFeedback.value[submission.userId] = value;
 };
 
 // wrapped so the template can bind them without inlining a closure over
@@ -539,50 +562,48 @@ const onUpdateFeedback = (value: string) => {
 };
 
 const isDirty = (submission: AssignmentSubmissionResponse) => {
-	if (!submission.id) return false;
-
 	const pointsDirty =
-		submission.id in draftPoints.value && draftPoints.value[submission.id] !== (submission.points ?? null);
+		submission.userId in draftPoints.value && draftPoints.value[submission.userId] !== (submission.points ?? null);
 	const feedbackDirty =
-		submission.id in draftFeedback.value && draftFeedback.value[submission.id] !== (submission.feedbackComment ?? "");
+		submission.userId in draftFeedback.value &&
+		draftFeedback.value[submission.userId] !== (submission.feedbackComment ?? "");
 
 	return pointsDirty || feedbackDirty;
 };
 
-const gradeBody = (submissionId: string, submission: AssignmentSubmissionResponse) => {
-	const points = draftPoints.value[submissionId] ?? submission.points ?? null;
+const gradeBody = (submission: AssignmentSubmissionResponse) => {
+	const points = draftPoints.value[submission.userId] ?? submission.points ?? null;
 	return {
 		points: points === null ? undefined : points,
-		feedbackComment: draftFeedback.value[submissionId] ?? submission.feedbackComment ?? null,
+		feedbackComment: draftFeedback.value[submission.userId] ?? submission.feedbackComment ?? null,
 	};
 };
 
 const onSaveGrade = async (submission: AssignmentSubmissionResponse) => {
 	if (!submission.id) return;
-	savingId.value = submission.id;
-	await gradeSubmission(submission.id, gradeBody(submission.id, submission));
+	savingUserId.value = submission.userId;
+	await gradeSubmission(submission.id, gradeBody(submission));
 	await load();
-	savingId.value = null;
+	savingUserId.value = undefined;
 };
 
 const onReturnSubmission = async (submission: AssignmentSubmissionResponse) => {
 	if (!submission.id) return;
-	returningId.value = submission.id;
-	await returnSubmission(submission.id, gradeBody(submission.id, submission));
+	returningUserId.value = submission.userId;
+	await returnSubmission(submission.id, gradeBody(submission));
 	await load();
-	returningId.value = null;
+	returningUserId.value = undefined;
 };
 
 const downloadSubmissionFile = async (submission: AssignmentSubmissionResponse) => {
-	if (!submission.id) return;
-	downloadingId.value = submission.id;
+	downloadingUserId.value = submission.userId;
 	try {
 		const record = submissionFileRecord(submission);
 		if (record) {
 			downloadFile(record.url, record.name);
 		}
 	} finally {
-		downloadingId.value = null;
+		downloadingUserId.value = undefined;
 	}
 };
 
@@ -590,8 +611,8 @@ const startRecording = async (submission: AssignmentSubmissionResponse) => {
 	recorder = new AudioRecorder();
 	try {
 		await recorder.start();
-		recordingSubmissionId.value = submission.id;
-		recordingTargetId.value = submission.id;
+		recordingUserId.value = submission.userId;
+		recordingTargetUserId.value = submission.userId;
 	} catch {
 		// microphone denied or unavailable - nothing to clean up, the UI stays unchanged
 		recorder = undefined;
@@ -602,7 +623,7 @@ const stopRecording = async () => {
 	if (!recorder) return;
 	const blob = await recorder.stop();
 	recordedAudio.value = { url: URL.createObjectURL(blob), blob };
-	recordingSubmissionId.value = null;
+	recordingUserId.value = undefined;
 };
 
 const discardRecording = () => {
@@ -610,15 +631,15 @@ const discardRecording = () => {
 		URL.revokeObjectURL(recordedAudio.value.url);
 	}
 	recordedAudio.value = undefined;
-	recordingSubmissionId.value = null;
-	recordingTargetId.value = null;
+	recordingUserId.value = undefined;
+	recordingTargetUserId.value = undefined;
 	recorder = undefined;
 };
 
 const uploadRecording = async (submission: AssignmentSubmissionResponse) => {
 	if (!recordedAudio.value || !submission.id) return;
 
-	uploadingAudioId.value = submission.id;
+	uploadingAudioUserId.value = submission.userId;
 	try {
 		const blob = recordedAudio.value.blob;
 		const extension = AudioRecorder.getExtension(blob.type);
@@ -627,7 +648,7 @@ const uploadRecording = async (submission: AssignmentSubmissionResponse) => {
 		discardRecording();
 		await load();
 	} finally {
-		uploadingAudioId.value = null;
+		uploadingAudioUserId.value = undefined;
 	}
 };
 
@@ -743,7 +764,7 @@ watch(
 			draftFeedback.value = {};
 			filterStatus.value = "all";
 			sortBy.value = "name";
-			selectedSubmissionId.value = null;
+			selectedUserId.value = undefined;
 			discardRecording();
 			void load();
 		}

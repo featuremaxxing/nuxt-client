@@ -546,4 +546,165 @@ describe("AssignmentSubmissionsOverlay", () => {
 		const progress = wrapper.find("[data-testid='submissions-overlay-progress']").text();
 		expect(progress).toContain("submissionsProgress");
 	});
+
+	// Regression coverage for the "can't switch students" bug: the teacher list contains
+	// one row per course member, and several of them can have id === null (no submission
+	// yet) at the same time. Selection must key on userId (always present, always unique),
+	// never on id.
+	describe("selection with several submissions missing (id === null)", () => {
+		const buildThreeStudents = () => [
+			buildSubmission({
+				userId: "user-1",
+				id: null,
+				firstName: "Anna",
+				lastName: "Adler",
+				status: AssignmentStatus.OPEN,
+				file: null,
+			}),
+			buildSubmission({
+				userId: "user-2",
+				id: null,
+				firstName: "Ben",
+				lastName: "Berger",
+				status: AssignmentStatus.OPEN,
+				file: null,
+			}),
+			buildSubmission({
+				userId: "user-3",
+				id: "submission-3",
+				firstName: "Clara",
+				lastName: "Cortez",
+				status: AssignmentStatus.SUBMITTED,
+			}),
+		];
+
+		it("selects the actually clicked row, even when it is the second row without a submission", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const blocks = wrapper.findAll("[data-testid='submission-block']");
+			await blocks[1].trigger("click");
+
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Berger");
+		});
+
+		it("never marks two rows active at once", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const blocks = wrapper.findAll("[data-testid='submission-block']");
+			await blocks[1].trigger("click");
+
+			const activeBlocks = wrapper
+				.findAll("[data-testid='submission-block']")
+				.filter((block) => block.classes().includes("v-list-item--active"));
+			expect(activeBlocks).toHaveLength(1);
+			expect(activeBlocks[0].text()).toContain("Berger");
+		});
+
+		it("pages through every row in order via next/previous, including across rows without a submission", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Adler");
+
+			await wrapper.find("[data-testid='submission-next']").trigger("click");
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Berger");
+
+			await wrapper.find("[data-testid='submission-next']").trigger("click");
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Cortez");
+			expect(wrapper.find("[data-testid='submission-next']").attributes("disabled")).toBeDefined();
+
+			await wrapper.find("[data-testid='submission-previous']").trigger("click");
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Berger");
+
+			await wrapper.find("[data-testid='submission-previous']").trigger("click");
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Adler");
+			expect(wrapper.find("[data-testid='submission-previous']").attributes("disabled")).toBeDefined();
+		});
+
+		it("auto-selects the first row on open even when it has no submission", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Adler");
+		});
+
+		it("moves the selection with the arrow keys, but not while typing in a field", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+			await wrapper.vm.$nextTick();
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Berger");
+
+			// only the third row (Cortez) has an actual submission and thus a points field -
+			// select it to prove a keydown originating from an input field is ignored
+			await wrapper.find("[data-testid='submission-next']").trigger("click");
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Cortez");
+
+			const input = wrapper.get("[data-testid='submission-points-input'] input");
+			input.element.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+			await wrapper.vm.$nextTick();
+
+			expect(wrapper.find("[data-testid='submission-detail-name']").text()).toContain("Cortez");
+		});
+
+		it("shows a hint instead of grading fields for a row without a submission", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: buildThreeStudents(),
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='submission-none']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='submission-points-input']").exists()).toBe(false);
+			expect(wrapper.find("[data-testid='submission-save-grade']").exists()).toBe(false);
+		});
+	});
 });

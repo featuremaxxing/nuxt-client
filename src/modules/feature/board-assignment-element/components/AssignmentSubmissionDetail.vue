@@ -127,7 +127,14 @@
 			{{ submission.comment }}
 		</div>
 
-		<template v-if="submission.id !== null">
+		<div v-if="submission.id === null" class="submission-none mt-4" data-testid="submission-none">
+			<p class="text-body-2">{{ t("components.cardElement.assignmentElement.noSubmissionYet") }}</p>
+			<p class="text-caption text-medium-emphasis">
+				{{ t("components.cardElement.assignmentElement.noSubmissionHint") }}
+			</p>
+		</div>
+
+		<template v-else>
 			<VDivider class="mt-4 mb-3" />
 
 			<div class="d-flex align-center ga-2 mb-3" data-testid="submission-audio-feedback-row">
@@ -337,6 +344,9 @@ const correctionLabel = (record: FileRecord): string => {
 }
 .submission-comment {
 	word-break: break-word;
+}
+.submission-none {
+	opacity: 0.8;
 }
 .submission-thumbnail {
 	width: 72px;

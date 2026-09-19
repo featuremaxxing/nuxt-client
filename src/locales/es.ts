@@ -645,6 +645,9 @@ export default {
 	"components.cardElement.assignmentElement.downloadArchive": "Todas las entregas (ZIP)",
 	"components.cardElement.assignmentElement.noSubmissionsForFilter": "No hay entregas para este filtro",
 	"components.cardElement.assignmentElement.selectSubmission": "Selecciona una entrega a la izquierda",
+	"components.cardElement.assignmentElement.noSubmissionYet": "Todavía no hay entrega",
+	"components.cardElement.assignmentElement.noSubmissionHint":
+		"La calificación solo es posible después de una entrega.",
 	"components.cardElement.assignmentElement.unsavedChanges": "Sin guardar",
 	"components.cardElement.assignmentElement.previousSubmission": "Entrega anterior",
 	"components.cardElement.assignmentElement.nextSubmission": "Entrega siguiente",

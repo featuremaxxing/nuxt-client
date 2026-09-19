@@ -632,6 +632,9 @@ export default {
 	"components.cardElement.assignmentElement.downloadArchive": "All submissions (ZIP)",
 	"components.cardElement.assignmentElement.noSubmissionsForFilter": "No submissions for this filter",
 	"components.cardElement.assignmentElement.selectSubmission": "Select a submission on the left",
+	"components.cardElement.assignmentElement.noSubmissionYet": "No submission yet",
+	"components.cardElement.assignmentElement.noSubmissionHint":
+		"Grading is only possible once a submission has been made.",
 	"components.cardElement.assignmentElement.unsavedChanges": "Not saved",
 	"components.cardElement.assignmentElement.previousSubmission": "Previous submission",
 	"components.cardElement.assignmentElement.nextSubmission": "Next submission",

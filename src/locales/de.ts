@@ -653,6 +653,8 @@ export default {
 	"components.cardElement.assignmentElement.downloadArchive": "Alle Abgaben (ZIP)",
 	"components.cardElement.assignmentElement.noSubmissionsForFilter": "Keine Abgaben für diesen Filter",
 	"components.cardElement.assignmentElement.selectSubmission": "Abgabe links auswählen",
+	"components.cardElement.assignmentElement.noSubmissionYet": "Noch keine Abgabe",
+	"components.cardElement.assignmentElement.noSubmissionHint": "Eine Bewertung ist erst nach einer Abgabe möglich.",
 	"components.cardElement.assignmentElement.unsavedChanges": "Nicht gespeichert",
 	"components.cardElement.assignmentElement.previousSubmission": "Vorherige Abgabe",
 	"components.cardElement.assignmentElement.nextSubmission": "Nächste Abgabe",

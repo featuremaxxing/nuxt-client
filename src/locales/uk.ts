@@ -643,6 +643,8 @@ export default {
 	"components.cardElement.assignmentElement.downloadArchive": "Усі роботи (ZIP)",
 	"components.cardElement.assignmentElement.noSubmissionsForFilter": "Немає робіт для цього фільтра",
 	"components.cardElement.assignmentElement.selectSubmission": "Виберіть роботу ліворуч",
+	"components.cardElement.assignmentElement.noSubmissionYet": "Ще немає роботи",
+	"components.cardElement.assignmentElement.noSubmissionHint": "Оцінювання можливе лише після подання роботи.",
 	"components.cardElement.assignmentElement.unsavedChanges": "Не збережено",
 	"components.cardElement.assignmentElement.previousSubmission": "Попередня робота",
 	"components.cardElement.assignmentElement.nextSubmission": "Наступна робота",
