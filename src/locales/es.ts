@@ -641,7 +641,7 @@ export default {
 	"components.cardElement.pollElement.emptyResults": "Aún no hay votos",
 	"components.cardElement.pollElement.freeTextAnswer": "Respuesta",
 	"components.cardElement.pollElement.voteError": "No se pudo enviar tu voto.",
-	"components.cardElement.pollElement.analysis": "Análisis",
+	"components.cardElement.pollElement.analysis": "Vista detallada",
 	"components.cardElement.pollElement.overview": "Resumen",
 	"components.cardElement.pollElement.participants": "Participantes",
 	"components.cardElement.pollElement.closeAnalysis": "Cerrar análisis",

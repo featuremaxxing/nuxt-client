@@ -649,7 +649,7 @@ export default {
 	"components.cardElement.pollElement.emptyResults": "Noch keine Stimmen",
 	"components.cardElement.pollElement.freeTextAnswer": "Antwort",
 	"components.cardElement.pollElement.voteError": "Die Stimme konnte nicht übermittelt werden.",
-	"components.cardElement.pollElement.analysis": "Auswertung",
+	"components.cardElement.pollElement.analysis": "Detaillierte Ansicht",
 	"components.cardElement.pollElement.overview": "Übersicht",
 	"components.cardElement.pollElement.participants": "Teilnehmer",
 	"components.cardElement.pollElement.closeAnalysis": "Auswertung schließen",

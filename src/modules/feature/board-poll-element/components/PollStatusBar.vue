@@ -58,11 +58,12 @@
 		<VBtn
 			v-if="canOpenAnalysis"
 			variant="text"
-			:icon="mdiFullscreen"
+			:prepend-icon="mdiPresentation"
 			data-testid="poll-open-analysis"
-			:aria-label="t('components.cardElement.pollElement.analysis')"
 			@click="emit('open:analysis')"
-		/>
+		>
+			{{ t("components.cardElement.pollElement.analysis") }}
+		</VBtn>
 	</VCardText>
 </template>
 
@@ -74,7 +75,7 @@ import { PollElement } from "@/types/board/ContentElement";
 import { downloadBlob } from "@/utils/fileHelper";
 import { PollAnswerMode, PollQuestionResultResponse, PollStatus, PollVoterResponse } from "@api-server";
 import { useCardStore } from "@data-board";
-import { mdiFullscreen, mdiTrayArrowDown } from "@icons/material";
+import { mdiPresentation, mdiTrayArrowDown } from "@icons/material";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 

@@ -639,7 +639,7 @@ export default {
 	"components.cardElement.pollElement.emptyResults": "Ще немає голосів",
 	"components.cardElement.pollElement.freeTextAnswer": "Відповідь",
 	"components.cardElement.pollElement.voteError": "Не вдалося надіслати голос.",
-	"components.cardElement.pollElement.analysis": "Аналіз",
+	"components.cardElement.pollElement.analysis": "Детальний перегляд",
 	"components.cardElement.pollElement.overview": "Огляд",
 	"components.cardElement.pollElement.participants": "Учасники",
 	"components.cardElement.pollElement.closeAnalysis": "Закрити аналіз",
