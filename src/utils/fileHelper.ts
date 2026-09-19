@@ -46,6 +46,17 @@ export function downloadFile(url: string, fileName: string) {
 	document.body.removeChild(link);
 }
 
+// Sibling of downloadFile() for content that only exists client-side (e.g. a generated CSV or
+// PDF), rather than something already reachable by URL. Creates a short-lived object URL for the
+// blob, reuses the same hidden-<a>-click trick, then revokes the URL so it doesn't leak memory.
+export function downloadBlob(blob: Blob, fileName: string) {
+	const url = URL.createObjectURL(blob);
+	downloadFile(url, fileName);
+	// Revoking synchronously can race the browser's (async) download start in some engines, so
+	// defer it to the next tick instead of doing it inline.
+	setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 // It creates a form element, populates it with hidden input fields for each key-value pair in the data array,
 // and then submits the form to initiate the download. After the form is submitted, it is removed from the document body to clean up.
 export const enforceDownload = (url: string, data: Array<{ key: string; value: string }>, target = "_blank") => {

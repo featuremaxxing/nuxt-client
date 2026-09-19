@@ -15,6 +15,7 @@ import {
 	mdiFolderOpenOutline,
 	mdiFormatText,
 	mdiLink,
+	mdiPoll,
 	mdiPresentation,
 	mdiPuzzleOutline,
 	mdiTextBoxEditOutline,
@@ -157,6 +158,15 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.h5pElement.subtitle"),
 				action: () => onElementClick(ContentElementType.H5P),
 				testId: "create-element-h5p",
+			});
+		}
+
+		if (envConfig.value.FEATURE_COLUMN_BOARD_POLL_ENABLED) {
+			options.push({
+				icon: mdiPoll,
+				label: t("components.elementTypeSelection.elements.pollElement.subtitle"),
+				action: () => onElementClick(ContentElementType.POLL),
+				testId: "create-element-poll",
 			});
 		}
 

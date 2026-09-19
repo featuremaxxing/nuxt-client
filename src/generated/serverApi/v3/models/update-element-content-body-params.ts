@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -19,6 +19,7 @@ import { FileElementContentBody } from './file-element-content-body';
 import { FileFolderElementContentBody } from './file-folder-element-content-body';
 import { H5pElementContentBody } from './h5p-element-content-body';
 import { LinkElementContentBody } from './link-element-content-body';
+import { PollElementContentBody } from './poll-element-content-body';
 import { RichTextElementContentBody } from './rich-text-element-content-body';
 import { VideoConferenceElementContentBody } from './video-conference-element-content-body';
 
@@ -30,10 +31,10 @@ import { VideoConferenceElementContentBody } from './video-conference-element-co
 export interface UpdateElementContentBodyParams {
     /**
      * 
-     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody}
+     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody}
      * @memberof UpdateElementContentBodyParams
      */
-    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody;
+    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody;
 }
 
 

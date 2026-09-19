@@ -1,0 +1,134 @@
+import PollContentElement from "./PollContentElement.vue";
+import { PollElement } from "@/types/board/ContentElement";
+import { pollElementResponseFactory } from "@@/tests/test-utils";
+import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
+import { PollStatus } from "@api-server";
+import { mount } from "@vue/test-utils";
+import { computed } from "vue";
+
+const { useBoardAllowedOperationsMock, useBoardFocusHandlerMock, usePollsStoreMock, fetchPollResultsMock } = vi.hoisted(
+	() => ({
+		useBoardAllowedOperationsMock: vi.fn(),
+		useBoardFocusHandlerMock: vi.fn(),
+		usePollsStoreMock: vi.fn(),
+		fetchPollResultsMock: vi.fn(),
+	})
+);
+
+vi.mock("@data-board", () => ({
+	useBoardAllowedOperations: useBoardAllowedOperationsMock,
+	useBoardFocusHandler: useBoardFocusHandlerMock,
+}));
+
+vi.mock("@data-poll", () => ({
+	usePollsStore: usePollsStoreMock,
+}));
+
+describe("PollContentElement", () => {
+	const setupWrapper = (
+		options: { isEditMode?: boolean; canEdit?: boolean; element?: PollElement; pollState?: object } = {}
+	) => {
+		useBoardAllowedOperationsMock.mockReturnValue({
+			allowedOperations: computed(() => ({ updateElement: options.canEdit ?? false })),
+		});
+
+		usePollsStoreMock.mockReturnValue({
+			getState: () => options.pollState ?? { totalVotes: 0, participantCount: 0 },
+			fetchPollResults: fetchPollResultsMock,
+		});
+
+		const element = options.element ?? pollElementResponseFactory.build();
+
+		const wrapper = mount(PollContentElement, {
+			global: {
+				plugins: [createTestingVuetify(), createTestingI18n()],
+				stubs: {
+					PollElementEdit: true,
+					PollStatusBar: true,
+					PollResults: true,
+					PollVoteForm: true,
+					PollAnalysisDialog: true,
+				},
+			},
+			props: {
+				element,
+				isEditMode: options.isEditMode ?? false,
+				columnIndex: 0,
+				rowIndex: 0,
+				elementIndex: 0,
+			},
+		});
+
+		return { wrapper };
+	};
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("shows the configuration form when the card is in edit mode", () => {
+		const { wrapper } = setupWrapper({ isEditMode: true, canEdit: true });
+
+		expect(wrapper.findComponent({ name: "PollElementEdit" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
+	});
+
+	it("shows the results view for an editor outside edit mode", () => {
+		const { wrapper } = setupWrapper({ isEditMode: false, canEdit: true });
+
+		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollElementEdit" }).exists()).toBe(false);
+	});
+
+	it("shows the vote form for a non-editor when the poll is open and not yet voted", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({ isEditMode: false, canEdit: false, element });
+
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
+	});
+
+	it("shows results (not the vote form) for a closed poll, even for a non-editor", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.CLOSED } });
+		const { wrapper } = setupWrapper({ isEditMode: false, canEdit: false, element });
+
+		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
+	});
+
+	it("fetches poll results on mount outside edit mode", () => {
+		setupWrapper({ isEditMode: false, canEdit: false });
+
+		expect(fetchPollResultsMock).toHaveBeenCalled();
+	});
+
+	it("shows the poll title", () => {
+		const element = pollElementResponseFactory.build({ content: { title: "Feedback" } });
+		const { wrapper } = setupWrapper({ element, canEdit: true });
+
+		expect(wrapper.text()).toContain("Feedback");
+	});
+
+	it("passes canOpenAnalysis=true to the status bar and dialog for an editor, regardless of poll status", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({ element, canEdit: true });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(true);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(true);
+	});
+
+	it("passes canOpenAnalysis=false to the status bar for a non-editor while the poll is open", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(false);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(false);
+	});
+
+	it("passes canOpenAnalysis=true to the status bar for a non-editor once the poll is closed", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.CLOSED } });
+		const { wrapper } = setupWrapper({ element, canEdit: false });
+
+		expect(wrapper.findComponent({ name: "PollStatusBar" }).props("canOpenAnalysis")).toBe(true);
+		expect(wrapper.findComponent({ name: "PollAnalysisDialog" }).exists()).toBe(true);
+	});
+});
