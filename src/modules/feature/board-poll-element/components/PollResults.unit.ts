@@ -47,7 +47,7 @@ describe("PollResults", () => {
 		return { wrapper };
 	};
 
-	it("shows the numeric breakdown per option", () => {
+	it("shows the numeric breakdown per option via the chart labels", () => {
 		const { wrapper } = setupWrapper({
 			results: [
 				{
@@ -60,8 +60,8 @@ describe("PollResults", () => {
 			],
 		});
 
-		expect(wrapper.text()).toContain("Gut: 8");
-		expect(wrapper.text()).toContain("(80%)");
+		expect(wrapper.text()).toContain("Gut");
+		expect(wrapper.text()).toContain("8 (80%)");
 	});
 
 	it("shows a plain answer list for a free-text question instead of a chart", () => {

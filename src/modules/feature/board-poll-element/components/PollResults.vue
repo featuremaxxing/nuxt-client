@@ -18,12 +18,6 @@
 					:question-id="question.id"
 				/>
 
-				<ul class="poll-results-breakdown">
-					<li v-for="option in question.options" :key="option.id">
-						{{ option.text }}: {{ countFor(question.id, option.id) }} ({{ percentFor(question.id, option.id) }}%)
-					</li>
-				</ul>
-
 				<VExpansionPanels v-if="isEditor && !element.content.isAnonymous && voters" class="mt-2">
 					<VExpansionPanel v-for="option in question.options" :key="option.id">
 						<VExpansionPanelTitle :data-testid="`poll-voter-list-toggle-${question.id}-${option.id}`">
@@ -70,16 +64,6 @@ const chartDataFor = (question: PollQuestionResponse): ChartDatum[] => {
 	}));
 };
 
-const countFor = (questionId: string, optionId: string): number =>
-	snapshotFor(questionId)?.counts.find((entry) => entry.optionId === optionId)?.count ?? 0;
-
-const percentFor = (questionId: string, optionId: string): number => {
-	const snapshot = snapshotFor(questionId);
-	const total = snapshot?.counts.reduce((sum, entry) => sum + entry.count, 0) ?? 0;
-	const count = countFor(questionId, optionId);
-	return total > 0 ? Math.round((count / total) * 1000) / 10 : 0;
-};
-
 const textAnswersFor = (questionId: string): string[] => snapshotFor(questionId)?.textAnswers ?? [];
 
 const votersFor = (questionId: string, optionId: string): PollVoterResponse[] =>
@@ -103,7 +87,6 @@ const voterName = (voter: PollVoterResponse): string =>
 	margin-bottom: 4px;
 }
 
-.poll-results-breakdown,
 .poll-results-text-answers {
 	margin: 8px 0 0;
 	padding-left: 20px;

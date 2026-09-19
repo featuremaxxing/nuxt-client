@@ -4,6 +4,7 @@
 		:width="svgWidth"
 		:height="svgHeight"
 		:viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+		class="poll-chart-svg"
 		role="img"
 		:aria-label="ariaLabel"
 		data-testid="poll-chart-svg"
@@ -240,6 +241,16 @@ const ariaLabel = computed(() => props.data.map((datum) => `${datum.label}: ${da
 </script>
 
 <style scoped lang="scss">
+// The svg keeps its `width`/`height` attributes at the logical geometry size (read by
+// svg-to-png.util.ts via `svg.width.baseVal.value` for PDF export rasterization); CSS-only
+// scaling here lets the browser shrink the displayed size to fit a narrow card without
+// clipping the right-aligned value/percent text, while `viewBox` keeps everything proportional.
+.poll-chart-svg {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
 .poll-chart-empty {
 	font-style: italic;
 	opacity: 0.7;
