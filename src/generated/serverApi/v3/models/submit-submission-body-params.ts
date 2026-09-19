@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -17,15 +17,15 @@
 /**
  * 
  * @export
- * @interface CreateSubmissionItemBodyParams
+ * @interface SubmitSubmissionBodyParams
  */
-export interface CreateSubmissionItemBodyParams {
+export interface SubmitSubmissionBodyParams {
     /**
-     * Boolean indicating whether the submission is completed.
-     * @type {boolean}
-     * @memberof CreateSubmissionItemBodyParams
+     * optional note from the submitting student
+     * @type {string}
+     * @memberof SubmitSubmissionBodyParams
      */
-    completed: boolean;
+    comment?: string;
 }
 
 

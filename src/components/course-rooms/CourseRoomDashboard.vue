@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<RoomAssignmentsSection v-if="assignmentsEnabled" :room-id="roomData.roomId" class="mb-4" />
 		<div v-if="role === Roles.TEACHER">
 			<draggable
 				v-model="roomData.elements"
@@ -159,6 +160,7 @@
 
 <script setup lang="ts">
 import CourseRoomTaskCard from "./CourseRoomTaskCard.vue";
+import RoomAssignmentsSection from "./RoomAssignmentsSection.vue";
 import { ContentItemTypeEnum } from "@/types/enum/content-item-type.enum";
 import { askDeletionForItem } from "@/utils/confirmation-dialog.utils";
 import {
@@ -173,6 +175,7 @@ import {
 	TaskResponse,
 } from "@api-server";
 import { useCourseRoomDetailsStore } from "@data-course-rooms";
+import { useEnvConfig } from "@data-env";
 import { ShareParams } from "@feature-share";
 import { EmptyState, LearningContentEmptyStateSvg } from "@ui-empty-state";
 import { RoomBoardCard, RoomLessonCard } from "@ui-room-details";
@@ -194,6 +197,9 @@ const { t } = useI18n();
 
 const courseRoomDetailsStore = useCourseRoomDetailsStore();
 const { roomIsEmpty, roomData } = storeToRefs(courseRoomDetailsStore);
+
+const envConfig = useEnvConfig();
+const assignmentsEnabled = computed(() => envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED === true);
 
 const cardTypes = BoardElementResponseType;
 const Roles = ImportUserResponseRoleNames;

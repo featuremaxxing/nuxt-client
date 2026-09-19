@@ -1,4 +1,5 @@
 import {
+	AssignmentElementResponse,
 	CollaborativeTextEditorElementResponse,
 	ContentElementType,
 	DrawingElementResponse,
@@ -14,6 +15,7 @@ import {
 } from "@api-server";
 
 export type FileFolderElement = FileFolderElementResponse;
+export type AssignmentElement = AssignmentElementResponse;
 
 export type AnyContentElement =
 	| LinkElementResponse
@@ -24,7 +26,8 @@ export type AnyContentElement =
 	| DrawingElementResponse
 	| CollaborativeTextEditorElementResponse
 	| VideoConferenceElementResponse
-	| H5pElementResponse;
+	| H5pElementResponse
+	| AssignmentElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;
 

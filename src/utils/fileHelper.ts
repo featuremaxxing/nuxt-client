@@ -198,6 +198,10 @@ export function isPdfMimeType(mimeType: string): boolean {
 	return mimeType === "application/pdf";
 }
 
+export function isImageMimeType(mimeType: string): boolean {
+	return mimeType.startsWith("image/");
+}
+
 export function isAudioMimeType(mimeType: string): boolean {
 	return mimeType.startsWith("audio/");
 }

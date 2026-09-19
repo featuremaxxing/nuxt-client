@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -154,6 +154,12 @@ export interface ConfigResponse {
      * @type {boolean}
      * @memberof ConfigResponse
      */
+    FEATURE_SCHOOL_DATA_READONLY_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
     FEATURE_SCHOOL_POLICY_ENABLED_NEW: boolean;
     /**
      * 
@@ -221,6 +227,12 @@ export interface ConfigResponse {
      * @memberof ConfigResponse
      */
     FEATURE_COLUMN_BOARD_H5P_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
+    FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: boolean;
     /**
      * 
      * @type {boolean}

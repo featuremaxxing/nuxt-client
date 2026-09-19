@@ -5,6 +5,7 @@ export enum LightBoxContentType {
 	IMAGE = "image",
 	AUDIO = "audio",
 	VIDEO = "video",
+	PDF = "pdf",
 }
 
 export interface LightBoxOptions {
