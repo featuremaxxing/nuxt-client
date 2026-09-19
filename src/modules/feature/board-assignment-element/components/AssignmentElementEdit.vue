@@ -71,6 +71,7 @@
 						:label="t('components.cardElement.assignmentElement.rubric.criterionName')"
 						density="compact"
 						hide-details
+						class="criterion-name-field"
 						data-testid="assignment-rubric-criterion-name"
 						@update:model-value="(value: string) => setCriterionName(index, value)"
 					/>
@@ -81,7 +82,7 @@
 						:label="t('components.cardElement.assignmentElement.rubric.criterionMaxPoints')"
 						density="compact"
 						hide-details
-						style="max-width: 140px"
+						class="criterion-points-field"
 						data-testid="assignment-rubric-criterion-max-points"
 						@update:model-value="(value: string) => setCriterionMaxPoints(index, value)"
 					/>
@@ -277,5 +278,24 @@ const setCriterionMaxPoints = (index: number, value: string) => {
 	> * {
 		flex: 1 1 160px;
 	}
+}
+.rubric-section,
+.peer-review-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 8px;
+}
+.rubric-criterion-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.criterion-name-field {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.criterion-points-field {
+	flex: 0 0 110px;
 }
 </style>
