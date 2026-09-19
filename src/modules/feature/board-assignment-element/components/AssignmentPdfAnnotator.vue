@@ -20,7 +20,7 @@
 						:key="color.value"
 						:icon="mdiPencil"
 						:color="color.value"
-						:variant="!isEraser && selectedColor === color.value ? 'flat' : 'text'"
+						:variant="activeTool === 'pen' && selectedColor === color.value ? 'flat' : 'text'"
 						size="small"
 						:aria-label="t(color.label)"
 						:data-testid="`annotator-color-${color.value.slice(1)}`"
@@ -28,7 +28,7 @@
 					/>
 					<VBtn
 						:icon="mdiPen"
-						:variant="!isEraser && selectedWidth === THIN_WIDTH ? 'tonal' : 'text'"
+						:variant="activeTool === 'pen' && selectedWidth === THIN_WIDTH ? 'tonal' : 'text'"
 						size="small"
 						class="ml-1"
 						:aria-label="t('components.cardElement.assignmentElement.annotator.widthThin')"
@@ -37,7 +37,7 @@
 					/>
 					<VBtn
 						:icon="mdiBrush"
-						:variant="!isEraser && selectedWidth === WIDE_WIDTH ? 'tonal' : 'text'"
+						:variant="activeTool === 'pen' && selectedWidth === WIDE_WIDTH ? 'tonal' : 'text'"
 						size="small"
 						:aria-label="t('components.cardElement.assignmentElement.annotator.widthThick')"
 						data-testid="annotator-width-thick"
@@ -45,11 +45,21 @@
 					/>
 					<VBtn
 						:icon="mdiEraser"
-						:variant="isEraser ? 'tonal' : 'text'"
+						:variant="activeTool === 'eraser' ? 'tonal' : 'text'"
 						size="small"
 						:aria-label="t('components.cardElement.assignmentElement.annotator.eraser')"
 						data-testid="annotator-eraser"
-						@click="toggleEraser"
+						@click="selectTool('eraser')"
+					/>
+					<VBtn
+						v-if="isPdf"
+						:icon="mdiCommentTextOutline"
+						:variant="activeTool === 'comment' ? 'tonal' : 'text'"
+						size="small"
+						class="ml-1"
+						:aria-label="t('components.cardElement.assignmentElement.annotator.comment')"
+						data-testid="annotator-comment-tool"
+						@click="selectTool('comment')"
 					/>
 					<VBtn
 						:icon="mdiUndo"
@@ -71,7 +81,9 @@
 							@click="showPage(currentPage - 1)"
 						/>
 						<span class="text-caption" data-testid="annotator-page-indicator">
-							{{ t("components.cardElement.assignmentElement.annotator.page", { current: currentPage, total: numPages }) }}
+							{{
+								t("components.cardElement.assignmentElement.annotator.page", { current: currentPage, total: numPages })
+							}}
 						</span>
 						<VBtn
 							:icon="mdiChevronRight"
@@ -88,13 +100,7 @@
 				<VBtn variant="text" data-testid="annotator-cancel" @click="emit('cancel')">
 					{{ t("common.actions.cancel") }}
 				</VBtn>
-				<VBtn
-					variant="tonal"
-					:loading="saving"
-					:disabled="loading"
-					data-testid="annotator-save"
-					@click="save"
-				>
+				<VBtn variant="tonal" :loading="saving" :disabled="loading" data-testid="annotator-save" @click="save">
 					{{ t("common.actions.save") }}
 				</VBtn>
 			</VToolbar>
@@ -122,6 +128,54 @@
 						@pointerup="onPointerUp"
 						@pointercancel="onPointerUp"
 					/>
+					<div
+						v-if="isPdf"
+						ref="commentLayerRef"
+						class="annotator-comment-layer"
+						:class="{ 'annotator-comment-layer--active': activeTool === 'comment' }"
+						data-testid="annotator-comment-layer"
+						@click="onCommentLayerClick"
+					>
+						<button
+							v-for="comment in commentsOnPage"
+							:key="comment.id"
+							type="button"
+							class="annotator-comment-marker"
+							:style="{ left: `${comment.x * 100}%`, top: `${comment.y * 100}%` }"
+							:aria-label="t('components.cardElement.assignmentElement.annotator.comment')"
+							:data-testid="`annotator-comment-marker-${comment.id}`"
+							@click.stop="openComment(comment.id)"
+						>
+							<VIcon :icon="mdiCommentTextOutline" size="small" />
+						</button>
+
+						<div
+							v-if="activeComment"
+							class="annotator-comment-popup"
+							:style="{ left: `${activeComment.x * 100}%`, top: `${activeComment.y * 100}%` }"
+							data-testid="annotator-comment-popup"
+							@click.stop
+						>
+							<VTextarea
+								v-model="commentDraftText"
+								autofocus
+								rows="2"
+								auto-grow
+								density="compact"
+								hide-details
+								:placeholder="t('components.cardElement.assignmentElement.annotator.commentPlaceholder')"
+								data-testid="annotator-comment-input"
+							/>
+							<div class="d-flex justify-end ga-1 mt-1">
+								<VBtn size="small" variant="text" data-testid="annotator-comment-delete" @click="deleteOpenComment">
+									{{ t("common.actions.delete") }}
+								</VBtn>
+								<VBtn size="small" variant="tonal" data-testid="annotator-comment-done" @click="closeCommentPopup">
+									{{ t("components.cardElement.assignmentElement.annotator.commentDone") }}
+								</VBtn>
+							</div>
+						</div>
+					</div>
 				</div>
 			</VCardText>
 		</VCard>
@@ -139,8 +193,10 @@ export interface AnnotatorSource {
 <script setup lang="ts">
 import {
 	drawStrokesOnCanvas,
-	StrokeModel,
+	type PdfComment,
+	readPdfComments,
 	type Stroke,
+	StrokeModel,
 	type StrokePoint,
 } from "@/utils/pdf-annotation";
 import { loadPdf, MAX_RENDER_DIMENSION, renderPdfPageToCanvas } from "@/utils/pdf-renderer";
@@ -148,12 +204,13 @@ import {
 	mdiBrush,
 	mdiChevronLeft,
 	mdiChevronRight,
+	mdiCommentTextOutline,
 	mdiEraser,
-	mdiPencil,
 	mdiPen,
+	mdiPencil,
 	mdiUndo,
 } from "@icons/material";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 // Fullscreen editor for annotating a student's submitted PDF or image with a pen
@@ -194,37 +251,31 @@ const loading = ref(false);
 const saving = ref(false);
 const selectedColor = ref<string>(PEN_COLORS[0].value);
 const selectedWidth = ref<number>(THIN_WIDTH);
-const isEraser = ref(false);
+// three-way tool state (was a plain isEraser boolean) - the comment tool needs its
+// own state alongside pen/eraser, and a single field rules out a pen+eraser-at-once state
+const activeTool = ref<"pen" | "eraser" | "comment">("pen");
 const currentPage = ref(1);
 const numPages = ref(1);
 
 let pdfBytes: ArrayBuffer | undefined;
 let pdfDoc: Awaited<ReturnType<typeof loadPdf>> | undefined;
 
+const isPdf = computed(() => props.source?.kind === "pdf");
+
 const selectPen = (color: string) => {
-	isEraser.value = false;
+	activeTool.value = "pen";
 	selectedColor.value = color;
 	selectedWidth.value = THIN_WIDTH;
 };
 
 const selectWidth = (width: number) => {
-	isEraser.value = false;
+	activeTool.value = "pen";
 	selectedWidth.value = width;
 };
 
-const toggleEraser = () => {
-	isEraser.value = !isEraser.value;
+const selectTool = (tool: "eraser" | "comment") => {
+	activeTool.value = activeTool.value === tool ? "pen" : tool;
 };
-
-watch(
-	() => [props.isOpen, props.source] as const,
-	([isOpen, source]) => {
-		if (isOpen && source) {
-			void init();
-		}
-	},
-	{ immediate: true }
-);
 
 const init = async () => {
 	if (!props.source) return;
@@ -233,6 +284,9 @@ const init = async () => {
 	saving.value = false;
 	numPages.value = 1;
 	currentPage.value = 1;
+	activeTool.value = "pen";
+	comments.value = [];
+	activeCommentId.value = undefined;
 
 	try {
 		const response = await fetch(props.source.url);
@@ -240,6 +294,9 @@ const init = async () => {
 			pdfBytes = await response.arrayBuffer();
 			pdfDoc = await loadPdf(pdfBytes.slice(0));
 			numPages.value = pdfDoc.numPages;
+			// comments already left in an earlier correction round are loaded into the
+			// same editable model, so re-saving without touching them carries them over
+			comments.value = await readPdfComments(pdfDoc);
 			await renderPage(1);
 		} else {
 			await renderImage();
@@ -255,6 +312,10 @@ const init = async () => {
 const renderPage = async (pageNumber: number) => {
 	if (!pdfDoc) return;
 
+	// an open popup belongs to a marker on the page being left
+	if (activeCommentId.value) {
+		closeCommentPopup();
+	}
 	currentPage.value = pageNumber;
 	const base = baseCanvasRef.value;
 	const ink = inkCanvasRef.value;
@@ -293,20 +354,18 @@ const syncInkCanvasSize = (base: HTMLCanvasElement, ink: HTMLCanvasElement) => {
 	ink.height = base.height;
 };
 
+// draws the finished strokes and the in-progress one in a single pass - drawStrokesOnCanvas
+// clears the canvas on every call, so calling it twice (once per stroke set) wiped out the
+// finished strokes for as long as a stroke was in progress, which read as "flickering ink"
 const redrawInk = () => {
 	const ink = inkCanvasRef.value;
 	if (!ink) return;
 	const ctx = ink.getContext("2d");
 	if (!ctx) return;
 
-	drawStrokesOnCanvas(ctx, model.strokesForPage(currentPage.value - 1), ink.width, ink.height);
-	drawCurrentStroke(ctx, ink);
-};
-
-const drawCurrentStroke = (ctx: CanvasRenderingContext2D, ink: HTMLCanvasElement) => {
-	if (!currentStroke || currentStroke.points.length === 0) return;
-
-	drawStrokesOnCanvas(ctx, [currentStroke], ink.width, ink.height);
+	const strokes = model.strokesForPage(currentPage.value - 1);
+	const visible = currentStroke && currentStroke.points.length > 0 ? [...strokes, currentStroke] : strokes;
+	drawStrokesOnCanvas(ctx, visible, ink.width, ink.height);
 };
 
 let currentStroke: Stroke | undefined;
@@ -323,13 +382,15 @@ const toCanvasPoint = (event: PointerEvent): StrokePoint => {
 };
 
 const onPointerDown = (event: PointerEvent) => {
-	if (loading.value || saving.value) return;
+	// the comment layer sits on top and handles its own clicks while active; this
+	// guard is a safety net in case a pointer event still reaches the ink canvas
+	if (loading.value || saving.value || activeTool.value === "comment") return;
 
 	event.preventDefault();
 	inkCanvasRef.value?.setPointerCapture(event.pointerId);
 	const point = toCanvasPoint(event);
 
-	if (isEraser.value) {
+	if (activeTool.value === "eraser") {
 		isErasing = true;
 		eraseAtPoint(point);
 
@@ -342,6 +403,9 @@ const onPointerDown = (event: PointerEvent) => {
 		widthFactor: selectedWidth.value,
 		points: [point],
 	};
+	// a lone point needs an explicit draw - a single-point path has nothing for
+	// lineTo to draw, so without this a plain tap left no visible mark
+	redrawInk();
 };
 
 const onPointerMove = (event: PointerEvent) => {
@@ -377,6 +441,83 @@ const eraseAtPoint = (point: StrokePoint) => {
 	redrawInk();
 };
 
+// A plain reactive array (unlike the stroke model, which is only ever read imperatively
+// by the canvas) - the marker layer and the popup need to re-render whenever a comment
+// is added, edited or removed.
+const comments = ref<PdfComment[]>([]);
+const activeCommentId = ref<string | undefined>(undefined);
+const commentDraftText = ref("");
+const commentLayerRef = ref<HTMLElement | undefined>(undefined);
+
+const commentsOnPage = computed(() => comments.value.filter((comment) => comment.pageIndex === currentPage.value - 1));
+const activeComment = computed(() => comments.value.find((comment) => comment.id === activeCommentId.value));
+
+const toStagePoint = (event: MouseEvent): StrokePoint => {
+	const layer = commentLayerRef.value!;
+	const rect = layer.getBoundingClientRect();
+
+	return {
+		x: (event.clientX - rect.left) / rect.width,
+		y: (event.clientY - rect.top) / rect.height,
+	};
+};
+
+const openComment = (id: string) => {
+	const comment = comments.value.find((candidate) => candidate.id === id);
+	if (!comment) return;
+
+	activeCommentId.value = id;
+	commentDraftText.value = comment.text;
+};
+
+const closeCommentPopup = () => {
+	const comment = activeComment.value;
+	if (comment) {
+		const text = commentDraftText.value.trim();
+		if (text) {
+			comment.text = text;
+		} else {
+			// an empty comment is a discard, not a blank marker left behind
+			comments.value = comments.value.filter((candidate) => candidate.id !== comment.id);
+		}
+	}
+
+	activeCommentId.value = undefined;
+	commentDraftText.value = "";
+};
+
+const deleteOpenComment = () => {
+	if (!activeCommentId.value) return;
+
+	comments.value = comments.value.filter((candidate) => candidate.id !== activeCommentId.value);
+	activeCommentId.value = undefined;
+	commentDraftText.value = "";
+};
+
+const onCommentLayerClick = (event: MouseEvent) => {
+	if (activeTool.value !== "comment") return;
+
+	if (activeCommentId.value) {
+		// a click on the empty layer while a popup is open just closes it, rather
+		// than placing a second, unwanted marker where the user meant to dismiss it
+		closeCommentPopup();
+
+		return;
+	}
+
+	const point = toStagePoint(event);
+	const comment: PdfComment = {
+		id: crypto.randomUUID(),
+		pageIndex: currentPage.value - 1,
+		x: point.x,
+		y: point.y,
+		text: "",
+	};
+	comments.value.push(comment);
+	activeCommentId.value = comment.id;
+	commentDraftText.value = "";
+};
+
 const undo = () => {
 	const removed = model.getAll()[model.getAll().length - 1];
 	model.undo();
@@ -398,11 +539,16 @@ const showPage = async (pageNumber: number) => {
 const save = async () => {
 	if (!props.source || loading.value) return;
 
+	// commit whatever is sitting in an open popup instead of silently losing it
+	if (activeCommentId.value) {
+		closeCommentPopup();
+	}
+
 	saving.value = true;
 	try {
 		if (props.source.kind === "pdf" && pdfBytes) {
 			const blob = await import("@/utils/pdf-annotation").then((module) =>
-				module.flattenStrokesIntoPdf(pdfBytes as ArrayBuffer, model.getAll())
+				module.flattenStrokesIntoPdf(pdfBytes as ArrayBuffer, model.getAll(), comments.value)
 			);
 			emit("save", { blob, name: `feedback-pdf-${Date.now()}.pdf` });
 
@@ -419,6 +565,20 @@ const save = async () => {
 		saving.value = false;
 	}
 };
+
+// opening the annotator (re)loads everything; init must exist by the time this
+// runs, so the watcher is declared after the function definitions (immediate:true
+// runs it synchronously during setup, which would otherwise hit init in its
+// temporal dead zone whenever the component is mounted already open)
+watch(
+	() => [props.isOpen, props.source] as const,
+	([isOpen, source]) => {
+		if (isOpen && source) {
+			void init();
+		}
+	},
+	{ immediate: true }
+);
 </script>
 
 <style scoped>
@@ -461,5 +621,51 @@ const save = async () => {
 	cursor: crosshair;
 	background: transparent;
 	box-shadow: none;
+}
+
+.annotator-comment-layer {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	/* only the comment tool places/opens comments by clicking the empty layer -
+	   otherwise clicks must fall through to the ink canvas underneath for drawing */
+	pointer-events: none;
+}
+
+.annotator-comment-layer--active {
+	pointer-events: auto;
+	cursor: copy;
+}
+
+.annotator-comment-marker {
+	position: absolute;
+	transform: translate(-50%, -100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50% 50% 50% 0;
+	background: #ffc84d;
+	color: #1a1a1a;
+	border: 1px solid rgb(0 0 0 / 30%);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+	cursor: pointer;
+	/* markers stay clickable (to read/edit) even while pen/eraser is active */
+	pointer-events: auto;
+}
+
+.annotator-comment-popup {
+	position: absolute;
+	transform: translate(-50%, 4px);
+	width: min(280px, 70vw);
+	padding: 8px;
+	border-radius: 8px;
+	background: rgb(var(--v-theme-surface));
+	color: rgb(var(--v-theme-on-surface));
+	box-shadow: 0 2px 10px rgb(0 0 0 / 35%);
+	pointer-events: auto;
+	z-index: 1;
 }
 </style>

@@ -1,7 +1,10 @@
 // Annotation data model and export ("flattening") helpers for the assignment
-// PDF/image correction feature. Strokes are stored in coordinates normalized to
-// the rendered page (0..1), so they survive canvas resizes and can be mapped onto
-// the original PDF page at export time.
+// PDF/image correction feature. Strokes and comments are stored in coordinates
+// normalized to the rendered page (0..1), so they survive canvas resizes and can
+// be mapped onto the original PDF page at export time.
+
+import type { PDFRef as PDFRefType } from "pdf-lib";
+import type { PDFDocumentProxy } from "pdfjs-dist";
 
 export interface StrokePoint {
 	x: number;
@@ -70,6 +73,53 @@ export class StrokeModel {
 	}
 }
 
+// A text comment pinned to a page, PDF-only (image submissions have no annotation
+// layer to anchor it to). Coordinates are normalized the same way as strokes.
+export interface PdfComment {
+	id: string;
+	pageIndex: number;
+	x: number;
+	y: number;
+	text: string;
+}
+
+export class CommentModel {
+	private comments: PdfComment[] = [];
+
+	getAll(): PdfComment[] {
+		return this.comments;
+	}
+
+	isEmpty(): boolean {
+		return this.comments.length === 0;
+	}
+
+	commentsForPage(pageIndex: number): PdfComment[] {
+		return this.comments.filter((comment) => comment.pageIndex === pageIndex);
+	}
+
+	add(comment: PdfComment): void {
+		this.comments.push(comment);
+	}
+
+	update(id: string, text: string): void {
+		const comment = this.comments.find((candidate) => candidate.id === id);
+		if (comment) {
+			comment.text = text;
+		}
+	}
+
+	remove(id: string): void {
+		this.comments = this.comments.filter((comment) => comment.id !== id);
+	}
+
+	// seeds the model from comments already present in the loaded PDF (see
+	// readPdfComments) - used once, right after opening a file for (re-)editing
+	replaceAll(comments: PdfComment[]): void {
+		this.comments = comments;
+	}
+}
+
 // Points are normalized per axis; to compare distances fairly on non-square pages,
 // x distances are scaled by the aspect ratio (width/height) before measuring.
 export const distance = (a: StrokePoint, b: StrokePoint, aspectRatio = 1): number => {
@@ -101,9 +151,60 @@ export const drawStrokesOnCanvas = (
 	}
 };
 
-// Bakes the strokes into a copy of the PDF as vector lines and returns it as a Blob.
-export const flattenStrokesIntoPdf = async (pdfBytes: ArrayBuffer | Uint8Array, strokes: Stroke[]): Promise<Blob> => {
-	const { PDFDocument, rgb, LineCapStyle } = await import("pdf-lib");
+// A text comment is drawn as a small square marker, sized in PDF points -
+// matches the marker size teacher/student see rendered in the HTML overlay.
+const COMMENT_MARKER_SIZE_PT = 24;
+
+// Reads the Text-subtype annotations already present in the PDF (comments left in
+// an earlier correction round) so they can be shown, edited and re-saved instead
+// of being silently dropped. Assumes an unrotated page, same as flattenStrokesIntoPdf.
+export const readPdfComments = async (pdfDoc: PDFDocumentProxy): Promise<PdfComment[]> => {
+	const comments: PdfComment[] = [];
+
+	for (let pageNumber = 1; pageNumber <= pdfDoc.numPages; pageNumber++) {
+		const page = await pdfDoc.getPage(pageNumber);
+		const viewport = page.getViewport({ scale: 1 });
+		const annotations = (await page.getAnnotations()) as Array<{
+			id?: string;
+			subtype?: string;
+			rect?: [number, number, number, number];
+			contentsObj?: { str?: string };
+			contents?: string;
+		}>;
+
+		annotations.forEach((annotation, index) => {
+			if (annotation.subtype !== "Text" || !annotation.rect) return;
+
+			// rect is [x1, y1, x2, y2] in PDF user space (y-up); (x1, y2) is the
+			// marker's top-left corner, which convertToViewportPoint maps to the
+			// top-left of our normalized (y-down) coordinates.
+			const [left, top] = viewport.convertToViewportPoint(annotation.rect[0], annotation.rect[3]);
+
+			comments.push({
+				id: annotation.id ?? `comment-${pageNumber}-${index}`,
+				pageIndex: pageNumber - 1,
+				x: left / viewport.width,
+				y: top / viewport.height,
+				text: annotation.contentsObj?.str ?? annotation.contents ?? "",
+			});
+		});
+	}
+
+	return comments;
+};
+
+// Bakes the strokes into a copy of the PDF as vector lines, and replaces the
+// PDF's Text-subtype (comment) annotations with the given ones - the model is
+// seeded from the very same annotations via readPdfComments, so this correctly
+// carries over unmodified comments and applies edits/deletions/additions alike.
+// Other annotation types (links, etc.) are left untouched.
+export const flattenStrokesIntoPdf = async (
+	pdfBytes: ArrayBuffer | Uint8Array,
+	strokes: Stroke[],
+	comments: PdfComment[] = []
+): Promise<Blob> => {
+	const { PDFDocument, PDFDict, PDFName, PDFRef, PDFString, rgb, LineCapStyle } = await import("pdf-lib");
+	const isPDFRef = (entry: unknown): entry is PDFRefType => entry instanceof PDFRef;
 
 	const doc = await PDFDocument.load(pdfBytes);
 	const pages = doc.getPages();
@@ -128,6 +229,38 @@ export const flattenStrokesIntoPdf = async (pdfBytes: ArrayBuffer | Uint8Array, 
 			borderWidth: Math.max(1, stroke.widthFactor * width),
 			borderLineCap: LineCapStyle.Round,
 		});
+	}
+
+	for (const page of pages) {
+		const annots = page.node.Annots();
+		if (!annots) continue;
+
+		const textAnnotRefs = annots
+			.asArray()
+			.filter(isPDFRef)
+			.filter((ref) => doc.context.lookupMaybe(ref, PDFDict)?.get(PDFName.of("Subtype"))?.toString() === "/Text");
+		textAnnotRefs.forEach((ref) => page.node.removeAnnot(ref));
+	}
+
+	for (const comment of comments) {
+		const page = pages[comment.pageIndex];
+		if (!page) continue;
+
+		const { width, height } = page.getSize();
+		const x = comment.x * width;
+		const y = (1 - comment.y) * height;
+		const ref = doc.context.register(
+			doc.context.obj({
+				Type: "Annot",
+				Subtype: "Text",
+				Name: "Comment",
+				Rect: [x, y - COMMENT_MARKER_SIZE_PT, x + COMMENT_MARKER_SIZE_PT, y],
+				Contents: PDFString.of(comment.text),
+				F: 4, // Print flag - keeps the marker out of the way of forms that hide annotations
+				C: [1, 0.78, 0.2],
+			})
+		);
+		page.node.addAnnot(ref);
 	}
 
 	const bytes = await doc.save();
