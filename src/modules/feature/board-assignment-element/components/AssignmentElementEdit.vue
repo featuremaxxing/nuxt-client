@@ -17,6 +17,7 @@
 		<DueDateTimeField
 			:model-value="modelValue.startDate ?? undefined"
 			:date-label="t('components.cardElement.assignmentElement.startDate')"
+			show-now-button
 			data-testid="assignment-start-date-time"
 			@update:model-value="(value?: string) => (modelValue.startDate = value ?? null)"
 		/>

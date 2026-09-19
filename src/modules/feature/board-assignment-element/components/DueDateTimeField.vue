@@ -15,6 +15,7 @@
 			@update:time="onUpdateTime"
 		/>
 		<VBtn
+			v-if="showNowButton"
 			variant="text"
 			size="small"
 			:disabled="disabled"
@@ -43,6 +44,9 @@ const props = defineProps<{
 	dateLabel?: string;
 	timeLabel?: string;
 	disabled?: boolean;
+	// Only sensible for a start date ("start immediately") - setting a due date to "now"
+	// would close the assignment right away, so this defaults to off.
+	showNowButton?: boolean;
 }>();
 
 const emit = defineEmits<{
