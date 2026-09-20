@@ -317,6 +317,35 @@ describe("AssignmentPdfAnnotator", () => {
 			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
 		});
 
+		// Regression test: a palm resting mid-stroke is correctly ignored on landing, but
+		// lifting it again used to fall through into "finish the current stroke" - cutting the
+		// pencil's still-in-progress stroke short and dropping the pencil's own further
+		// pointermove events, since they had nothing left to append to.
+		it("does not cut a pencil stroke short when a palm that landed mid-stroke lifts again", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointerdown", { clientX: 80, clientY: 80, pointerId: 2, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 2, pointerType: "touch" });
+
+			drawStrokesOnCanvasMock.mockClear();
+			await dispatchPointer(canvas, "pointermove", { clientX: 30, clientY: 30, pointerId: 1, pointerType: "pen" });
+
+			const lastCall = drawStrokesOnCanvasMock.mock.calls.at(-1);
+			const visibleStrokes = lastCall?.[1] as { points: unknown[] }[];
+			// the pencil is still drawing the same, uninterrupted stroke
+			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
+
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "pen" });
+			expect(flattenStrokesIntoPdfMock).toHaveBeenCalledTimes(0);
+			await wrapper.find("[data-testid='annotator-save']").trigger("click");
+			await flushPromises();
+			const [, strokes] = flattenStrokesIntoPdfMock.mock.calls[0];
+			expect(strokes).toHaveLength(1);
+			expect(strokes[0].points).toHaveLength(2);
+		});
+
 		it("pinch-zooms with two fingers and changes the stack transform", async () => {
 			// two fingers navigate regardless of the finger-draws toggle (finger navigates by
 			// default) - a lone pointer would need the toggle, a pinch never does

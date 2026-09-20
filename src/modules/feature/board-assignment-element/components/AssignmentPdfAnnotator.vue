@@ -538,6 +538,15 @@ let pinchAnchorPage = { x: 0, y: 0 };
 
 const isNavigationPointer = (event: PointerEvent): boolean => event.pointerType === "touch" && !fingerDraws.value;
 
+// A touch pointer that never became a tracked navigation pointer (e.g. a palm ignored at
+// pointerdown because a pencil was already down) must never reach the drawing state machine
+// below either - without this, that pointer's own pointerup fell through into "finish the
+// current stroke" and committed the pencil's in-progress stroke early, on the palm lifting
+// rather than the pencil. Once currentStroke was cleared that way, the pencil's own further
+// pointermove events (it never got a pointerup) had nothing to append to and were dropped,
+// which read as "the next stroke doesn't come" even though the pencil was still down.
+const isDrawingPointer = (event: PointerEvent): boolean => event.pointerType !== "touch" || fingerDraws.value;
+
 const beginNavigationPointer = (event: PointerEvent): void => {
 	activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
@@ -630,6 +639,13 @@ const onPointerDown = (event: PointerEvent) => {
 		// seeing a pencil at all means a finger on the glass from now on is a palm,
 		// not intentional input - flip the finger to navigate without asking
 		fingerDraws.value = false;
+		// a finger that was already resting (and so already tracked as navigating,
+		// e.g. touched down just before the pencil did) must stop being tracked too -
+		// otherwise its next move/lift would still pan the page or, worse, fall through
+		// into the drawing state machine below
+		activePointers.clear();
+		isPanning = false;
+		pinchStartDistance = 0;
 	}
 
 	if (isNavigationPointer(event)) {
@@ -667,6 +683,8 @@ const onPointerMove = (event: PointerEvent) => {
 		return;
 	}
 
+	if (!isDrawingPointer(event)) return;
+
 	if (isErasing) {
 		eraseAtPoint(toCanvasPoint(event));
 
@@ -686,6 +704,8 @@ const onPointerUp = (event: PointerEvent) => {
 
 		return;
 	}
+
+	if (!isDrawingPointer(event)) return;
 
 	if (event.pointerType === "pen" && event.pointerId === pencilPointerId) {
 		pencilPointerId = undefined;
