@@ -7,7 +7,7 @@
 		data-testid="assignment-pdf-annotator"
 		@update:model-value="(value: boolean) => !value && emit('cancel')"
 	>
-		<VCard>
+		<VCard class="annotator-card">
 			<VToolbar density="compact" color="var(--color-secondary)" data-testid="annotator-toolbar">
 				<VToolbarTitle class="text-body-2 text-truncate">
 					<span v-if="studentName" data-testid="annotator-student-name">{{ studentName }}&nbsp;–&nbsp;</span>
@@ -426,6 +426,10 @@ const init = async () => {
 	activeCommentId.value = undefined;
 	hasUserZoomed.value = false;
 	fingerDraws.value = false;
+	// a selection carried in from the page behind the dialog keeps iOS in its
+	// selection-handling mode, where the first touches go to dismissing it rather than
+	// to the canvas - drop it so the editor starts in a clean state
+	window.getSelection()?.removeAllRanges();
 
 	try {
 		const response = await fetch(props.source.url);
@@ -639,8 +643,16 @@ const onPointerDown = (event: PointerEvent) => {
 	if (loading.value || saving.value || activeTool.value === "comment") return;
 
 	// the palm lands after the pencil tip - once a pencil is down, ignore every touch
-	// contact entirely (no drawing, no pan/zoom) rather than guessing which is which
-	if (event.pointerType === "touch" && pencilPointerId !== undefined) return;
+	// contact entirely (no drawing, no pan/zoom) rather than guessing which is which.
+	// Ignoring it must still be an *explicit* preventDefault rather than a bare return:
+	// left to itself, iOS Safari turns a resting palm into a long-press text selection,
+	// and starting that gesture makes it fire pointercancel for every other contact -
+	// including the pencil that is mid-stroke, which is what silently killed strokes.
+	if (event.pointerType === "touch" && pencilPointerId !== undefined) {
+		event.preventDefault();
+
+		return;
+	}
 
 	if (event.pointerType === "pen") {
 		pencilPointerId = event.pointerId;
@@ -657,6 +669,7 @@ const onPointerDown = (event: PointerEvent) => {
 	}
 
 	if (isNavigationPointer(event)) {
+		event.preventDefault();
 		beginNavigationPointer(event);
 
 		return;
@@ -881,6 +894,18 @@ watch(
 </script>
 
 <style scoped>
+/* A palm resting on the glass is a long-press for iOS Safari: it starts a text selection
+   that runs across the whole dialog, and starting it makes Safari fire pointercancel for
+   every other contact - the mid-stroke pencil included. The user then has to tap elsewhere
+   to dismiss the selection before writing works again. touch-action alone does not cover
+   this (it only governs scrolling/zooming), so selection and the long-press callout have to
+   be switched off explicitly for the whole editor. */
+.annotator-card {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+}
+
 .annotator-stage {
 	min-height: 0;
 	overflow: hidden;
@@ -973,5 +998,13 @@ watch(
 	box-shadow: 0 2px 10px rgb(0 0 0 / 35%);
 	pointer-events: auto;
 	z-index: 1;
+}
+
+/* the editor-wide selection lock above must not reach the comment text field - on iOS an
+   inherited user-select: none breaks selecting and editing inside the textarea itself */
+.annotator-comment-popup,
+.annotator-comment-popup :deep(textarea) {
+	user-select: text;
+	-webkit-user-select: text;
 }
 </style>

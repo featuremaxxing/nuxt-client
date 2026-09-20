@@ -317,6 +317,29 @@ describe("AssignmentPdfAnnotator", () => {
 			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
 		});
 
+		// Regression test: ignoring the palm by simply returning left the browser free to run
+		// its own default gesture for that contact - on iOS Safari a long-press text selection,
+		// which in turn cancels every other active pointer, the mid-stroke pencil included.
+		it("suppresses the browser's default gesture for a palm ignored during a pencil stroke", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+
+			const palmDown = new PointerEvent("pointerdown", {
+				bubbles: true,
+				cancelable: true,
+				clientX: 80,
+				clientY: 80,
+				pointerId: 2,
+				pointerType: "touch",
+			});
+			canvas.dispatchEvent(palmDown);
+			await flushPromises();
+
+			expect(palmDown.defaultPrevented).toBe(true);
+		});
+
 		// Regression test: a palm resting mid-stroke is correctly ignored on landing, but
 		// lifting it again used to fall through into "finish the current stroke" - cutting the
 		// pencil's still-in-progress stroke short and dropping the pencil's own further
