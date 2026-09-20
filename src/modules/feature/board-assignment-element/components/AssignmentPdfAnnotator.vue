@@ -513,6 +513,14 @@ const redrawInk = () => {
 
 let currentStroke: Stroke | undefined;
 let isErasing = false;
+// Which pointer currently owns currentStroke/isErasing - onPointerDown always overwrites it
+// unconditionally (self-healing if a previous pointerup was ever missed), and
+// onPointerMove/onPointerUp ignore any event whose pointerId doesn't match. Apple Pencil hands
+// out a new pointerId per contact, so writing quickly hands two overlapping ids to the browser
+// in close succession; without this check a late pointerup for the just-finished stroke could
+// arrive after the next stroke's pointerdown and prematurely commit/clear it, silently dropping
+// every following pointermove of the still-active new stroke.
+let activeDrawingPointerId: number | undefined;
 
 const toCanvasPoint = (event: PointerEvent): StrokePoint => {
 	const ink = inkCanvasRef.value!;
@@ -656,6 +664,7 @@ const onPointerDown = (event: PointerEvent) => {
 
 	event.preventDefault();
 	inkCanvasRef.value?.setPointerCapture(event.pointerId);
+	activeDrawingPointerId = event.pointerId;
 	const point = toCanvasPoint(event);
 
 	if (activeTool.value === "eraser") {
@@ -683,7 +692,7 @@ const onPointerMove = (event: PointerEvent) => {
 		return;
 	}
 
-	if (!isDrawingPointer(event)) return;
+	if (!isDrawingPointer(event) || event.pointerId !== activeDrawingPointerId) return;
 
 	if (isErasing) {
 		eraseAtPoint(toCanvasPoint(event));
@@ -705,7 +714,9 @@ const onPointerUp = (event: PointerEvent) => {
 		return;
 	}
 
-	if (!isDrawingPointer(event)) return;
+	if (!isDrawingPointer(event) || event.pointerId !== activeDrawingPointerId) return;
+
+	activeDrawingPointerId = undefined;
 
 	if (event.pointerType === "pen" && event.pointerId === pencilPointerId) {
 		pencilPointerId = undefined;

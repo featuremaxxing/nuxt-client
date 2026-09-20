@@ -346,6 +346,42 @@ describe("AssignmentPdfAnnotator", () => {
 			expect(strokes[0].points).toHaveLength(2);
 		});
 
+		it("does not let a duplicate stray pointerup from a finished stroke cut short the next one", async () => {
+			// Some touch/pen stacks occasionally redeliver a pointerup for a contact that
+			// already ended (a known ghost-event quirk). Apple Pencil hands out a new
+			// pointerId per contact, so by the time that stray up1 arrives, its id may already
+			// be unrelated to whichever stroke is currently in progress.
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 15, clientY: 15, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "pen" });
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 80, clientY: 80, pointerId: 2, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 85, clientY: 85, pointerId: 2, pointerType: "pen" });
+			// a stray duplicate of the already-handled pointerup for stroke A arrives late,
+			// while stroke B is in progress - must not touch B's in-progress stroke
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "pen" });
+
+			drawStrokesOnCanvasMock.mockClear();
+			await dispatchPointer(canvas, "pointermove", { clientX: 90, clientY: 90, pointerId: 2, pointerType: "pen" });
+
+			const lastCall = drawStrokesOnCanvasMock.mock.calls.at(-1);
+			const visibleStrokes = lastCall?.[1] as { points: unknown[] }[];
+			// B is still an uncommitted, in-progress stroke with all three of its points
+			expect(visibleStrokes).toHaveLength(2);
+			expect(visibleStrokes?.[1]?.points).toHaveLength(3);
+
+			await dispatchPointer(canvas, "pointerup", { pointerId: 2, pointerType: "pen" });
+			await wrapper.find("[data-testid='annotator-save']").trigger("click");
+			await flushPromises();
+			const [, strokes] = flattenStrokesIntoPdfMock.mock.calls[0];
+			expect(strokes).toHaveLength(2);
+			expect(strokes[0].points).toHaveLength(2);
+			expect(strokes[1].points).toHaveLength(3);
+		});
+
 		it("pinch-zooms with two fingers and changes the stack transform", async () => {
 			// two fingers navigate regardless of the finger-draws toggle (finger navigates by
 			// default) - a lone pointer would need the toggle, a pinch never does
