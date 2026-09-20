@@ -70,6 +70,29 @@
 						data-testid="annotator-undo"
 						@click="undo"
 					/>
+					<VBtn
+						:icon="mdiHandBackRight"
+						:variant="fingerDraws ? 'tonal' : 'text'"
+						size="small"
+						class="ml-1"
+						:aria-label="
+							t(
+								fingerDraws
+									? 'components.cardElement.assignmentElement.annotator.fingerDraws'
+									: 'components.cardElement.assignmentElement.annotator.fingerNavigates'
+							)
+						"
+						data-testid="annotator-finger-mode"
+						@click="fingerDraws = !fingerDraws"
+					/>
+					<VBtn
+						:icon="mdiFitToPageOutline"
+						variant="text"
+						size="small"
+						:aria-label="t('components.cardElement.assignmentElement.annotator.fitToPage')"
+						data-testid="annotator-fit-to-page"
+						@click="fitToPage"
+					/>
 					<template v-if="numPages > 1">
 						<VBtn
 							:icon="mdiChevronLeft"
@@ -117,62 +140,64 @@
 					{{ errorMessage }}
 				</VAlert>
 				<div v-if="loading" class="text-caption">{{ t("common.labels.loading") }}</div>
-				<div v-show="!loading" ref="stageRef" class="annotator-canvas-stack">
-					<canvas ref="baseCanvasRef" class="annotator-canvas" />
-					<canvas
-						ref="inkCanvasRef"
-						class="annotator-canvas annotator-ink"
-						data-testid="annotator-ink-canvas"
-						@pointerdown="onPointerDown"
-						@pointermove="onPointerMove"
-						@pointerup="onPointerUp"
-						@pointercancel="onPointerUp"
-					/>
-					<div
-						v-if="isPdf"
-						ref="commentLayerRef"
-						class="annotator-comment-layer"
-						:class="{ 'annotator-comment-layer--active': activeTool === 'comment' }"
-						data-testid="annotator-comment-layer"
-						@click="onCommentLayerClick"
-					>
-						<button
-							v-for="comment in commentsOnPage"
-							:key="comment.id"
-							type="button"
-							class="annotator-comment-marker"
-							:style="{ left: `${comment.x * 100}%`, top: `${comment.y * 100}%` }"
-							:aria-label="t('components.cardElement.assignmentElement.annotator.comment')"
-							:data-testid="`annotator-comment-marker-${comment.id}`"
-							@click.stop="openComment(comment.id)"
-						>
-							<VIcon :icon="mdiCommentTextOutline" size="small" />
-						</button>
-
+				<div ref="stageRef" class="annotator-viewport" @wheel="onWheel">
+					<div class="annotator-canvas-stack" :style="stackStyle">
+						<canvas ref="baseCanvasRef" class="annotator-canvas" />
+						<canvas
+							ref="inkCanvasRef"
+							class="annotator-canvas annotator-ink"
+							data-testid="annotator-ink-canvas"
+							@pointerdown="onPointerDown"
+							@pointermove="onPointerMove"
+							@pointerup="onPointerUp"
+							@pointercancel="onPointerUp"
+						/>
 						<div
-							v-if="activeComment"
-							class="annotator-comment-popup"
-							:style="{ left: `${activeComment.x * 100}%`, top: `${activeComment.y * 100}%` }"
-							data-testid="annotator-comment-popup"
-							@click.stop
+							v-if="isPdf"
+							ref="commentLayerRef"
+							class="annotator-comment-layer"
+							:class="{ 'annotator-comment-layer--active': activeTool === 'comment' }"
+							data-testid="annotator-comment-layer"
+							@click="onCommentLayerClick"
 						>
-							<VTextarea
-								v-model="commentDraftText"
-								autofocus
-								rows="2"
-								auto-grow
-								density="compact"
-								hide-details
-								:placeholder="t('components.cardElement.assignmentElement.annotator.commentPlaceholder')"
-								data-testid="annotator-comment-input"
-							/>
-							<div class="d-flex justify-end ga-1 mt-1">
-								<VBtn size="small" variant="text" data-testid="annotator-comment-delete" @click="deleteOpenComment">
-									{{ t("common.actions.delete") }}
-								</VBtn>
-								<VBtn size="small" variant="tonal" data-testid="annotator-comment-done" @click="closeCommentPopup">
-									{{ t("components.cardElement.assignmentElement.annotator.commentDone") }}
-								</VBtn>
+							<button
+								v-for="comment in commentsOnPage"
+								:key="comment.id"
+								type="button"
+								class="annotator-comment-marker"
+								:style="{ left: `${comment.x * 100}%`, top: `${comment.y * 100}%` }"
+								:aria-label="t('components.cardElement.assignmentElement.annotator.comment')"
+								:data-testid="`annotator-comment-marker-${comment.id}`"
+								@click.stop="openComment(comment.id)"
+							>
+								<VIcon :icon="mdiCommentTextOutline" size="small" />
+							</button>
+
+							<div
+								v-if="activeComment"
+								class="annotator-comment-popup"
+								:style="{ left: `${activeComment.x * 100}%`, top: `${activeComment.y * 100}%` }"
+								data-testid="annotator-comment-popup"
+								@click.stop
+							>
+								<VTextarea
+									v-model="commentDraftText"
+									autofocus
+									rows="2"
+									auto-grow
+									density="compact"
+									hide-details
+									:placeholder="t('components.cardElement.assignmentElement.annotator.commentPlaceholder')"
+									data-testid="annotator-comment-input"
+								/>
+								<div class="d-flex justify-end ga-1 mt-1">
+									<VBtn size="small" variant="text" data-testid="annotator-comment-delete" @click="deleteOpenComment">
+										{{ t("common.actions.delete") }}
+									</VBtn>
+									<VBtn size="small" variant="tonal" data-testid="annotator-comment-done" @click="closeCommentPopup">
+										{{ t("components.cardElement.assignmentElement.annotator.commentDone") }}
+									</VBtn>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -206,10 +231,13 @@ import {
 	mdiChevronRight,
 	mdiCommentTextOutline,
 	mdiEraser,
+	mdiFitToPageOutline,
+	mdiHandBackRight,
 	mdiPen,
 	mdiPencil,
 	mdiUndo,
 } from "@icons/material";
+import { useElementSize } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -246,6 +274,7 @@ const ERASE_RADIUS = 0.012;
 const model = new StrokeModel();
 const baseCanvasRef = ref<HTMLCanvasElement | undefined>(undefined);
 const inkCanvasRef = ref<HTMLCanvasElement | undefined>(undefined);
+const stageRef = ref<HTMLElement | undefined>(undefined);
 
 const loading = ref(false);
 const saving = ref(false);
@@ -261,6 +290,114 @@ let pdfBytes: ArrayBuffer | undefined;
 let pdfDoc: Awaited<ReturnType<typeof loadPdf>> | undefined;
 
 const isPdf = computed(() => props.source?.kind === "pdf");
+
+// --- pinch-zoom / pan ------------------------------------------------------------
+// The page is rendered at a fixed backing-store size (pageSize, in canvas px) and
+// displayed through a CSS transform on the stack, rather than being reflowed by CSS
+// max-width/max-height. That keeps the base canvas and the ink canvas on top of it
+// in lockstep in every viewport shape - the old CSS-only sizing let them diverge in
+// portrait, which is what corrupted the annotation alignment there.
+const { width: stageWidth, height: stageHeight } = useElementSize(stageRef);
+const pageSize = ref({ width: 0, height: 0 });
+const scale = ref(1);
+const offsetX = ref(0);
+const offsetY = ref(0);
+const fitScale = ref(1);
+const hasUserZoomed = ref(false);
+// Finger navigates by default; a pencil sighting flips this automatically so a
+// resting palm can never be mistaken for intentional touch input (see onPointerDown).
+const fingerDraws = ref(false);
+
+const MAX_SCALE_FACTOR = 6;
+
+const stackStyle = computed(() => ({
+	width: `${pageSize.value.width}px`,
+	height: `${pageSize.value.height}px`,
+	transform: `translate(${offsetX.value}px, ${offsetY.value}px) scale(${scale.value})`,
+	"--annotator-inverse-scale": String(scale.value > 0 ? 1 / scale.value : 1),
+}));
+
+const computeFitScale = (): number => {
+	const pageWidth = pageSize.value.width;
+	const pageHeight = pageSize.value.height;
+	if (!pageWidth || !pageHeight || !stageWidth.value || !stageHeight.value) {
+		return fitScale.value || 1;
+	}
+
+	return Math.min(stageWidth.value / pageWidth, stageHeight.value / pageHeight);
+};
+
+const clampScale = (value: number): number =>
+	Math.min(fitScale.value * MAX_SCALE_FACTOR, Math.max(fitScale.value, value));
+
+const clampOffset = (): void => {
+	const displayedWidth = pageSize.value.width * scale.value;
+	const displayedHeight = pageSize.value.height * scale.value;
+
+	const minX = Math.min(0, stageWidth.value - displayedWidth);
+	const maxX = Math.max(0, stageWidth.value - displayedWidth);
+	offsetX.value = Math.min(maxX, Math.max(minX, offsetX.value));
+
+	const minY = Math.min(0, stageHeight.value - displayedHeight);
+	const maxY = Math.max(0, stageHeight.value - displayedHeight);
+	offsetY.value = Math.min(maxY, Math.max(minY, offsetY.value));
+};
+
+// Recomputes the reference fit scale and either re-centers the page (nothing user-driven
+// happened yet) or keeps the user's own zoom/pan, just clamped back into view - used for
+// both an orientation change and a page switch, so a rotation never resets a deliberate zoom.
+const applyLayout = (): void => {
+	fitScale.value = computeFitScale();
+
+	if (hasUserZoomed.value) {
+		scale.value = clampScale(scale.value);
+		clampOffset();
+
+		return;
+	}
+
+	scale.value = fitScale.value;
+	offsetX.value = (stageWidth.value - pageSize.value.width * fitScale.value) / 2;
+	offsetY.value = (stageHeight.value - pageSize.value.height * fitScale.value) / 2;
+};
+
+const fitToPage = (): void => {
+	hasUserZoomed.value = false;
+	applyLayout();
+};
+
+watch([stageWidth, stageHeight], () => applyLayout());
+
+const stageClientOrigin = (): { x: number; y: number } => {
+	const rect = stageRef.value?.getBoundingClientRect();
+
+	return { x: rect?.left ?? 0, y: rect?.top ?? 0 };
+};
+
+const distance = (a: { x: number; y: number }, b: { x: number; y: number }): number => Math.hypot(a.x - b.x, a.y - b.y);
+
+const midpoint = (a: { x: number; y: number }, b: { x: number; y: number }): { x: number; y: number } => ({
+	x: (a.x + b.x) / 2,
+	y: (a.y + b.y) / 2,
+});
+
+const onWheel = (event: WheelEvent): void => {
+	// a bare wheel is normal trackpad scrolling; only ctrl+wheel is the browser's
+	// spelling for a trackpad pinch gesture
+	if (!event.ctrlKey) return;
+
+	event.preventDefault();
+	const origin = stageClientOrigin();
+	const local = { x: event.clientX - origin.x, y: event.clientY - origin.y };
+	const anchorPage = { x: (local.x - offsetX.value) / scale.value, y: (local.y - offsetY.value) / scale.value };
+	const nextScale = clampScale(scale.value * Math.exp(-event.deltaY * 0.01));
+
+	scale.value = nextScale;
+	offsetX.value = local.x - anchorPage.x * nextScale;
+	offsetY.value = local.y - anchorPage.y * nextScale;
+	hasUserZoomed.value = true;
+	clampOffset();
+};
 
 const selectPen = (color: string) => {
 	activeTool.value = "pen";
@@ -287,6 +424,8 @@ const init = async () => {
 	activeTool.value = "pen";
 	comments.value = [];
 	activeCommentId.value = undefined;
+	hasUserZoomed.value = false;
+	fingerDraws.value = false;
 
 	try {
 		const response = await fetch(props.source.url);
@@ -323,6 +462,8 @@ const renderPage = async (pageNumber: number) => {
 
 	await renderPdfPageToCanvas(pdfDoc, pageNumber, base);
 	syncInkCanvasSize(base, ink);
+	pageSize.value = { width: base.width, height: base.height };
+	applyLayout();
 	redrawInk();
 };
 
@@ -336,16 +477,18 @@ const renderImage = async () => {
 	await image.decode();
 
 	const dpr = window.devicePixelRatio || 1;
-	const scale = Math.min(
+	const renderScale = Math.min(
 		MAX_RENDER_DIMENSION / image.naturalWidth,
 		MAX_RENDER_DIMENSION / image.naturalHeight,
 		2 * dpr
 	);
-	base.width = Math.floor(image.naturalWidth * scale);
-	base.height = Math.floor(image.naturalHeight * scale);
+	base.width = Math.floor(image.naturalWidth * renderScale);
+	base.height = Math.floor(image.naturalHeight * renderScale);
 	base.getContext("2d")?.drawImage(image, 0, 0, base.width, base.height);
 
 	syncInkCanvasSize(base, ink);
+	pageSize.value = { width: base.width, height: base.height };
+	applyLayout();
 	redrawInk();
 };
 
@@ -381,10 +524,119 @@ const toCanvasPoint = (event: PointerEvent): StrokePoint => {
 	};
 };
 
+// --- navigation (pan/pinch) pointer bookkeeping -----------------------------------
+// Only touch pointers ever navigate - pen and mouse always draw (see isNavigationPointer).
+const activePointers = new Map<number, { x: number; y: number }>();
+let pencilPointerId: number | undefined;
+let isPanning = false;
+let panStartClient = { x: 0, y: 0 };
+let panStartOffset = { x: 0, y: 0 };
+let pinchStartDistance = 0;
+let pinchStartScale = 1;
+let pinchStartOrigin = { x: 0, y: 0 };
+let pinchAnchorPage = { x: 0, y: 0 };
+
+const isNavigationPointer = (event: PointerEvent): boolean => event.pointerType === "touch" && !fingerDraws.value;
+
+const beginNavigationPointer = (event: PointerEvent): void => {
+	activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+	if (activePointers.size === 1) {
+		isPanning = true;
+		panStartClient = { x: event.clientX, y: event.clientY };
+		panStartOffset = { x: offsetX.value, y: offsetY.value };
+
+		return;
+	}
+
+	if (activePointers.size === 2) {
+		isPanning = false;
+		// a lone stroke must not survive a second finger landing on the page - without
+		// this the stroke silently kept whatever the first finger had drawn so far
+		currentStroke = undefined;
+		redrawInk();
+
+		const [a, b] = [...activePointers.values()];
+		pinchStartDistance = distance(a, b) || 1;
+		pinchStartScale = scale.value;
+		pinchStartOrigin = stageClientOrigin();
+		const mid = midpoint(a, b);
+		const midLocal = { x: mid.x - pinchStartOrigin.x, y: mid.y - pinchStartOrigin.y };
+		// the page point currently under the pinch midpoint stays under the fingers for
+		// the whole gesture, instead of drifting as scale/offset are re-derived per move
+		pinchAnchorPage = {
+			x: (midLocal.x - offsetX.value) / scale.value,
+			y: (midLocal.y - offsetY.value) / scale.value,
+		};
+	}
+};
+
+const updateNavigationPointer = (event: PointerEvent): void => {
+	activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+	if (activePointers.size >= 2) {
+		if (pinchStartDistance === 0) return;
+
+		const [a, b] = [...activePointers.values()];
+		const dist = distance(a, b);
+		const mid = midpoint(a, b);
+		const midLocal = { x: mid.x - pinchStartOrigin.x, y: mid.y - pinchStartOrigin.y };
+		const nextScale = clampScale(pinchStartScale * (dist / pinchStartDistance));
+
+		scale.value = nextScale;
+		offsetX.value = midLocal.x - pinchAnchorPage.x * nextScale;
+		offsetY.value = midLocal.y - pinchAnchorPage.y * nextScale;
+		hasUserZoomed.value = true;
+		clampOffset();
+
+		return;
+	}
+
+	if (activePointers.size === 1 && isPanning) {
+		const [current] = [...activePointers.values()];
+		offsetX.value = panStartOffset.x + (current.x - panStartClient.x);
+		offsetY.value = panStartOffset.y + (current.y - panStartClient.y);
+		hasUserZoomed.value = true;
+		clampOffset();
+	}
+};
+
+const endNavigationPointer = (event: PointerEvent): void => {
+	activePointers.delete(event.pointerId);
+
+	if (activePointers.size === 1) {
+		// dropped from a pinch back to a single finger - resume panning from here,
+		// otherwise the page would jump to match the old two-finger pan origin
+		const [remaining] = [...activePointers.values()];
+		isPanning = true;
+		panStartClient = { x: remaining.x, y: remaining.y };
+		panStartOffset = { x: offsetX.value, y: offsetY.value };
+	} else if (activePointers.size === 0) {
+		isPanning = false;
+	}
+};
+
 const onPointerDown = (event: PointerEvent) => {
 	// the comment layer sits on top and handles its own clicks while active; this
 	// guard is a safety net in case a pointer event still reaches the ink canvas
 	if (loading.value || saving.value || activeTool.value === "comment") return;
+
+	// the palm lands after the pencil tip - once a pencil is down, ignore every touch
+	// contact entirely (no drawing, no pan/zoom) rather than guessing which is which
+	if (event.pointerType === "touch" && pencilPointerId !== undefined) return;
+
+	if (event.pointerType === "pen") {
+		pencilPointerId = event.pointerId;
+		// seeing a pencil at all means a finger on the glass from now on is a palm,
+		// not intentional input - flip the finger to navigate without asking
+		fingerDraws.value = false;
+	}
+
+	if (isNavigationPointer(event)) {
+		beginNavigationPointer(event);
+
+		return;
+	}
 
 	event.preventDefault();
 	inkCanvasRef.value?.setPointerCapture(event.pointerId);
@@ -409,6 +661,12 @@ const onPointerDown = (event: PointerEvent) => {
 };
 
 const onPointerMove = (event: PointerEvent) => {
+	if (event.pointerType === "touch" && activePointers.has(event.pointerId)) {
+		updateNavigationPointer(event);
+
+		return;
+	}
+
 	if (isErasing) {
 		eraseAtPoint(toCanvasPoint(event));
 
@@ -422,7 +680,17 @@ const onPointerMove = (event: PointerEvent) => {
 	redrawInk();
 };
 
-const onPointerUp = () => {
+const onPointerUp = (event: PointerEvent) => {
+	if (event.pointerType === "touch" && activePointers.has(event.pointerId)) {
+		endNavigationPointer(event);
+
+		return;
+	}
+
+	if (event.pointerType === "pen" && event.pointerId === pencilPointerId) {
+		pencilPointerId = undefined;
+	}
+
 	if (isErasing) {
 		isErasing = false;
 
@@ -584,7 +852,7 @@ watch(
 <style scoped>
 .annotator-stage {
 	min-height: 0;
-	overflow: auto;
+	overflow: hidden;
 	gap: 12px;
 	flex-direction: column;
 }
@@ -593,21 +861,28 @@ watch(
 	max-width: 640px;
 }
 
-.annotator-canvas-stack {
+.annotator-viewport {
 	position: relative;
-	/* keep the page at a workable size on large screens - the canvas itself renders
-	   at high resolution for sharp pen strokes */
-	max-width: min(100%, 1100px);
-	max-height: 100%;
-	display: inline-flex;
+	width: 100%;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	/* all panning/zooming is handled ourselves via the transform on the stack below -
+	   this stops the browser's own scroll/zoom gestures from fighting it */
+	touch-action: none;
+}
+
+.annotator-canvas-stack {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
 }
 
 .annotator-canvas {
 	display: block;
-	max-width: 100%;
-	max-height: calc(100vh - 48px);
-	width: auto;
-	height: auto;
+	width: 100%;
+	height: 100%;
 	background: #ffffff;
 	box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
 }
@@ -640,7 +915,7 @@ watch(
 
 .annotator-comment-marker {
 	position: absolute;
-	transform: translate(-50%, -100%);
+	transform: translate(-50%, -100%) scale(var(--annotator-inverse-scale, 1));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -658,7 +933,7 @@ watch(
 
 .annotator-comment-popup {
 	position: absolute;
-	transform: translate(-50%, 4px);
+	transform: translate(-50%, 4px) scale(var(--annotator-inverse-scale, 1));
 	width: min(280px, 70vw);
 	padding: 8px;
 	border-radius: 8px;

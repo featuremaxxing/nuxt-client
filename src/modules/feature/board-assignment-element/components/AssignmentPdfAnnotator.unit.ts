@@ -241,4 +241,115 @@ describe("AssignmentPdfAnnotator", () => {
 		const visibleStrokes = lastCall?.[1] as unknown[];
 		expect(visibleStrokes).toHaveLength(2);
 	});
+
+	describe("iPad input handling", () => {
+		it("draws with an Apple Pencil", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			drawStrokesOnCanvasMock.mockClear();
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 20, clientY: 20, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "pen" });
+
+			const lastCall = drawStrokesOnCanvasMock.mock.calls.at(-1);
+			const visibleStrokes = lastCall?.[1] as { points: unknown[] }[];
+			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
+		});
+
+		it("does not draw with a finger while finger navigation is active (the default)", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			drawStrokesOnCanvasMock.mockClear();
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 20, clientY: 20, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "touch" });
+
+			expect(drawStrokesOnCanvasMock).not.toHaveBeenCalled();
+		});
+
+		it("draws with a finger once finger-draws mode is switched on", async () => {
+			const { wrapper } = await setup();
+			await wrapper.find("[data-testid='annotator-finger-mode']").trigger("click");
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			drawStrokesOnCanvasMock.mockClear();
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 20, clientY: 20, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "touch" });
+
+			const lastCall = drawStrokesOnCanvasMock.mock.calls.at(-1);
+			const visibleStrokes = lastCall?.[1] as { points: unknown[] }[];
+			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
+		});
+
+		it("switches finger navigation back on automatically once a pencil is seen", async () => {
+			const { wrapper } = await setup();
+			await wrapper.find("[data-testid='annotator-finger-mode']").trigger("click");
+			expect(wrapper.find("[data-testid='annotator-finger-mode']").attributes("aria-label")).toBe(
+				"components.cardElement.assignmentElement.annotator.fingerDraws"
+			);
+
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+			await dispatchPointer(canvas, "pointerup", { pointerId: 1, pointerType: "pen" });
+
+			expect(wrapper.find("[data-testid='annotator-finger-mode']").attributes("aria-label")).toBe(
+				"components.cardElement.assignmentElement.annotator.fingerNavigates"
+			);
+		});
+
+		it("ignores a touch (palm) landing while a pencil is already drawing", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 10, clientY: 10, pointerId: 1, pointerType: "pen" });
+			drawStrokesOnCanvasMock.mockClear();
+
+			// the palm lands mid-stroke
+			await dispatchPointer(canvas, "pointerdown", { clientX: 80, clientY: 80, pointerId: 2, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 30, clientY: 30, pointerId: 1, pointerType: "pen" });
+
+			const lastCall = drawStrokesOnCanvasMock.mock.calls.at(-1);
+			const visibleStrokes = lastCall?.[1] as { points: unknown[] }[];
+			// the pencil stroke kept growing - the palm contributed nothing
+			expect(visibleStrokes?.[0]?.points).toHaveLength(2);
+		});
+
+		it("pinch-zooms with two fingers and changes the stack transform", async () => {
+			// two fingers navigate regardless of the finger-draws toggle (finger navigates by
+			// default) - a lone pointer would need the toggle, a pinch never does
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			const stack = wrapper.find(".annotator-canvas-stack");
+			const transformBefore = (stack.element as HTMLElement).style.transform;
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 100, clientY: 300, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointerdown", { clientX: 300, clientY: 300, pointerId: 2, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 50, clientY: 300, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 350, clientY: 300, pointerId: 2, pointerType: "touch" });
+
+			const transformAfter = (stack.element as HTMLElement).style.transform;
+			expect(transformAfter).not.toBe(transformBefore);
+		});
+
+		it("resets the view when 'fit to page' is clicked after a pinch", async () => {
+			const { wrapper } = await setup();
+			const canvas = wrapper.find("[data-testid='annotator-ink-canvas']").element;
+			const stack = wrapper.find(".annotator-canvas-stack");
+
+			await dispatchPointer(canvas, "pointerdown", { clientX: 100, clientY: 300, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointerdown", { clientX: 300, clientY: 300, pointerId: 2, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 50, clientY: 300, pointerId: 1, pointerType: "touch" });
+			await dispatchPointer(canvas, "pointermove", { clientX: 350, clientY: 300, pointerId: 2, pointerType: "touch" });
+
+			const zoomedTransform = (stack.element as HTMLElement).style.transform;
+
+			await wrapper.find("[data-testid='annotator-fit-to-page']").trigger("click");
+
+			const resetTransform = (stack.element as HTMLElement).style.transform;
+			expect(resetTransform).not.toBe(zoomedTransform);
+		});
+	});
 });
