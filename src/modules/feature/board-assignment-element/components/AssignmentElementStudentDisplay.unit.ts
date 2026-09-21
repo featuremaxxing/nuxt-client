@@ -5,7 +5,14 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchSubmissionsMock, createOwnSubmissionMock, submitMock, uploadMock, fetchFilesMock, getFileRecordsByParentIdMock } = vi.hoisted(() => ({
+const {
+	fetchSubmissionsMock,
+	createOwnSubmissionMock,
+	submitMock,
+	uploadMock,
+	fetchFilesMock,
+	getFileRecordsByParentIdMock,
+} = vi.hoisted(() => ({
 	fetchSubmissionsMock: vi.fn(),
 	createOwnSubmissionMock: vi.fn(),
 	submitMock: vi.fn(),
@@ -232,5 +239,121 @@ describe("AssignmentElementStudentDisplay", () => {
 		await vi.dynamicImportSettled();
 
 		expect(wrapper.findAll("[data-testid='assignment-feedback-file']")).toHaveLength(0);
+	});
+
+	describe("own submission file", () => {
+		it("makes the own file name clickable when it can be previewed", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [buildSubmission({ id: "submission-1", file: { fileRecordId: "record-own", name: "essay.pdf" } })],
+			});
+			getFileRecordsByParentIdMock.mockReturnValue([
+				{ id: "record-own", name: "essay.pdf", url: "https://api/files/essay.pdf", mimeType: "application/pdf" },
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='assignment-own-file-name']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='assignment-own-file-download']").exists()).toBe(true);
+		});
+
+		it("fetches the own file before the submission is returned", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [buildSubmission({ id: "submission-1", file: { fileRecordId: "record-own", name: "essay.pdf" } })],
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(fetchFilesMock).toHaveBeenCalledWith("submission-1", "boardnodes");
+			expect(wrapper.find("[data-testid='assignment-own-file']").exists()).toBe(true);
+		});
+
+		it("shows the own file name as plain text when it cannot be previewed", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({ id: "submission-1", file: { fileRecordId: "record-own", name: "archive.zip" } }),
+				],
+			});
+			getFileRecordsByParentIdMock.mockReturnValue([
+				{ id: "record-own", name: "archive.zip", url: "https://api/files/archive.zip", mimeType: "application/zip" },
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='assignment-own-file-name']").exists()).toBe(false);
+			expect(wrapper.find("[data-testid='assignment-own-file']").text()).toContain("archive.zip");
+			expect(wrapper.find("[data-testid='assignment-own-file-download']").exists()).toBe(true);
+		});
+
+		it("still shows the file name even when no matching record was found", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [buildSubmission({ id: "submission-1", file: { fileRecordId: "record-own", name: "essay.pdf" } })],
+			});
+			getFileRecordsByParentIdMock.mockReturnValue([]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='assignment-own-file']").text()).toContain("essay.pdf");
+			expect(wrapper.find("[data-testid='assignment-own-file-download']").exists()).toBe(false);
+		});
+	});
+
+	describe("feedback audio download hurdle", () => {
+		it("blocks the browser's native download affordance on the feedback audio player", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: false,
+				submissions: [
+					buildSubmission({
+						id: "submission-1",
+						status: AssignmentStatus.RETURNED,
+						returnedAt: "2099-01-20T10:00:00.000Z",
+						feedbackAudio: { fileRecordId: "record-audio", name: "feedback-audio-1.mp3" },
+					} as AssignmentSubmissionResponse),
+				],
+			});
+			getFileRecordsByParentIdMock.mockReturnValue([
+				{ id: "record-audio", name: "feedback-audio-1.mp3", url: "https://api/files/feedback-audio-1.mp3" },
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const audio = wrapper.find("[data-testid='assignment-feedback-audio']");
+			expect(audio.exists()).toBe(true);
+			expect(audio.attributes("controlslist")).toContain("nodownload");
+		});
+
+		it("does not show the feedback audio before the submission is returned", async () => {
+			getFileRecordsByParentIdMock.mockReturnValue([
+				{ id: "record-audio", name: "feedback-audio-1.mp3", url: "https://api/files/feedback-audio-1.mp3" },
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='assignment-feedback-audio']").exists()).toBe(false);
+		});
 	});
 });

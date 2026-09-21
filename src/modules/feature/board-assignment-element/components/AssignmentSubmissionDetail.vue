@@ -48,7 +48,7 @@
 					{{ submissionFile?.name ?? submission.file?.name }}
 				</span>
 				<VBtn
-					v-if="isPdfFile"
+					v-if="canPreview(submissionFile)"
 					variant="text"
 					size="small"
 					:prepend-icon="mdiEyeOutline"
@@ -93,7 +93,7 @@
 				<VIcon :icon="mdiFileDocumentOutline" size="small" />
 				<span class="flex-grow-1 text-truncate">{{ correctionLabel(record) }}</span>
 				<VBtn
-					v-if="isViewableFeedbackFile(record)"
+					v-if="canPreview(record)"
 					variant="text"
 					size="small"
 					:prepend-icon="mdiEyeOutline"
@@ -298,10 +298,11 @@
 
 <script setup lang="ts">
 import { feedbackFileTimestamp } from "../feedback-files.util";
+import { canPreview } from "../file-preview.util";
 import { FileRecord } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
 import { formatUtc } from "@/utils/date-time.utils";
-import { isImageMimeType, isPdfMimeType, isPreviewPossible } from "@/utils/fileHelper";
+import { isImageMimeType, isPdfMimeType } from "@/utils/fileHelper";
 import {
 	AssignmentStatus,
 	AssignmentSubmissionFileResponse,
@@ -424,14 +425,6 @@ const isPdfFile = computed(() => submissionMimeType.value !== undefined && isPdf
 const isImageFile = computed(() => submissionMimeType.value !== undefined && isImageMimeType(submissionMimeType.value));
 
 const isAnnotatable = computed(() => isPdfFile.value || isImageFile.value);
-
-const isViewableFeedbackFile = (record: FileRecord): boolean => {
-	if (isPdfMimeType(record.mimeType)) {
-		return true;
-	}
-
-	return isImageMimeType(record.mimeType) && isPreviewPossible(record.previewStatus);
-};
 
 const correctionLabel = (record: FileRecord): string => {
 	const timestamp = feedbackFileTimestamp(record.name);

@@ -206,6 +206,15 @@ export function isAudioMimeType(mimeType: string): boolean {
 	return mimeType.startsWith("audio/");
 }
 
+export function isTextMimeType(mimeType: string): boolean {
+	return (
+		mimeType.startsWith("text/") ||
+		mimeType === "application/json" ||
+		mimeType === "application/xml" ||
+		mimeType === "application/x-yaml"
+	);
+}
+
 export function formatSecondsToHourMinSec(seconds: number) {
 	const isoString = new Date(1000 * seconds).toISOString();
 	let formattedString = isoString.slice(14, 19);

@@ -727,6 +727,9 @@ export default {
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "Aún no se han enviado evaluaciones.",
 	"components.cardElement.fileElement.pdfLoadError": "No se pudo mostrar el archivo.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Abrir comentario",
+	"components.cardElement.fileElement.textLoadError": "No se pudo mostrar el archivo.",
+	"components.cardElement.fileElement.textTruncated":
+		"El archivo es demasiado grande para mostrarlo completo. Solo se muestra el principio.",
 	"components.cardElement.assignmentElement.status.open": "Abierta",
 	"components.cardElement.assignmentElement.status.submitted": "Entregada",
 	"components.cardElement.assignmentElement.status.inReview": "En corrección",

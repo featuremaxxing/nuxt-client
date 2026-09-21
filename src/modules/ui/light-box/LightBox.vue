@@ -45,6 +45,11 @@
 					:url="lightBoxOptions.downloadUrl"
 					@click.stop
 				/>
+				<LightBoxText
+					v-if="isLightBoxTextType() && lightBoxOptions && isLightBoxOpen"
+					:url="lightBoxOptions.downloadUrl"
+					@click.stop
+				/>
 				<ErrorAlert v-if="hasAudioError" class="error-alert">
 					{{ t("components.cardElement.fileElement.audioFormatError") }}
 				</ErrorAlert>
@@ -69,6 +74,7 @@ import { useI18n } from "vue-i18n";
 
 // the pdf viewer (pdfjs) is only fetched when a PDF is actually opened
 const LightBoxPdf = defineAsyncComponent(() => import("./LightBoxPdf.vue"));
+const LightBoxText = defineAsyncComponent(() => import("./LightBoxText.vue"));
 
 const { t } = useI18n();
 
@@ -103,6 +109,7 @@ const isLightBoxImageType = () => lightBoxOptions.value?.type === LightBoxConten
 const isLightBoxAudioType = () => lightBoxOptions.value?.type === LightBoxContentType.AUDIO;
 const isLightBoxVideoType = () => lightBoxOptions.value?.type === LightBoxContentType.VIDEO;
 const isLightBoxPdfType = () => lightBoxOptions.value?.type === LightBoxContentType.PDF;
+const isLightBoxTextType = () => lightBoxOptions.value?.type === LightBoxContentType.TEXT;
 </script>
 
 <style scoped>

@@ -127,6 +127,51 @@ describe("AssignmentSubmissionDetail", () => {
 		expect(wrapper.emitted("return")).toHaveLength(1);
 	});
 
+	describe("file preview", () => {
+		it("shows the view button for a text submission file", () => {
+			const { wrapper } = setup({
+				submissionFile: buildFileRecord({ name: "notes.txt", mimeType: "text/plain" }),
+			});
+
+			expect(wrapper.find("[data-testid='submission-view']").exists()).toBe(true);
+			// text is not annotatable, unlike pdf/image
+			expect(wrapper.find("[data-testid='submission-annotate']").exists()).toBe(false);
+		});
+
+		it("hides the view button for an office document", () => {
+			const { wrapper } = setup({
+				submissionFile: buildFileRecord({
+					name: "essay.docx",
+					mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				}),
+			});
+
+			expect(wrapper.find("[data-testid='submission-view']").exists()).toBe(false);
+		});
+
+		it("shows the view button for a feedback file that is a text file", () => {
+			const { wrapper } = setup({
+				feedbackFiles: [buildFileRecord({ id: "fb-1", name: "feedback-pdf-1.txt", mimeType: "text/plain" })],
+			});
+
+			expect(wrapper.find("[data-testid='submission-feedback-file-view-fb-1']").exists()).toBe(true);
+		});
+
+		it("hides the view button for a feedback file that is an office document", () => {
+			const { wrapper } = setup({
+				feedbackFiles: [
+					buildFileRecord({
+						id: "fb-1",
+						name: "feedback-pdf-1.docx",
+						mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+					}),
+				],
+			});
+
+			expect(wrapper.find("[data-testid='submission-feedback-file-view-fb-1']").exists()).toBe(false);
+		});
+	});
+
 	describe("file versions", () => {
 		it("shows no version switcher for a single version", () => {
 			const { wrapper } = setup({

@@ -723,6 +723,9 @@ export default {
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "Рецензій ще немає.",
 	"components.cardElement.fileElement.pdfLoadError": "Не вдалося показати файл.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Відкрити коментар",
+	"components.cardElement.fileElement.textLoadError": "Не вдалося показати файл.",
+	"components.cardElement.fileElement.textTruncated":
+		"Файл занадто великий, щоб показати його повністю. Показано лише початок.",
 	"components.cardElement.assignmentElement.status.open": "Відкрито",
 	"components.cardElement.assignmentElement.status.submitted": "Здано",
 	"components.cardElement.assignmentElement.status.inReview": "На перевірці",

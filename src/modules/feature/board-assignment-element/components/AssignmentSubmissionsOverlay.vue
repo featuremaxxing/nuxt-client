@@ -290,6 +290,7 @@
 
 <script setup lang="ts">
 import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
+import { useAssignmentFilePreview } from "../file-preview.composable";
 import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 import AssignmentSubmissionDetail from "./AssignmentSubmissionDetail.vue";
 import PeerReviewAssignmentPanel from "./PeerReviewAssignmentPanel.vue";
@@ -315,7 +316,7 @@ import {
 	mdiFileDelimited,
 	mdiFolderZipOutline,
 } from "@icons/material";
-import { LightBoxContentType, useLightBox } from "@ui-light-box";
+import { useLightBox } from "@ui-light-box";
 import { onKeyStroke } from "@vueuse/core";
 import JSZip from "jszip";
 import { computed, ref, watch } from "vue";
@@ -340,6 +341,7 @@ const { smAndDown } = useDisplay();
 const { fetchSubmissions, gradeSubmission, returnSubmission, returnSubmissionsBatch } = useAssignmentApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
+const { openPreview } = useAssignmentFilePreview();
 
 const FEEDBACK_AUDIO_PREFIX = "feedback-audio-";
 
@@ -572,27 +574,7 @@ const previewUrl = (submission: AssignmentSubmissionResponse) => {
 };
 
 const openFile = (submission: AssignmentSubmissionResponse) => {
-	const record = submissionFileRecord(submission);
-	if (!record) {
-		return;
-	}
-
-	if (isPdfMimeType(record.mimeType)) {
-		lightBox.open({
-			type: LightBoxContentType.PDF,
-			downloadUrl: record.url,
-			name: record.name,
-		});
-
-		return;
-	}
-
-	lightBox.open({
-		type: LightBoxContentType.IMAGE,
-		downloadUrl: record.url,
-		name: record.name,
-		previewUrl: previewUrl(submission),
-	});
+	openPreview(submissionFileRecord(submission));
 };
 
 const annotateBusy = computed(() => annotatorSaving.value);
@@ -648,25 +630,7 @@ const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => 
 };
 
 const openFeedbackFile = (record: FileRecord) => {
-	if (isPdfMimeType(record.mimeType)) {
-		lightBox.open({
-			type: LightBoxContentType.PDF,
-			downloadUrl: record.url,
-			name: record.name,
-		});
-
-		return;
-	}
-
-	lightBox.open({
-		type: LightBoxContentType.IMAGE,
-		downloadUrl: record.url,
-		name: record.name,
-		// show the original image - the preview service only delivers small
-		// thumbnails (max 500px), which look blurry in a fullscreen light box
-		previewUrl: record.url,
-		alt: record.name,
-	});
+	openPreview(record);
 };
 
 const setDraftPoints = (submission: AssignmentSubmissionResponse, value: string) => {
