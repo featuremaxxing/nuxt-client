@@ -113,7 +113,11 @@ const element = toRef(props, "element");
 const pollContentElement = ref(null);
 useBoardFocusHandler(element.value.id, pollContentElement);
 
-const canManagePoll = computed(() => allowedOperations.value.updateElement);
+// isBoardEditor, not updateElement: updateElement is board-wide and folds a reader on a
+// "readers can edit" board into "can edit" - the server keeps a carve-out that never grants a
+// poll's manage/teacher view to such a reader (see board-node.rule.ts, hasPermission's isPollNode
+// guard), and isBoardEditor is the field that reflects that carve-out to the client.
+const canManagePoll = computed(() => allowedOperations.value.isBoardEditor);
 const pollState = computed(() => getState(element.value.id));
 // Whether the caller is eligible to vote at all, per the poll's audience setting - comes
 // from the server (allowedOperations is board-wide, not per element). Independent of

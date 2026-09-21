@@ -73,6 +73,12 @@ export interface RoomBoardItemResponseAllowedOperations {
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
+    isBoardEditor?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
     copyColumn?: boolean;
     /**
      * 

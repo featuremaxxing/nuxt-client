@@ -32,10 +32,18 @@ vi.mock("@data-poll", () => ({
 
 describe("PollContentElement", () => {
 	const setupWrapper = (
-		options: { isEditMode?: boolean; canEdit?: boolean; element?: PollElement; pollState?: object } = {}
+		options: {
+			isEditMode?: boolean;
+			canEdit?: boolean;
+			element?: PollElement;
+			pollState?: object;
+			// override for the exact scenario allowedOperations.updateElement can lie about (a
+			// reader on a readersCanEdit board) - see the isBoardEditor regression test below
+			allowedOperations?: Record<string, boolean>;
+		} = {}
 	) => {
 		useBoardAllowedOperationsMock.mockReturnValue({
-			allowedOperations: computed(() => ({ updateElement: options.canEdit ?? false })),
+			allowedOperations: computed(() => options.allowedOperations ?? { isBoardEditor: options.canEdit ?? false }),
 		});
 
 		usePollsStoreMock.mockReturnValue({
@@ -87,6 +95,23 @@ describe("PollContentElement", () => {
 
 		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
 		expect(wrapper.findComponent({ name: "PollElementEdit" }).exists()).toBe(false);
+	});
+
+	// Regression test: on a board with readersCanEdit, allowedOperations.updateElement is true
+	// for a plain reader too (that's the whole point of the setting) - but the poll's manage/
+	// teacher view must not follow updateElement, only isBoardEditor (see the doc comment on
+	// canManagePoll). A reader must see the vote form, not the results/management view.
+	it("does not treat updateElement:true as canManagePoll - only isBoardEditor decides", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({
+			isEditMode: false,
+			element,
+			allowedOperations: { updateElement: true, isBoardEditor: false },
+			pollState: { totalVotes: 0, participantCount: 1, canVote: true },
+		});
+
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(false);
 	});
 
 	it("shows the vote form for a non-editor when the poll is open and not yet voted", () => {
