@@ -13,6 +13,8 @@
  */
 
 
+import { BoardRoles } from './board-roles';
+import { PollAudience } from './poll-audience';
 import { PollQuestionBody } from './poll-question-body';
 import { PollStatus } from './poll-status';
 
@@ -53,11 +55,23 @@ export interface PollContentBody {
      */
     pollStatus: PollStatus;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PollContentBody
      */
     closesAt?: string;
+    /**
+     *
+     * @type {PollAudience}
+     * @memberof PollContentBody
+     */
+    audience?: PollAudience;
+    /**
+     *
+     * @type {Array<BoardRoles>}
+     * @memberof PollContentBody
+     */
+    audienceRoles?: Array<BoardRoles>;
 }
 
 

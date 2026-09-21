@@ -39,7 +39,9 @@ describe("PollContentElement", () => {
 		});
 
 		usePollsStoreMock.mockReturnValue({
-			getState: () => options.pollState ?? { totalVotes: 0, participantCount: 0 },
+			// mirrors the default audience (STUDENTS): an editor is not an eligible voter
+			// unless a test explicitly overrides pollState to say otherwise
+			getState: () => options.pollState ?? { totalVotes: 0, participantCount: 0, canVote: !options.canEdit },
 			fetchPollResults: fetchPollResultsMock,
 		});
 		usePollSocketApiMock.mockReturnValue({ castVoteViaSocket: vi.fn() });
@@ -120,10 +122,44 @@ describe("PollContentElement", () => {
 	it("registers the poll socket listener regardless of edit mode or role, so results keep updating live", () => {
 		setupWrapper({ isEditMode: false, canEdit: true });
 
-		// A teacher never mounts PollVoteForm (they always see results, never the vote form), and a
-		// student stops mounting it the moment they vote - this component is the only thing that
-		// stays mounted for the poll's whole lifetime on the board, so it must be the one to listen.
+		// A manager outside the audience never mounts PollVoteForm (they always see results,
+		// never the vote form), and a voter stops mounting it the moment they vote - this
+		// component is the only thing that stays mounted for the poll's whole lifetime on the
+		// board, so it must be the one to listen.
 		expect(usePollSocketApiMock).toHaveBeenCalled();
+	});
+
+	it("shows the vote form for an editor who is also an eligible voter (audience TEACHERS/ALL)", () => {
+		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.OPEN } });
+		const { wrapper } = setupWrapper({
+			isEditMode: false,
+			canEdit: true,
+			element,
+			pollState: { totalVotes: 0, participantCount: 0, canVote: true },
+		});
+
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(false);
+	});
+
+	it("shows results for an editor who is also an eligible voter once they've voted", () => {
+		const element = pollElementResponseFactory.build({
+			content: { pollStatus: PollStatus.OPEN, showResultsLive: true },
+		});
+		const { wrapper } = setupWrapper({
+			isEditMode: false,
+			canEdit: true,
+			element,
+			pollState: {
+				totalVotes: 1,
+				participantCount: 1,
+				canVote: true,
+				myVote: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+			},
+		});
+
+		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
 	});
 
 	it("shows the poll title", () => {

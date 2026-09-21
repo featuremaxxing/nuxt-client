@@ -48,11 +48,17 @@ export interface PollResultsResponse {
      */
     results?: Array<PollQuestionResultResponse>;
     /**
-     * 
+     *
      * @type {Array<PollVoterResponse>}
      * @memberof PollResultsResponse
      */
     voters?: Array<PollVoterResponse>;
+    /**
+     * whether the caller is eligible to vote in this poll at all
+     * @type {boolean}
+     * @memberof PollResultsResponse
+     */
+    canVote: boolean;
 }
 
 

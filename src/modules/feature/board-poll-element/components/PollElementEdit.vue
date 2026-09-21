@@ -92,13 +92,7 @@
 			</div>
 		</div>
 
-		<VBtn
-			variant="tonal"
-			class="mt-2"
-			:prepend-icon="mdiPlus"
-			data-testid="poll-add-question"
-			@click="addQuestion"
-		>
+		<VBtn variant="tonal" class="mt-2" :prepend-icon="mdiPlus" data-testid="poll-add-question" @click="addQuestion">
 			{{ t("components.cardElement.pollElement.addQuestion") }}
 		</VBtn>
 
@@ -116,6 +110,31 @@
 			data-testid="poll-live-results-toggle"
 			@update:model-value="(value: boolean | null) => (modelValue.showResultsLive = !!value)"
 		/>
+
+		<VSelect
+			:model-value="modelValue.audience"
+			:items="audienceItems"
+			:label="t('components.cardElement.pollElement.audienceLabel')"
+			:disabled="audienceLocked"
+			:hint="audienceLocked ? t('components.cardElement.pollElement.audienceLockedHint') : undefined"
+			persistent-hint
+			data-testid="poll-audience-select"
+			@update:model-value="(value: PollAudience) => (modelValue.audience = value)"
+		/>
+
+		<div v-if="modelValue.audience === PollAudience.CUSTOM" class="poll-audience-roles">
+			<VCheckbox
+				v-for="role in audienceRoleItems"
+				:key="role.value"
+				:model-value="(modelValue.audienceRoles ?? []).includes(role.value)"
+				:label="role.title"
+				:disabled="audienceLocked"
+				density="compact"
+				hide-details
+				:data-testid="`poll-audience-role-${role.value}`"
+				@update:model-value="(checked: boolean | null) => onToggleAudienceRole(role.value, !!checked)"
+			/>
+		</div>
 
 		<ClosesAtField
 			:model-value="modelValue.closesAt ?? undefined"
@@ -140,12 +159,22 @@
 </template>
 
 <script setup lang="ts">
-import { PollElement } from "@/types/board/ContentElement";
-import { PollAnswerMode, PollChartType, PollOptionResponse, PollQuestionResponse, PollStatus } from "@api-server";
-import { useContentElementState } from "@data-board";
-import { mdiArrowDown, mdiArrowUp, mdiDelete, mdiPlus } from "@icons/material";
-import { useI18n } from "vue-i18n";
 import ClosesAtField from "./ClosesAtField.vue";
+import { PollElement } from "@/types/board/ContentElement";
+import {
+	BoardRoles,
+	PollAnswerMode,
+	PollAudience,
+	PollChartType,
+	PollOptionResponse,
+	PollQuestionResponse,
+	PollStatus,
+} from "@api-server";
+import { useContentElementState } from "@data-board";
+import { usePollsStore } from "@data-poll";
+import { mdiArrowDown, mdiArrowUp, mdiDelete, mdiPlus } from "@icons/material";
+import { computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
 	element: PollElement;
@@ -158,6 +187,33 @@ const { modelValue } = useContentElementState(props, { autoSaveDebounce: 400 });
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 10;
+
+// The audience is locked once votes exist (see U-R4 / ContentElementUpdateService -
+// the server rejects the change with a ConflictException regardless; this is only the
+// UX-level heads-up so a teacher doesn't hit that error unexpectedly). Results aren't
+// otherwise fetched while editing (see PollContentElement.vue's onMounted), so this
+// component fetches them itself to know whether any vote has been cast yet.
+const { getState, fetchPollResults } = usePollsStore();
+onMounted(() => fetchPollResults(props.element.id));
+const audienceLocked = computed(() => getState(props.element.id).totalVotes > 0);
+
+const audienceItems = [
+	{ title: t("components.cardElement.pollElement.audience.students"), value: PollAudience.STUDENTS },
+	{ title: t("components.cardElement.pollElement.audience.teachers"), value: PollAudience.TEACHERS },
+	{ title: t("components.cardElement.pollElement.audience.all"), value: PollAudience.ALL },
+	{ title: t("components.cardElement.pollElement.audience.custom"), value: PollAudience.CUSTOM },
+];
+
+const audienceRoleItems = [
+	{ title: t("components.cardElement.pollElement.audienceRole.reader"), value: BoardRoles.READER },
+	{ title: t("components.cardElement.pollElement.audienceRole.editor"), value: BoardRoles.EDITOR },
+	{ title: t("components.cardElement.pollElement.audienceRole.admin"), value: BoardRoles.ADMIN },
+];
+
+const onToggleAudienceRole = (role: BoardRoles, checked: boolean) => {
+	const current = modelValue.value.audienceRoles ?? [];
+	modelValue.value.audienceRoles = checked ? [...current, role] : current.filter((r) => r !== role);
+};
 
 const answerModeItems = [
 	{ title: t("components.cardElement.pollElement.answerMode.single"), value: PollAnswerMode.SINGLE },
@@ -265,5 +321,11 @@ const removeOption = (question: PollQuestionResponse, index: number) => {
 .poll-status-actions {
 	display: flex;
 	gap: 8px;
+}
+
+.poll-audience-roles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
 }
 </style>

@@ -22,6 +22,7 @@ describe("polls store", () => {
 			myVote: undefined,
 			totalVotes: 0,
 			participantCount: 0,
+			canVote: true,
 		});
 	});
 
@@ -31,6 +32,7 @@ describe("polls store", () => {
 			participantCount: 5,
 			myVote: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
 			results: [{ questionId: "q1", counts: [{ optionId: "o1", count: 3 }] }],
+			canVote: false,
 		});
 
 		const { fetchPollResults, getState } = usePollsStore();
@@ -38,6 +40,7 @@ describe("polls store", () => {
 
 		expect(getState("element-1").totalVotes).toBe(3);
 		expect(getState("element-1").myVote).toEqual([{ questionId: "q1", selectedOptionIds: ["o1"] }]);
+		expect(getState("element-1").canVote).toBe(false);
 	});
 
 	it("does not touch the state when the fetch fails (returns undefined)", async () => {

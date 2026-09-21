@@ -9,6 +9,12 @@ export interface PollState {
 	myVote?: PollAnswerResponse[];
 	totalVotes: number;
 	participantCount: number;
+	// Whether the caller is eligible to vote at all, per the poll's audience setting - comes
+	// from the server (allowedOperations is board-wide, not per element, see
+	// board-allowed-operations.composable.ts). Defaults to true so a not-yet-fetched poll
+	// still shows the vote form rather than hiding it - fetchPollResults runs onMounted
+	// before the form would otherwise render, see PollContentElement.vue.
+	canVote: boolean;
 }
 
 // Small reactive store keyed by elementId, updated both by the REST fetch and by the poll socket
@@ -24,6 +30,7 @@ const emptyState = (): PollState => ({
 	myVote: undefined,
 	totalVotes: 0,
 	participantCount: 0,
+	canVote: true,
 });
 
 export const usePollsStore = createTestableSharedComposable(() => {
@@ -50,6 +57,7 @@ export const usePollsStore = createTestableSharedComposable(() => {
 			myVote: response.myVote,
 			totalVotes: response.totalVotes,
 			participantCount: response.participantCount,
+			canVote: response.canVote,
 		});
 	};
 

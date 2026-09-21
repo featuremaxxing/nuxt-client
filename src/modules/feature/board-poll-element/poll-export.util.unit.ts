@@ -1,5 +1,12 @@
 import { buildPollResultsCsv } from "./poll-export.util";
-import { PollAnswerMode, PollChartType, PollElementContent, PollStatus, PollVoterResponse } from "@api-server";
+import {
+	PollAnswerMode,
+	PollAudience,
+	PollChartType,
+	PollElementContent,
+	PollStatus,
+	PollVoterResponse,
+} from "@api-server";
 
 describe("poll-export.util", () => {
 	describe("buildPollResultsCsv", () => {
@@ -8,6 +15,7 @@ describe("poll-export.util", () => {
 			isAnonymous: true,
 			showResultsLive: false,
 			pollStatus: PollStatus.CLOSED,
+			audience: PollAudience.STUDENTS,
 			questions: [
 				{
 					id: "q1",

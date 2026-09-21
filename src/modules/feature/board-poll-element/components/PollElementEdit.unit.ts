@@ -1,12 +1,16 @@
 import PollElementEdit from "./PollElementEdit.vue";
 import { PollElement } from "@/types/board/ContentElement";
-import { PollAnswerMode } from "@api-server";
 import { pollElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
+import { BoardRoles, PollAnswerMode, PollAudience } from "@api-server";
 import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 
-const { updateElementRequestMock } = vi.hoisted(() => ({ updateElementRequestMock: vi.fn() }));
+const { updateElementRequestMock, fetchPollResultsMock, getStateMock } = vi.hoisted(() => ({
+	updateElementRequestMock: vi.fn(),
+	fetchPollResultsMock: vi.fn(),
+	getStateMock: vi.fn(() => ({ totalVotes: 0 })),
+}));
 
 vi.mock("@data-board", () => ({
 	useContentElementState: (props: { element: PollElement }) => {
@@ -17,6 +21,10 @@ vi.mock("@data-board", () => ({
 		};
 	},
 	useCardStore: () => ({ updateElementRequest: updateElementRequestMock }),
+}));
+
+vi.mock("@data-poll", () => ({
+	usePollsStore: () => ({ getState: getStateMock, fetchPollResults: fetchPollResultsMock }),
 }));
 
 describe("PollElementEdit", () => {
@@ -36,6 +44,10 @@ describe("PollElementEdit", () => {
 
 		return { wrapper, element: usedElement };
 	};
+
+	beforeEach(() => {
+		getStateMock.mockReturnValue({ totalVotes: 0 });
+	});
 
 	afterEach(() => {
 		vi.clearAllMocks();
@@ -80,5 +92,45 @@ describe("PollElementEdit", () => {
 		const { wrapper } = setupWrapper(element);
 
 		expect(wrapper.find("[data-testid='poll-option-text-0-0']").exists()).toBe(false);
+	});
+
+	describe("audience", () => {
+		it("shows the audience roles checkboxes only when audience is CUSTOM", () => {
+			const element = pollElementResponseFactory.build();
+			element.content.audience = PollAudience.STUDENTS;
+			const { wrapper } = setupWrapper(element);
+
+			expect(wrapper.find("[data-testid='poll-audience-role-editor']").exists()).toBe(false);
+		});
+
+		it("shows the audience roles checkboxes when audience is CUSTOM", () => {
+			const element = pollElementResponseFactory.build();
+			element.content.audience = PollAudience.CUSTOM;
+			element.content.audienceRoles = [BoardRoles.EDITOR];
+			const { wrapper } = setupWrapper(element);
+
+			expect(wrapper.find("[data-testid='poll-audience-role-editor']").exists()).toBe(true);
+		});
+
+		it("is not disabled while no vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 0 });
+			const { wrapper } = setupWrapper();
+
+			expect(wrapper.find("[data-testid='poll-audience-select']").attributes("disabled")).toBeUndefined();
+		});
+
+		it("is disabled once a vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 1 });
+			const { wrapper } = setupWrapper();
+
+			// Vuetify renders VSelect's disabled state on an inner input, not the outer wrapper
+			expect(wrapper.find("[data-testid='poll-audience-select'] input").attributes("disabled")).toBeDefined();
+		});
+
+		it("fetches poll results on mount to know whether the audience is locked", () => {
+			setupWrapper();
+
+			expect(fetchPollResultsMock).toHaveBeenCalled();
+		});
 	});
 });

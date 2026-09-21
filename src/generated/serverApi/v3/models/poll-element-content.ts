@@ -13,6 +13,8 @@
  */
 
 
+import { BoardRoles } from './board-roles';
+import { PollAudience } from './poll-audience';
 import { PollQuestionResponse } from './poll-question-response';
 import { PollResultSnapshotResponse } from './poll-result-snapshot-response';
 import { PollStatus } from './poll-status';
@@ -60,11 +62,23 @@ export interface PollElementContent {
      */
     closesAt?: string | null;
     /**
-     * 
+     *
      * @type {PollResultSnapshotResponse}
      * @memberof PollElementContent
      */
     resultSnapshot?: PollResultSnapshotResponse | null;
+    /**
+     * who is eligible to vote
+     * @type {PollAudience}
+     * @memberof PollElementContent
+     */
+    audience: PollAudience;
+    /**
+     * only meaningful when audience is CUSTOM
+     * @type {Array<BoardRoles>}
+     * @memberof PollElementContent
+     */
+    audienceRoles?: Array<BoardRoles>;
 }
 
 

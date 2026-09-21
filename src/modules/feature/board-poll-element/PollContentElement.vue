@@ -45,8 +45,6 @@
 				:is-editor="canManagePoll"
 			/>
 
-			<PollAnalysisDialog v-if="canOpenAnalysis" v-model="showAnalysis" :element="element" :is-editor="canManagePoll" />
-
 			<PollVoteForm v-else-if="showVoteForm" :element="element" :existing-answers="pollState.myVote" @voted="onVoted" />
 
 			<VCardText v-else-if="hasVoted && !element.content.showResultsLive">
@@ -55,6 +53,12 @@
 					{{ t("components.cardElement.pollElement.changeVote") }}
 				</VBtn>
 			</VCardText>
+
+			<!-- Independent of the block above (which content to show) - a standalone dialog
+			     toggled via showAnalysis, so it must not sit inside that v-if/v-else-if chain
+			     (that previously made canOpenAnalysis, which is often true for a manager, swallow
+			     the v-else-if branches after it - see the poll-audience regression this fixed). -->
+			<PollAnalysisDialog v-if="canOpenAnalysis" v-model="showAnalysis" :element="element" :is-editor="canManagePoll" />
 		</template>
 	</VCard>
 </template>
@@ -111,6 +115,10 @@ useBoardFocusHandler(element.value.id, pollContentElement);
 
 const canManagePoll = computed(() => allowedOperations.value.updateElement);
 const pollState = computed(() => getState(element.value.id));
+// Whether the caller is eligible to vote at all, per the poll's audience setting - comes
+// from the server (allowedOperations is board-wide, not per element). Independent of
+// canManagePoll: with audience TEACHERS/ALL, a teacher can be both a manager and a voter.
+const canVote = computed(() => pollState.value.canVote);
 const hasVoted = computed(() => !!pollState.value.myVote);
 const isChangingVote = ref(false);
 const showAnalysis = ref(false);
@@ -121,23 +129,26 @@ const { isOpen: isPollOpen } = usePollOpenState(element);
 // enforces the real visibility rule by never sending `voters` to non-managers.
 const canOpenAnalysis = computed(() => canManagePoll.value || element.value.content.pollStatus === PollStatus.CLOSED);
 
-// Teachers/editors always see the aggregate results (never the vote form for themselves).
-// Students/voters see results only once they voted and either the poll shows live results or is
-// closed (frozen snapshot); otherwise they get the vote form.
-const showResults = computed(() => {
-	if (canManagePoll.value) return true;
-	if (element.value.content.pollStatus === PollStatus.CLOSED) return true;
-	return hasVoted.value && element.value.content.showResultsLive && !isChangingVote.value;
-});
-
+// An eligible voter (canVote, per the poll's audience) sees the vote form until they've
+// voted; this can be a teacher too once audience is TEACHERS/ALL, independent of
+// canManagePoll. Everyone else - a manager who isn't in the audience, or a voter who has
+// already voted and either the poll shows live results or is closed (frozen snapshot) -
+// sees the aggregate results instead.
 const showVoteForm = computed(() => {
-	if (canManagePoll.value) return false;
+	if (!canVote.value) return false;
 	// Mirrors the server's isOpen(now) check (see usePollOpenState) rather than just pollStatus:
 	// a poll with a closesAt in the past is still nominally "open" status-wise until a teacher
 	// closes it, but the server already rejects votes for it - the form must not invite a vote
 	// that would just fail with a generic error.
 	if (!isPollOpen.value) return false;
 	return !hasVoted.value || isChangingVote.value;
+});
+
+const showResults = computed(() => {
+	if (showVoteForm.value) return false;
+	if (canManagePoll.value) return true;
+	if (element.value.content.pollStatus === PollStatus.CLOSED) return true;
+	return hasVoted.value && element.value.content.showResultsLive && !isChangingVote.value;
 });
 
 const onVoted = () => {

@@ -1,6 +1,13 @@
-import { ContentElementType, PollAnswerMode, PollChartType, PollElementResponse, PollStatus } from "@api-server";
-import { Factory } from "fishery";
 import { timestampsResponseFactory } from "./timestampsResponseFactory";
+import {
+	ContentElementType,
+	PollAnswerMode,
+	PollAudience,
+	PollChartType,
+	PollElementResponse,
+	PollStatus,
+} from "@api-server";
+import { Factory } from "fishery";
 
 export const pollElementResponseFactory = Factory.define<PollElementResponse>(({ sequence }) => ({
 	id: `poll-element-response-${sequence}`,
@@ -10,6 +17,7 @@ export const pollElementResponseFactory = Factory.define<PollElementResponse>(({
 		isAnonymous: false,
 		showResultsLive: false,
 		pollStatus: PollStatus.DRAFT,
+		audience: PollAudience.STUDENTS,
 		questions: [
 			{
 				id: `question-${sequence}-1`,

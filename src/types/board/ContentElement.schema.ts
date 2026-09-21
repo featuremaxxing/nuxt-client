@@ -1,5 +1,5 @@
 import { ContentElementType } from "./ContentElement";
-import { PollAnswerMode, PollChartType, PollStatus } from "@api-server";
+import { BoardRoles, PollAnswerMode, PollAudience, PollChartType, PollStatus } from "@api-server";
 import { z } from "zod";
 
 const ExternalToolElementContentSchema = z.object({
@@ -68,6 +68,8 @@ const PollElementContentSchema = z.object({
 	showResultsLive: z.boolean(),
 	pollStatus: z.enum(PollStatus),
 	closesAt: z.string().optional(),
+	audience: z.enum(PollAudience),
+	audienceRoles: z.array(z.enum(BoardRoles)).optional(),
 	resultSnapshot: z
 		.object({
 			frozenAt: z.string(),
