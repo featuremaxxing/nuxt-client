@@ -2,6 +2,7 @@ import {
 	buildUploadOptions,
 	convertDownloadToPreviewUrl,
 	convertFileSize,
+	downloadBlob,
 	downloadFile,
 	downloadFilesAsArchive,
 	extractFilesFromItems,
@@ -18,6 +19,7 @@ import {
 	isTextMimeType,
 	isVideoMimeType,
 	removeFileExtension,
+	sanitizeZipPathSegment,
 } from "./fileHelper";
 import { ArchiveFileParams, FilePreviewStatus, FilePreviewWidth, FileRecordVirusScanStatus } from "@/types/file/File";
 import {
@@ -137,6 +139,57 @@ describe("@/utils/fileHelper", () => {
 			clickHandler(event);
 
 			expect(stopPropagationSpy).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe("downloadBlob", () => {
+		it("should download the blob via a short-lived object URL, then revoke it", () => {
+			const blob = new Blob(["content"]);
+			const fileName = "export.csv";
+			const objectUrl = "blob:mock-url";
+			const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue(objectUrl);
+			const revokeObjectURLSpy = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+			const link = document.createElement("a");
+			link.click = vi.fn();
+			vi.spyOn(document, "createElement").mockImplementationOnce(() => link);
+			document.body.appendChild = vi.fn();
+			document.body.removeChild = vi.fn();
+			vi.useFakeTimers();
+
+			downloadBlob(blob, fileName);
+
+			expect(createObjectURLSpy).toHaveBeenCalledWith(blob);
+			expect(link.getAttribute("href")).toEqual(objectUrl);
+			expect(link.download).toEqual(fileName);
+			// not revoked synchronously - revoking right after starting the download can race the
+			// browser's own (async) download start in some engines, see the doc comment
+			expect(revokeObjectURLSpy).not.toHaveBeenCalled();
+
+			vi.runAllTimers();
+
+			expect(revokeObjectURLSpy).toHaveBeenCalledWith(objectUrl);
+			vi.useRealTimers();
+		});
+	});
+
+	describe("sanitizeZipPathSegment", () => {
+		it("should leave an ordinary name unchanged", () => {
+			expect(sanitizeZipPathSegment("Anna Admin")).toBe("Anna Admin");
+		});
+
+		it("should replace a forward slash so a segment cannot nest into another folder", () => {
+			expect(sanitizeZipPathSegment("Anna/../../../etc/passwd")).not.toContain("/");
+		});
+
+		it("should replace a backslash", () => {
+			expect(sanitizeZipPathSegment("Anna\\Admin")).toBe("Anna_Admin");
+		});
+
+		it("should replace a directory-traversal sequence so a segment cannot escape the archive root", () => {
+			const result = sanitizeZipPathSegment("../../etc/passwd");
+
+			expect(result).not.toContain("..");
+			expect(result).not.toContain("/");
 		});
 	});
 

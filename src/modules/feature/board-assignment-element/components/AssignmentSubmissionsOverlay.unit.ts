@@ -863,6 +863,18 @@ describe("AssignmentSubmissionsOverlay", () => {
 				],
 			});
 		});
+
+		it("omits criterionPoints entirely (not zeroed) when saving without having touched any criterion", async () => {
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			// no criterion input touched at all
+			await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
+
+			expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", {
+				feedbackComment: undefined,
+			});
+		});
 	});
 
 	describe("file versions", () => {

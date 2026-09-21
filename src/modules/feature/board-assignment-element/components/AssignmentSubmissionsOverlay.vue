@@ -299,7 +299,7 @@ import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
 import { escapeCsvFormulaInjection } from "@/utils/csv";
 import { formatUtc } from "@/utils/date-time.utils";
-import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
+import { downloadBlob, downloadFile, isPdfMimeType, sanitizeZipPathSegment } from "@/utils/fileHelper";
 import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
 import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { notifyError, notifySuccess } from "@data-app";
@@ -703,12 +703,25 @@ const gradeBody = (submission: AssignmentSubmissionResponse) => {
 
 	if (criteria.value.length > 0) {
 		const points = criterionPointsFor(submission);
+		// Omitted entirely - not defaulted to 0 per criterion - when nothing has been graded at
+		// all: this used to default every untouched criterion to 0 points, so clicking Save or
+		// Return on a completely ungraded rubric submission silently graded it as 0 across every
+		// criterion instead of failing. The server rejects a rubric grade request with no
+		// criterionPoints at all, which now surfaces as an explicit error instead of a wrong save.
+		const hasAnyPoints = criteria.value.some(
+			(criterion) => points[criterion.id] !== null && points[criterion.id] !== undefined
+		);
+
 		return {
 			feedbackComment,
-			criterionPoints: criteria.value.map((criterion) => ({
-				criterionId: criterion.id,
-				points: points[criterion.id] ?? 0,
-			})),
+			...(hasAnyPoints
+				? {
+						criterionPoints: criteria.value.map((criterion) => ({
+							criterionId: criterion.id,
+							points: points[criterion.id] ?? 0,
+						})),
+					}
+				: {}),
 		};
 	}
 
@@ -782,6 +795,9 @@ const downloadSubmissionFile = async (submission: AssignmentSubmissionResponse) 
 };
 
 const startRecording = async (submission: AssignmentSubmissionResponse) => {
+	// a still-running recorder (e.g. starting a second recording without discarding the first)
+	// must release its microphone before this instance replaces it
+	recorder?.dispose();
 	recorder = new AudioRecorder();
 	try {
 		await recorder.start();
@@ -807,6 +823,10 @@ const discardRecording = () => {
 	recordedAudio.value = undefined;
 	recordingUserId.value = undefined;
 	recordingTargetUserId.value = undefined;
+	// releases the microphone if a recording was in progress (discarding without ever having
+	// stopped it) - stop() already released it for the already-stopped case, dispose() is a
+	// no-op there
+	recorder?.dispose();
 	recorder = undefined;
 };
 
@@ -882,9 +902,7 @@ const exportCsv = () => {
 
 		// BOM so Excel opens UTF-8 umlauts correctly
 		const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
-		const url = URL.createObjectURL(blob);
-		downloadFile(url, `${csvFileNameBase()}.csv`);
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `${csvFileNameBase()}.csv`);
 	} finally {
 		isCsvExporting.value = false;
 	}
@@ -906,7 +924,7 @@ const downloadArchive = async () => {
 			const records = recordsOf(submission).filter((record) => !record.isUploading);
 			if (records.length === 0) continue;
 
-			let folder = nameOf(submission);
+			let folder = sanitizeZipPathSegment(nameOf(submission));
 			const seen = usedNames.get(folder) ?? 0;
 			usedNames.set(folder, seen + 1);
 			if (seen > 0) {
@@ -918,20 +936,22 @@ const downloadArchive = async () => {
 				if (!response.ok) {
 					continue;
 				}
-				zip.file(`${folder}/${record.name}`, await response.blob());
+				zip.file(`${folder}/${sanitizeZipPathSegment(record.name)}`, await response.blob());
 			}
 		}
 
 		const blob = await zip.generateAsync({ type: "blob" });
-		const url = URL.createObjectURL(blob);
-		downloadFile(url, `${csvFileNameBase()}-Abgaben.zip`);
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `${csvFileNameBase()}-Abgaben.zip`);
 	} finally {
 		isArchiveExporting.value = false;
 	}
 };
 
 const onClose = () => {
+	// the overlay stays mounted while closed (v-model, not v-if) - closing mid-recording must
+	// still release the microphone, not just leave it running until the overlay is reopened
+	// (the reload watcher below only cleans up on open, not on close)
+	discardRecording();
 	emit("close");
 };
 

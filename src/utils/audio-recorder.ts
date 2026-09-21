@@ -44,8 +44,28 @@ export class AudioRecorder {
 		const stopped = new Promise<void>((resolve) => recorder.addEventListener("stop", () => resolve(), { once: true }));
 		recorder.stop();
 		await stopped;
-		recorder.stream.getTracks().forEach((track) => track.stop());
+		this.releaseStream(recorder);
 
 		return new Blob(this.chunks, { type: this.mimeType || "audio/webm" });
+	}
+
+	// Releases the microphone even when a recording was never stopped normally - discarding a
+	// still-running recording, or starting a second one that replaces this instance, must not
+	// leave the browser's "microphone in use" indicator lit forever. Safe to call more than
+	// once, and safe to call when start() was never called (no-op then).
+	dispose(): void {
+		if (!this.recorder) {
+			return;
+		}
+
+		if (this.recorder.state !== "inactive") {
+			this.recorder.stop();
+		}
+		this.releaseStream(this.recorder);
+	}
+
+	private releaseStream(recorder: MediaRecorder): void {
+		recorder.stream.getTracks().forEach((track) => track.stop());
+		this.recorder = undefined;
 	}
 }
