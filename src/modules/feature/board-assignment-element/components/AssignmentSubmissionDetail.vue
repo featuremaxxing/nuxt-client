@@ -264,6 +264,10 @@
 				@update:model-value="(value: string) => emit('update:feedback', value)"
 			/>
 
+			<span v-if="gradedByName" class="text-caption text-medium-emphasis" data-testid="submission-graded-by">
+				{{ t("components.cardElement.assignmentElement.gradedBy", { name: gradedByName }) }}
+			</span>
+
 			<div class="d-flex align-center justify-end ga-2 mt-2">
 				<span v-if="isDirty" class="text-caption text-medium-emphasis mr-auto" data-testid="submission-unsaved">
 					{{ t("components.cardElement.assignmentElement.unsavedChanges") }}
@@ -373,6 +377,13 @@ const { t } = useI18n();
 
 const studentName = computed(
 	() => `${props.submission.firstName ?? ""} ${props.submission.lastName ?? ""}`.trim() || "—"
+);
+
+// Only relevant once a room has more than one teacher - see AssignmentUc.listSubmissions
+// (gradedBy) and the "Bewertet von X" plan entry. Absent for ungraded submissions and
+// never present at all for a student's own view.
+const gradedByName = computed(() =>
+	`${props.submission.gradedByFirstName ?? ""} ${props.submission.gradedByLastName ?? ""}`.trim()
 );
 
 const statusLabel = computed(() => t(`components.cardElement.assignmentElement.status.${props.submission.status}`));

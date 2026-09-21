@@ -218,4 +218,22 @@ describe("AssignmentSubmissionDetail", () => {
 			expect(summary.text()).toContain("advisoryNotice");
 		});
 	});
+
+	describe("graded-by indicator", () => {
+		it("shows nothing when no teacher has graded the submission yet", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find("[data-testid='submission-graded-by']").exists()).toBe(false);
+		});
+
+		it("shows who graded the submission when the entry carries a name", () => {
+			const { wrapper } = setup({
+				submission: buildSubmission({ gradedByFirstName: "Ada", gradedByLastName: "Lovelace" }),
+			});
+
+			const gradedBy = wrapper.find("[data-testid='submission-graded-by']");
+			expect(gradedBy.exists()).toBe(true);
+			expect(gradedBy.text()).toContain("gradedBy");
+		});
+	});
 });

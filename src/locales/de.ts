@@ -646,6 +646,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Anmerkung zur Abgabe (optional)",
 	"components.cardElement.assignmentElement.studentComment": "Anmerkung",
 	"components.cardElement.assignmentElement.teacherComment": "Lehrkraft-Kommentar",
+	"components.cardElement.assignmentElement.gradedBy": "Bewertet von {name}",
 	"components.cardElement.assignmentElement.audioRecord": "Audio aufnehmen",
 	"components.cardElement.assignmentElement.audioStop": "Stopp",
 	"components.cardElement.assignmentElement.audioRecording": "Aufnahme läuft …",

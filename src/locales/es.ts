@@ -638,6 +638,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Comentario sobre la entrega (opcional)",
 	"components.cardElement.assignmentElement.studentComment": "Comentario",
 	"components.cardElement.assignmentElement.teacherComment": "Comentario del docente",
+	"components.cardElement.assignmentElement.gradedBy": "Calificado por {name}",
 	"components.cardElement.assignmentElement.audioRecord": "Grabar audio",
 	"components.cardElement.assignmentElement.audioStop": "Detener",
 	"components.cardElement.assignmentElement.audioRecording": "Grabando …",

@@ -126,6 +126,18 @@ export interface AssignmentSubmissionResponse {
      * @memberof AssignmentSubmissionResponse
      */
     peerReviews?: AssignmentPeerReviewSummaryResponse | null;
+    /**
+     * first name of the teacher who graded this submission - relevant when a room has more than one teacher; only present for the teacher view, never for the submission owner
+     * @type {string}
+     * @memberof AssignmentSubmissionResponse
+     */
+    gradedByFirstName?: string;
+    /**
+     * last name of the teacher who graded this submission - only present for the teacher view, never for the submission owner
+     * @type {string}
+     * @memberof AssignmentSubmissionResponse
+     */
+    gradedByLastName?: string;
 }
 
 

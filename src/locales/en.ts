@@ -625,6 +625,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Note on your submission (optional)",
 	"components.cardElement.assignmentElement.studentComment": "Note",
 	"components.cardElement.assignmentElement.teacherComment": "Teacher's comment",
+	"components.cardElement.assignmentElement.gradedBy": "Graded by {name}",
 	"components.cardElement.assignmentElement.audioRecord": "Record audio",
 	"components.cardElement.assignmentElement.audioStop": "Stop",
 	"components.cardElement.assignmentElement.audioRecording": "Recording …",

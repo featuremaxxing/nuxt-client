@@ -636,6 +636,7 @@ export default {
 	"components.cardElement.assignmentElement.comment": "Коментар до роботи (необов'язково)",
 	"components.cardElement.assignmentElement.studentComment": "Коментар",
 	"components.cardElement.assignmentElement.teacherComment": "Коментар вчителя",
+	"components.cardElement.assignmentElement.gradedBy": "Оцінив(-ла) {name}",
 	"components.cardElement.assignmentElement.audioRecord": "Записати аудіо",
 	"components.cardElement.assignmentElement.audioStop": "Стоп",
 	"components.cardElement.assignmentElement.audioRecording": "Запис …",
