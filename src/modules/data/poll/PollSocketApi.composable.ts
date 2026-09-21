@@ -30,7 +30,18 @@ export const usePollSocketApi = () => {
 					void fetchPollResults(payload.elementId);
 				}
 			}),
-			on(PollActions.pollVoteFailure, () => notifyError(t("components.cardElement.pollElement.voteError")))
+			on(PollActions.pollVoteFailure, (payload) => {
+				notifyError(t("components.cardElement.pollElement.voteError"));
+
+				// PollVoteForm applies the vote optimistically (applyOwnVote, before the socket
+				// round-trip even starts) so voting reads as synchronous - a failure must undo
+				// that, or the UI keeps showing "voted" for a vote the server never recorded, with
+				// the vote form gone and no way back to it. Re-fetching (rather than resetting
+				// myVote to undefined outright) is what makes this correct for both "never voted,
+				// attempt failed" and "changing an existing vote, attempt failed" alike: it
+				// restores whatever the server actually has on file, not just "nothing".
+				void fetchPollResults(payload.elementId);
+			})
 		);
 	};
 

@@ -92,4 +92,20 @@ describe("usePollSocketApi", () => {
 
 		expect(notifyErrorMock).toHaveBeenCalled();
 	});
+
+	// Regression test: PollVoteForm applies a vote optimistically (myVote is set before the
+	// socket round-trip even resolves), so a failure must roll that back - otherwise the UI keeps
+	// reading "voted" for a vote the server never recorded, with no way back to the vote form.
+	it("re-fetches the poll's results on vote failure, to roll back the optimistic vote", () => {
+		usePollSocketApi();
+
+		capturedDispatch(
+			PollActions.pollVoteFailure({
+				elementId: "element-3",
+				answers: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+			})
+		);
+
+		expect(fetchPollResultsMock).toHaveBeenCalledWith("element-3");
+	});
 });
