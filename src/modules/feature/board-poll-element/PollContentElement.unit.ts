@@ -6,14 +6,19 @@ import { PollStatus } from "@api-server";
 import { mount } from "@vue/test-utils";
 import { computed } from "vue";
 
-const { useBoardAllowedOperationsMock, useBoardFocusHandlerMock, usePollsStoreMock, fetchPollResultsMock } = vi.hoisted(
-	() => ({
-		useBoardAllowedOperationsMock: vi.fn(),
-		useBoardFocusHandlerMock: vi.fn(),
-		usePollsStoreMock: vi.fn(),
-		fetchPollResultsMock: vi.fn(),
-	})
-);
+const {
+	useBoardAllowedOperationsMock,
+	useBoardFocusHandlerMock,
+	usePollsStoreMock,
+	fetchPollResultsMock,
+	usePollSocketApiMock,
+} = vi.hoisted(() => ({
+	useBoardAllowedOperationsMock: vi.fn(),
+	useBoardFocusHandlerMock: vi.fn(),
+	usePollsStoreMock: vi.fn(),
+	fetchPollResultsMock: vi.fn(),
+	usePollSocketApiMock: vi.fn(),
+}));
 
 vi.mock("@data-board", () => ({
 	useBoardAllowedOperations: useBoardAllowedOperationsMock,
@@ -22,6 +27,7 @@ vi.mock("@data-board", () => ({
 
 vi.mock("@data-poll", () => ({
 	usePollsStore: usePollsStoreMock,
+	usePollSocketApi: usePollSocketApiMock,
 }));
 
 describe("PollContentElement", () => {
@@ -36,6 +42,7 @@ describe("PollContentElement", () => {
 			getState: () => options.pollState ?? { totalVotes: 0, participantCount: 0 },
 			fetchPollResults: fetchPollResultsMock,
 		});
+		usePollSocketApiMock.mockReturnValue({ castVoteViaSocket: vi.fn() });
 
 		const element = options.element ?? pollElementResponseFactory.build();
 
@@ -87,6 +94,15 @@ describe("PollContentElement", () => {
 		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
 	});
 
+	it("hides the vote form for a non-editor once closesAt has passed, even though pollStatus is still OPEN", () => {
+		const element = pollElementResponseFactory.build({
+			content: { pollStatus: PollStatus.OPEN, closesAt: "2020-01-01T00:00:00.000Z" },
+		});
+		const { wrapper } = setupWrapper({ isEditMode: false, canEdit: false, element });
+
+		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
+	});
+
 	it("shows results (not the vote form) for a closed poll, even for a non-editor", () => {
 		const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.CLOSED } });
 		const { wrapper } = setupWrapper({ isEditMode: false, canEdit: false, element });
@@ -99,6 +115,15 @@ describe("PollContentElement", () => {
 		setupWrapper({ isEditMode: false, canEdit: false });
 
 		expect(fetchPollResultsMock).toHaveBeenCalled();
+	});
+
+	it("registers the poll socket listener regardless of edit mode or role, so results keep updating live", () => {
+		setupWrapper({ isEditMode: false, canEdit: true });
+
+		// A teacher never mounts PollVoteForm (they always see results, never the vote form), and a
+		// student stops mounting it the moment they vote - this component is the only thing that
+		// stays mounted for the poll's whole lifetime on the board, so it must be the one to listen.
+		expect(usePollSocketApiMock).toHaveBeenCalled();
 	});
 
 	it("shows the poll title", () => {

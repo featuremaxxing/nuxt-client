@@ -1,7 +1,7 @@
+import { usePollApi } from "./PollApi.composable";
 import { createTestableSharedComposable } from "@/utils/create-shared-composable";
 import { PollAnswerResponse, PollResultsResponse } from "@api-server";
 import { reactive, readonly } from "vue";
-import { usePollApi } from "./PollApi.composable";
 
 export interface PollState {
 	results?: PollResultsResponse["results"];
@@ -54,10 +54,10 @@ export const usePollsStore = createTestableSharedComposable(() => {
 	};
 
 	// Invoked by the poll-vote-success socket handler. `results` is only present when the poll's
-	// showResultsLive flag is on - see PollSocketApi.composable.ts. Voting itself only happens via
-	// the socket (there is no REST vote-casting endpoint); callers that need their own `myVote`/
-	// `participantCount` refreshed when showResultsLive is off should follow up with
-	// fetchPollResults (see PollVoteForm.vue).
+	// showResultsLive flag is on - see PollSocketApi.composable.ts. `myVote` is deliberately NOT
+	// set here even for the caller's own event: the socket payload never carries it (broadcasting
+	// raw answers to the whole room would leak them to every viewer, not just the voter), so the
+	// caller's own myVote is set optimistically by applyOwnVote instead - see PollVoteForm.vue.
 	const applyVoteSuccess = (payload: {
 		elementId: string;
 		totalVotes: number;
@@ -71,10 +71,21 @@ export const usePollsStore = createTestableSharedComposable(() => {
 		});
 	};
 
+	// Sets the caller's own vote locally right after casting it, without waiting for the
+	// socket round-trip or racing it against a REST fetch (the previous approach: casting the
+	// vote via the fire-and-forget socket call and then immediately fetching results could see
+	// the REST read overtake the socket write, coming back with an empty myVote and leaving the
+	// vote form stuck open even though the vote was recorded). The vote was just constructed by
+	// the caller, so this can never be behind what was actually sent.
+	const applyOwnVote = (elementId: string, answers: PollAnswerResponse[]) => {
+		setState(elementId, { myVote: answers });
+	};
+
 	return {
 		polls: readonly(pollsByElementId),
 		getState,
 		fetchPollResults,
 		applyVoteSuccess,
+		applyOwnVote,
 	};
 });

@@ -69,4 +69,22 @@ describe("polls store", () => {
 
 		expect(getState("element-4").results).toEqual([{ questionId: "q1", counts: [{ optionId: "o1", count: 2 }] }]);
 	});
+
+	it("applies the caller's own vote locally without depending on a fetch or the socket round-trip", () => {
+		const { applyOwnVote, getState } = usePollsStore();
+
+		applyOwnVote("element-5", [{ questionId: "q1", selectedOptionIds: ["o1"] }]);
+
+		expect(getState("element-5").myVote).toEqual([{ questionId: "q1", selectedOptionIds: ["o1"] }]);
+	});
+
+	it("does not let a later vote-success payload for the same element clear an own vote already applied", () => {
+		const { applyOwnVote, applyVoteSuccess, getState } = usePollsStore();
+
+		applyOwnVote("element-6", [{ questionId: "q1", selectedOptionIds: ["o1"] }]);
+		applyVoteSuccess({ elementId: "element-6", totalVotes: 4 });
+
+		expect(getState("element-6").myVote).toEqual([{ questionId: "q1", selectedOptionIds: ["o1"] }]);
+		expect(getState("element-6").totalVotes).toBe(4);
+	});
 });

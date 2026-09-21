@@ -1,17 +1,17 @@
 import PollVoteForm from "./PollVoteForm.vue";
 import { PollElement } from "@/types/board/ContentElement";
-import { PollAnswerMode, PollChartType, PollStatus } from "@api-server";
 import { pollElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
+import { PollAnswerMode, PollChartType, PollStatus } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchPollResultsMock, castVoteViaSocketMock } = vi.hoisted(() => ({
-	fetchPollResultsMock: vi.fn().mockResolvedValue(undefined),
+const { applyOwnVoteMock, castVoteViaSocketMock } = vi.hoisted(() => ({
+	applyOwnVoteMock: vi.fn(),
 	castVoteViaSocketMock: vi.fn(),
 }));
 
 vi.mock("@data-poll", () => ({
-	usePollsStore: () => ({ fetchPollResults: fetchPollResultsMock }),
+	usePollsStore: () => ({ applyOwnVote: applyOwnVoteMock }),
 	usePollSocketApi: () => ({ castVoteViaSocket: castVoteViaSocketMock }),
 }));
 
@@ -101,14 +101,14 @@ describe("PollVoteForm", () => {
 		expect(wrapper.find("[data-testid='poll-vote-textarea-q1']").exists()).toBe(true);
 	});
 
-	it("casts the vote via the socket, refreshes results via REST, then emits 'voted'", async () => {
+	it("casts the vote via the socket, applies it to the local store optimistically, then emits 'voted'", async () => {
 		const { wrapper, element } = setupWrapper();
 
 		await wrapper.find("[data-testid='poll-vote-submit']").trigger("click");
 		await wrapper.vm.$nextTick();
 
 		expect(castVoteViaSocketMock).toHaveBeenCalledWith({ elementId: element.id, answers: expect.any(Array) });
-		expect(fetchPollResultsMock).toHaveBeenCalledWith(element.id);
+		expect(applyOwnVoteMock).toHaveBeenCalledWith(element.id, expect.any(Array));
 		expect(wrapper.emitted("voted")).toBeTruthy();
 	});
 

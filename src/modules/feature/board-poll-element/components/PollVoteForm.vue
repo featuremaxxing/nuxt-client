@@ -37,7 +37,11 @@
 		</div>
 
 		<VBtn color="primary" data-testid="poll-vote-submit" :disabled="submitting" @click="onSubmit">
-			{{ hasExistingAnswers ? t("components.cardElement.pollElement.changeVote") : t("components.cardElement.pollElement.vote") }}
+			{{
+				hasExistingAnswers
+					? t("components.cardElement.pollElement.changeVote")
+					: t("components.cardElement.pollElement.vote")
+			}}
 		</VBtn>
 	</VCardText>
 </template>
@@ -59,7 +63,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { fetchPollResults } = usePollsStore();
+const { applyOwnVote } = usePollsStore();
 const { castVoteViaSocket } = usePollSocketApi();
 
 const hasExistingAnswers = !!props.existingAnswers?.length;
@@ -104,17 +108,18 @@ const buildAnswers = (): PollAnswerResponse[] =>
 		return { questionId: question.id, selectedOptionIds: [], textAnswer: textAnswers[question.id] ?? "" };
 	});
 
-const onSubmit = async () => {
+const onSubmit = () => {
 	submitting.value = true;
 	const answers = buildAnswers();
 	try {
 		// There is no REST vote-casting endpoint - voting only travels over the live board socket
-		// (see poll-vote-request/-success in pollActions.ts and PollSocketApi.composable.ts). The
-		// socket's poll-vote-success payload never carries the caller's own `myVote` (only
-		// aggregate totals, and `results` at that only when showResultsLive is on), so always
-		// follow up with a REST fetch to pick up this client's own vote/participant count.
+		// (see poll-vote-request/-success in pollActions.ts and PollSocketApi.composable.ts), which
+		// is fire-and-forget. The vote was just constructed right here, so applying it to the local
+		// store immediately (rather than waiting for the socket round-trip, or worse, racing it
+		// against a REST re-fetch - see applyOwnVote in polls.ts) is what actually makes this
+		// synchronous from the voter's point of view: hasVoted flips true in the same tick.
 		castVoteViaSocket({ elementId: props.element.id, answers });
-		await fetchPollResults(props.element.id);
+		applyOwnVote(props.element.id, answers);
 		emit("voted");
 	} finally {
 		submitting.value = false;

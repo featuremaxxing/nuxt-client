@@ -65,11 +65,12 @@ import PollElementEdit from "./components/PollElementEdit.vue";
 import PollResults from "./components/PollResults.vue";
 import PollStatusBar from "./components/PollStatusBar.vue";
 import PollVoteForm from "./components/PollVoteForm.vue";
+import { usePollOpenState } from "./usePollOpenState.composable";
 import { PollElement } from "@/types/board/ContentElement";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
 import { PollStatus } from "@api-server";
 import { useBoardAllowedOperations, useBoardFocusHandler } from "@data-board";
-import { usePollsStore } from "@data-poll";
+import { usePollSocketApi, usePollsStore } from "@data-poll";
 import { mdiPoll } from "@icons/material";
 import { BoardMenu, BoardMenuScope, ContentElementBar } from "@ui-board";
 import { KebabMenuActionDelete, KebabMenuActionMoveDown, KebabMenuActionMoveUp } from "@ui-kebab-menu";
@@ -96,6 +97,13 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { allowedOperations } = useBoardAllowedOperations();
 const { getState, fetchPollResults } = usePollsStore();
+// Registers the poll-vote-success/-failure socket listener for as long as this element is
+// mounted - unlike PollVoteForm (which only exists while a student hasn't voted yet and is
+// therefore gone for a teacher, or for a student once they've voted and switches to viewing
+// results), this component stays mounted the whole time the poll is on the board. Without this,
+// a teacher's results view - and a voted student's live results view - never updates again after
+// the initial load; see PollSocketApi.composable.ts for what the listener actually does.
+usePollSocketApi();
 
 const element = toRef(props, "element");
 const pollContentElement = ref(null);
@@ -106,6 +114,7 @@ const pollState = computed(() => getState(element.value.id));
 const hasVoted = computed(() => !!pollState.value.myVote);
 const isChangingVote = ref(false);
 const showAnalysis = ref(false);
+const { isOpen: isPollOpen } = usePollOpenState(element);
 
 // Teachers can always open the fullscreen analysis; students only once the poll is closed (see
 // the plan's "Vollbild-Auswertung" section). This is UI-level gating only - the server already
@@ -123,7 +132,11 @@ const showResults = computed(() => {
 
 const showVoteForm = computed(() => {
 	if (canManagePoll.value) return false;
-	if (element.value.content.pollStatus !== PollStatus.OPEN) return false;
+	// Mirrors the server's isOpen(now) check (see usePollOpenState) rather than just pollStatus:
+	// a poll with a closesAt in the past is still nominally "open" status-wise until a teacher
+	// closes it, but the server already rejects votes for it - the form must not invite a vote
+	// that would just fail with a generic error.
+	if (!isPollOpen.value) return false;
 	return !hasVoted.value || isChangingVote.value;
 });
 

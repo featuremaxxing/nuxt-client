@@ -71,12 +71,13 @@
 import { collectCardChartSvgsByQuestionId } from "../poll-chart-dom.util";
 import { buildPollResultsCsv, buildPollResultsPdf } from "../poll-export.util";
 import { svgToPng } from "../svg-to-png.util";
+import { usePollOpenState } from "../usePollOpenState.composable";
 import { PollElement } from "@/types/board/ContentElement";
 import { downloadBlob } from "@/utils/fileHelper";
 import { PollAnswerMode, PollQuestionResultResponse, PollStatus, PollVoterResponse } from "@api-server";
 import { useCardStore } from "@data-board";
 import { mdiPresentation, mdiTrayArrowDown } from "@icons/material";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -95,6 +96,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { updateElementRequest } = useCardStore();
+const { now } = usePollOpenState(toRef(props, "element"));
 
 const setStatus = (pollStatus: PollStatus) => {
 	updateElementRequest({
@@ -114,15 +116,6 @@ const statusColor = computed(() => {
 		default:
 			return "warning";
 	}
-});
-
-const now = ref(new Date());
-let intervalId: ReturnType<typeof setInterval> | undefined;
-onMounted(() => {
-	intervalId = setInterval(() => (now.value = new Date()), 30000);
-});
-onBeforeUnmount(() => {
-	if (intervalId) clearInterval(intervalId);
 });
 
 const remainingTimeLabel = computed(() => {

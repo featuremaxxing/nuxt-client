@@ -1,4 +1,5 @@
 import { formatVoterName } from "./poll-voter.util";
+import { escapeCsvFormulaInjection } from "@/utils/csv";
 import { PollAnswerMode, PollElementContent, PollQuestionResultResponse, PollVoterResponse } from "@api-server";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
@@ -16,10 +17,20 @@ const CSV_DELIMITER = ";"; // German Excel's default list separator, so opening 
 // doesn't require a manual "text to columns" step (a plain comma is read as one column).
 
 const escapeCsvField = (field: string): string => {
-	if (field.includes(CSV_DELIMITER) || field.includes('"') || field.includes("\n")) {
-		return `"${field.replace(/"/g, '""')}"`;
+	// A free-text answer, a student's own display name, or (in principle) a teacher-authored
+	// question/option text can all end up in this export - escapeCsvFormulaInjection stops any of
+	// them being evaluated as a formula by Excel/LibreOffice on open (quoting alone, below, does
+	// not prevent that - see its own doc comment).
+	const withoutFormulaInjection = escapeCsvFormulaInjection(field);
+
+	if (
+		withoutFormulaInjection.includes(CSV_DELIMITER) ||
+		withoutFormulaInjection.includes('"') ||
+		withoutFormulaInjection.includes("\n")
+	) {
+		return `"${withoutFormulaInjection.replace(/"/g, '""')}"`;
 	}
-	return field;
+	return withoutFormulaInjection;
 };
 
 const formatPercent = (count: number, total: number): string => {

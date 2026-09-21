@@ -176,5 +176,52 @@ describe("poll-export.util", () => {
 
 			expect(csv).toContain('"A; B?"');
 		});
+
+		it("neutralizes a formula-injection payload in a free-text answer", () => {
+			const pollWithTextQuestion: PollElementContent = {
+				...poll,
+				questions: [
+					{
+						id: "q1",
+						text: "Anything else?",
+						answerMode: PollAnswerMode.TEXT,
+						chartType: PollChartType.BAR,
+						options: [],
+					},
+				],
+			};
+
+			const csv = buildPollResultsCsv(pollWithTextQuestion, {
+				participantCount: 1,
+				perQuestion: [{ questionId: "q1", counts: [], textAnswers: ['=cmd|"/c calc"!A1'] }],
+			});
+
+			// still legible as the original text (quoted, not stripped) but no longer parsed as a
+			// formula by a spreadsheet app opening the export
+			expect(csv).toContain("'=cmd");
+			expect(csv).not.toContain('"=cmd');
+		});
+
+		it("neutralizes a formula-injection payload in a non-anonymous voter's name", () => {
+			const voters: PollVoterResponse[] = [
+				{
+					userId: "u1",
+					firstName: "=1+1",
+					lastName: "Berger",
+					answers: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+				},
+			];
+
+			const csv = buildPollResultsCsv(
+				{ ...poll, isAnonymous: false },
+				{
+					participantCount: 1,
+					perQuestion: [{ questionId: "q1", counts: [{ optionId: "o1", count: 1 }] }],
+				},
+				voters
+			);
+
+			expect(csv).toContain("'=1+1 Berger");
+		});
 	});
 });
