@@ -17,9 +17,18 @@ vi.mock("@data-board", () => ({
 }));
 
 describe("AssignmentContentElement", () => {
-	const setupWrapper = (options: { isEditMode?: boolean; canEdit?: boolean; element?: AssignmentElement } = {}) => {
+	const setupWrapper = (
+		options: {
+			isEditMode?: boolean;
+			canEdit?: boolean;
+			element?: AssignmentElement;
+			// override for the exact scenario allowedOperations.updateElement can lie about (a
+			// reader on a readersCanEdit board) - see the isBoardEditor regression test below
+			allowedOperations?: Record<string, boolean>;
+		} = {}
+	) => {
 		useBoardAllowedOperationsMock.mockReturnValue({
-			allowedOperations: computed(() => ({ updateElement: options.canEdit ?? false })),
+			allowedOperations: computed(() => options.allowedOperations ?? { isBoardEditor: options.canEdit ?? false }),
 		});
 
 		const element = options.element ?? assignmentElementResponseFactory.build();
@@ -70,6 +79,20 @@ describe("AssignmentContentElement", () => {
 
 		expect(wrapper.findComponent({ name: "AssignmentElementStudentDisplay" }).exists()).toBe(true);
 		expect(wrapper.findComponent({ name: "AssignmentElementEdit" }).exists()).toBe(false);
+		expect(wrapper.findComponent({ name: "AssignmentElementTeacherDisplay" }).exists()).toBe(false);
+	});
+
+	// Regression test: on a board with readersCanEdit, allowedOperations.updateElement is true
+	// for a plain reader too (that's the whole point of the setting) - but the assignment's
+	// manage/teacher view must not follow updateElement, only isBoardEditor (see the doc comment
+	// on canManageAssignments). A reader must see their own submission UI, not the teacher view.
+	it("does not treat updateElement:true as canManageAssignments - only isBoardEditor decides", () => {
+		const { wrapper } = setupWrapper({
+			isEditMode: false,
+			allowedOperations: { updateElement: true, isBoardEditor: false },
+		});
+
+		expect(wrapper.findComponent({ name: "AssignmentElementStudentDisplay" }).exists()).toBe(true);
 		expect(wrapper.findComponent({ name: "AssignmentElementTeacherDisplay" }).exists()).toBe(false);
 	});
 
