@@ -38,10 +38,11 @@ describe("PeerReviewTaskDetail", () => {
 		expect(wrapper.find("[data-testid='peer-review-task-view']").exists()).toBe(true);
 	});
 
-	it("does not offer a view button for a non-pdf file", () => {
+	it("offers a download button instead of a view button for a non-pdf file", () => {
 		const { wrapper } = setup({ fileRecord: buildFileRecord({ mimeType: "image/png" }) });
 
 		expect(wrapper.find("[data-testid='peer-review-task-view']").exists()).toBe(false);
+		expect(wrapper.find("[data-testid='peer-review-task-download']").exists()).toBe(true);
 	});
 
 	it("emits view-file when clicked", async () => {
@@ -50,6 +51,14 @@ describe("PeerReviewTaskDetail", () => {
 		await wrapper.find("[data-testid='peer-review-task-view']").trigger("click");
 
 		expect(wrapper.emitted("view-file")).toHaveLength(1);
+	});
+
+	it("emits download-file when the download button is clicked", async () => {
+		const { wrapper } = setup({ fileRecord: buildFileRecord({ mimeType: "image/png" }) });
+
+		await wrapper.find("[data-testid='peer-review-task-download']").trigger("click");
+
+		expect(wrapper.emitted("download-file")).toHaveLength(1);
 	});
 
 	it("emits update:points and update:feedbackComment on input", async () => {

@@ -4,14 +4,21 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { PeerReviewTaskResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
-const { fetchMyTasksMock, submitReviewMock, fetchFilesMock, getFileRecordsByParentIdMock, notifySuccessMock } =
-	vi.hoisted(() => ({
-		fetchMyTasksMock: vi.fn(),
-		submitReviewMock: vi.fn(),
-		fetchFilesMock: vi.fn(),
-		getFileRecordsByParentIdMock: vi.fn(),
-		notifySuccessMock: vi.fn(),
-	}));
+const {
+	fetchMyTasksMock,
+	submitReviewMock,
+	fetchFilesMock,
+	getFileRecordsByParentIdMock,
+	notifySuccessMock,
+	downloadFileMock,
+} = vi.hoisted(() => ({
+	fetchMyTasksMock: vi.fn(),
+	submitReviewMock: vi.fn(),
+	fetchFilesMock: vi.fn(),
+	getFileRecordsByParentIdMock: vi.fn(),
+	notifySuccessMock: vi.fn(),
+	downloadFileMock: vi.fn(),
+}));
 
 vi.mock("@data-assignment", () => ({
 	usePeerReviewApi: () => ({
@@ -30,6 +37,13 @@ vi.mock("@data-file", () => ({
 vi.mock("@data-app", () => ({
 	notifySuccess: notifySuccessMock,
 }));
+
+// isPdfMimeType stays real (it drives which button the component shows); only downloadFile is
+// mocked so the test can assert it was called without touching the DOM/anchor click it performs.
+vi.mock("@/utils/fileHelper", async () => {
+	const actual = await vi.importActual<typeof import("@/utils/fileHelper")>("@/utils/fileHelper");
+	return { ...actual, downloadFile: downloadFileMock };
+});
 
 const buildTask = (overrides: Partial<PeerReviewTaskResponse> = {}): PeerReviewTaskResponse => ({
 	id: "review-1",
@@ -103,5 +117,17 @@ describe("PeerReviewTaskList", () => {
 
 		expect(submitReviewMock).toHaveBeenCalledWith("review-1", { points: 6, feedbackComment: "well organized" });
 		expect(notifySuccessMock).toHaveBeenCalled();
+	});
+
+	it("downloads the file instead of previewing it when it is not a pdf", async () => {
+		getFileRecordsByParentIdMock.mockReturnValue([
+			buildFileRecord({ name: "essay.docx", mimeType: "application/msword", url: "https://api/files/essay.docx" }),
+		]);
+		const { wrapper } = setup();
+		await vi.dynamicImportSettled();
+
+		await wrapper.find("[data-testid='peer-review-task-download']").trigger("click");
+
+		expect(downloadFileMock).toHaveBeenCalledWith("https://api/files/essay.docx", "essay.docx");
 	});
 });

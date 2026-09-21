@@ -153,7 +153,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 		await pointsInput.setValue("7");
 		await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
 
-		expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", { points: 7, feedbackComment: null });
+		expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", { points: 7, feedbackComment: undefined });
 	});
 
 	it("should return a submission via the return endpoint", async () => {
@@ -292,6 +292,37 @@ describe("AssignmentSubmissionsOverlay", () => {
 			expect(csv).toContain("Admin, Anna");
 			expect(csv).toContain("Gut");
 			expect(csv).toContain("Anmerkung");
+		} finally {
+			URL.createObjectURL = originalCreateObjectUrl;
+		}
+	});
+
+	it("neutralizes a formula-injection payload in a student's comment before exporting to csv", async () => {
+		const originalCreateObjectUrl = URL.createObjectURL;
+		let createdBlob: Blob | undefined;
+		URL.createObjectURL = vi.fn((blob: Blob) => {
+			createdBlob = blob;
+			return "blob:csv";
+		});
+
+		try {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [buildSubmission({ comment: '=1+1;=cmd|"/c calc"!A1' })],
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+			await wrapper.find("[data-testid='assignment-csv-button']").trigger("click");
+
+			const csv = await createdBlob!.text();
+			// still legible as the original text (quoted, not stripped) but no longer parsed as a
+			// formula by a spreadsheet app opening the export
+			expect(csv).toContain("'=1+1;=cmd");
+			expect(csv).not.toMatch(/;"=1\+1/);
 		} finally {
 			URL.createObjectURL = originalCreateObjectUrl;
 		}
@@ -794,10 +825,41 @@ describe("AssignmentSubmissionsOverlay", () => {
 			await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
 
 			expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", {
-				feedbackComment: null,
+				feedbackComment: undefined,
 				criterionPoints: [
 					{ criterionId: "c1", points: 5 },
 					{ criterionId: "c2", points: 3 },
+				],
+			});
+		});
+
+		it("keeps a criterion's already-saved points when only a different criterion is edited", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({
+						criterionPoints: [
+							{ criterionId: "c1", points: 5 },
+							{ criterionId: "c2", points: 3 },
+						],
+					}),
+				],
+			});
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			// only c2 is touched - c1's saved value of 5 must survive into the saved body untouched
+			await wrapper.find("[data-testid='submission-criterion-points-c2'] input").setValue("4");
+			await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
+
+			expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", {
+				feedbackComment: undefined,
+				criterionPoints: [
+					{ criterionId: "c1", points: 5 },
+					{ criterionId: "c2", points: 4 },
 				],
 			});
 		});

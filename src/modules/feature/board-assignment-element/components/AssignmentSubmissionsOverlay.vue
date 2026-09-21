@@ -296,6 +296,7 @@ import PeerReviewAssignmentPanel from "./PeerReviewAssignmentPanel.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
+import { escapeCsvFormulaInjection } from "@/utils/csv";
 import { formatUtc } from "@/utils/date-time.utils";
 import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
 import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
@@ -677,7 +678,10 @@ const setDraftFeedback = (submission: AssignmentSubmissionResponse, value: strin
 };
 
 const setDraftCriterionPoints = (submission: AssignmentSubmissionResponse, criterionId: string, value: string) => {
-	const current = draftCriterionPoints.value[submission.userId] ?? {};
+	// Must seed from criterionPointsFor (draft-or-saved), not from the draft alone: starting the
+	// draft with only the just-edited criterion would silently drop every other criterion's
+	// already-saved points to 0 on the next save (gradeBody defaults a missing entry to 0).
+	const current = criterionPointsFor(submission);
 	draftCriterionPoints.value[submission.userId] = {
 		...current,
 		[criterionId]: value === "" ? null : Number(value),
@@ -727,7 +731,11 @@ const isDirty = (submission: AssignmentSubmissionResponse) => {
 };
 
 const gradeBody = (submission: AssignmentSubmissionResponse) => {
-	const feedbackComment = draftFeedback.value[submission.userId] ?? submission.feedbackComment ?? null;
+	// undefined, not null: the server's getStatus() treats feedbackComment !== undefined as
+	// "in review" (see AssignmentSubmission.getStatus), so sending null for an untouched comment
+	// would mark a submission with no points and no comment as graded - see the "grading" section
+	// below for what that unlocks (it becomes selectable for the batch return).
+	const feedbackComment = draftFeedback.value[submission.userId] ?? submission.feedbackComment ?? undefined;
 
 	if (criteria.value.length > 0) {
 		const points = criterionPointsFor(submission);
@@ -905,7 +913,7 @@ const exportCsv = () => {
 		];
 
 		const csv = [header, ...rows]
-			.map((row) => row.map((cell) => `"${(cell ?? "").replaceAll('"', '""')}"`).join(";"))
+			.map((row) => row.map((cell) => `"${escapeCsvFormulaInjection(cell ?? "").replaceAll('"', '""')}"`).join(";"))
 			.join("\r\n");
 
 		// BOM so Excel opens UTF-8 umlauts correctly

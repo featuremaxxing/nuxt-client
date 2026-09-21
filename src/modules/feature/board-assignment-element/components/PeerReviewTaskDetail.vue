@@ -13,6 +13,19 @@
 			>
 				{{ t("components.cardElement.assignmentElement.viewFile") }}
 			</VBtn>
+			<!-- Non-PDF files (docx, images, ...) have no in-browser preview here - a reviewer must
+			     still be able to get at the file some way, so this is the fallback for everything the
+			     "Ansehen" button above doesn't cover. -->
+			<VBtn
+				v-else
+				variant="text"
+				size="small"
+				:prepend-icon="mdiDownload"
+				data-testid="peer-review-task-download"
+				@click="onDownloadFile"
+			>
+				{{ t("common.actions.download") }}
+			</VBtn>
 		</div>
 
 		<VTextField
@@ -49,7 +62,7 @@
 <script setup lang="ts">
 import { FileRecord } from "@/types/file/File";
 import { isPdfMimeType } from "@/utils/fileHelper";
-import { mdiEyeOutline, mdiFileDocumentOutline } from "@icons/material";
+import { mdiDownload, mdiEyeOutline, mdiFileDocumentOutline } from "@icons/material";
 import { useI18n } from "vue-i18n";
 
 // Pure display of one peer review task's form - all state lives in the parent list, this
@@ -63,6 +76,7 @@ defineProps<{
 
 const emit = defineEmits<{
 	(e: "view-file"): void;
+	(e: "download-file"): void;
 	(e: "update:points", value: string): void;
 	(e: "update:feedbackComment", value: string): void;
 	(e: "submit"): void;
@@ -71,4 +85,5 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const onViewFile = () => emit("view-file");
+const onDownloadFile = () => emit("download-file");
 </script>

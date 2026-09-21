@@ -34,6 +34,7 @@
 					:feedback-comment="draftComments[selectedTask.id] ?? selectedTask.feedbackComment ?? ''"
 					:submitting="submittingTaskId === selectedTask.id"
 					@view-file="onViewFile"
+					@download-file="onDownloadFile"
 					@update:points="onUpdatePoints"
 					@update:feedback-comment="onUpdateComment"
 					@submit="onSubmit"
@@ -47,7 +48,7 @@
 import { isFeedbackName } from "../feedback-files.util";
 import PeerReviewTaskDetail from "./PeerReviewTaskDetail.vue";
 import { FileRecordParent } from "@/types/file/File";
-import { isPdfMimeType } from "@/utils/fileHelper";
+import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
 import { PeerReviewTaskResponse } from "@api-server";
 import { notifySuccess } from "@data-app";
 import { usePeerReviewApi } from "@data-assignment";
@@ -108,6 +109,13 @@ const onViewFile = () => {
 	if (!record || !isPdfMimeType(record.mimeType)) return;
 
 	lightBox.open({ type: LightBoxContentType.PDF, downloadUrl: record.url, name: record.name });
+};
+
+const onDownloadFile = () => {
+	const record = selectedFileRecord.value;
+	if (!record) return;
+
+	downloadFile(record.url, record.name);
 };
 
 const onSubmit = async () => {
