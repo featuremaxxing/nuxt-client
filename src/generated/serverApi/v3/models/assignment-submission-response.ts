@@ -138,6 +138,12 @@ export interface AssignmentSubmissionResponse {
      * @memberof AssignmentSubmissionResponse
      */
     gradedByLastName?: string;
+    /**
+     * id of the AssignmentFeedback node holding teacher feedback files, once one exists - upload target for new feedback (teacher view), or where the released feedback files can be read from (owner view, only once returned)
+     * @type {string}
+     * @memberof AssignmentSubmissionResponse
+     */
+    feedbackContainerId?: string | null;
 }
 
 

@@ -188,6 +188,7 @@ describe("AssignmentElementStudentDisplay", () => {
 					id: "submission-1",
 					status: AssignmentStatus.RETURNED,
 					returnedAt: "2099-01-20T10:00:00.000Z",
+					feedbackContainerId: "feedback-container-1",
 					feedbackFiles: [
 						{ fileRecordId: "record-fb", name: "feedback-pdf-1.pdf" },
 						{ fileRecordId: "record-img", name: "feedback-img-1.png" },
@@ -329,6 +330,7 @@ describe("AssignmentElementStudentDisplay", () => {
 						id: "submission-1",
 						status: AssignmentStatus.RETURNED,
 						returnedAt: "2099-01-20T10:00:00.000Z",
+						feedbackContainerId: "feedback-container-1",
 						feedbackAudio: { fileRecordId: "record-audio", name: "feedback-audio-1.mp3" },
 					} as AssignmentSubmissionResponse),
 				],

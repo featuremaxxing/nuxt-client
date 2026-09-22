@@ -289,7 +289,7 @@
 </template>
 
 <script setup lang="ts">
-import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
+import { isFeedbackAudioName, latestFeedbackFileNames } from "../feedback-files.util";
 import { useAssignmentFilePreview } from "../file-preview.composable";
 import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 import AssignmentSubmissionDetail from "./AssignmentSubmissionDetail.vue";
@@ -338,7 +338,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { smAndDown } = useDisplay();
-const { fetchSubmissions, gradeSubmission, returnSubmission, returnSubmissionsBatch } = useAssignmentApi();
+const { fetchSubmissions, ensureFeedbackContainer, gradeSubmission, returnSubmission, returnSubmissionsBatch } =
+	useAssignmentApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 const { openPreview } = useAssignmentFilePreview();
@@ -512,19 +513,26 @@ const load = async () => {
 	const list = await fetchSubmissions(props.element.id);
 	submissions.value = list?.submissions ?? [];
 
-	// previews and audio players need the file records (url, preview status) -
-	// one request per submission, tolerating individual failures
-	await Promise.allSettled(
-		submissions.value
+	// previews and audio players need the file records (url, preview status) - one request per
+	// submission and, separately, one per feedback container (only submissions a teacher has
+	// already attached feedback to have one), tolerating individual failures
+	await Promise.allSettled([
+		...submissions.value
 			.filter((submission) => submission.id !== null)
-			.map((submission) => fetchFiles(submission.id as string, FileRecordParent.BOARDNODES))
-	);
+			.map((submission) => fetchFiles(submission.id as string, FileRecordParent.BOARDNODES)),
+		...submissions.value
+			.filter((submission) => submission.feedbackContainerId)
+			.map((submission) => fetchFiles(submission.feedbackContainerId as string, FileRecordParent.BOARDNODES)),
+	]);
 
 	loading.value = false;
 };
 
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
+
+const feedbackRecordsOf = (submission: AssignmentSubmissionResponse) =>
+	submission.feedbackContainerId ? getFileRecordsByParentId(submission.feedbackContainerId) : [];
 
 // userId -> fileRecordId of a version explicitly picked via the version switcher;
 // falls back to the current (latest) submission file when nothing is selected
@@ -539,7 +547,8 @@ const onSelectVersionOfSelected = (fileRecordId: string) => {
 };
 
 const submissionFileRecord = (submission: AssignmentSubmissionResponse) => {
-	const records = recordsOf(submission).filter((record) => !isFeedbackName(record.name));
+	// the submission node only ever holds the student's own files now - nothing to filter by name
+	const records = recordsOf(submission);
 	// the version switcher can point at an older upload; with nothing picked, fall back to
 	// the server's notion of "latest" (submission.file) rather than array order
 	const wantedId = selectedVersionId.value[submission.userId] ?? submission.file?.fileRecordId;
@@ -549,15 +558,15 @@ const submissionFileRecord = (submission: AssignmentSubmissionResponse) => {
 };
 
 const feedbackAudioRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => isFeedbackAudioName(record.name));
+	feedbackRecordsOf(submission).find((record) => isFeedbackAudioName(record.name));
 
 // Only the newest correction per kind (pdf/image) is offered - re-annotating a
 // correction creates a new version and the server returns feedback files newest first.
 const latestFeedbackFileRecords = (submission: AssignmentSubmissionResponse): FileRecord[] => {
 	const latestNames = latestFeedbackFileNames(submission.feedbackFiles);
 	const byName = new Map(
-		recordsOf(submission)
-			.filter((record) => isFeedbackName(record.name) && !isFeedbackAudioName(record.name))
+		feedbackRecordsOf(submission)
+			.filter((record) => !isFeedbackAudioName(record.name))
 			.map((record) => [record.name, record])
 	);
 
@@ -583,7 +592,10 @@ const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
 const annotatorSaving = ref(false);
 const annotateError = ref(false);
 const annotatorStudentName = ref<string | undefined>(undefined);
-let annotatorSubmissionId: string | null = null;
+// the submission being annotated, not just its id - ensureFeedbackContainer needs it at save
+// time (see onAnnotatorSave), and it's only resolved lazily so opening the annotator never
+// blocks on a network round trip
+let annotatorSubmission: AssignmentSubmissionResponse | undefined;
 
 const studentNameOf = (submission: AssignmentSubmissionResponse) =>
 	`${submission.firstName ?? ""} ${submission.lastName ?? ""}`.trim() || undefined;
@@ -597,7 +609,7 @@ const openAnnotator = (submission: AssignmentSubmissionResponse) => {
 
 const startAnnotator = (submission: AssignmentSubmissionResponse, record: FileRecord) => {
 	annotateError.value = false;
-	annotatorSubmissionId = submission.id ?? null;
+	annotatorSubmission = submission;
 	annotatorStudentName.value = studentNameOf(submission);
 	annotatorSource.value = {
 		kind: isPdfMimeType(record.mimeType) ? "pdf" : "image",
@@ -611,12 +623,21 @@ const closeAnnotator = () => {
 };
 
 const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => {
-	if (!annotatorSubmissionId) return;
+	if (!annotatorSubmission?.id) return;
 
 	annotatorSaving.value = true;
 	try {
+		// created on first save, reused on every re-annotation after that (see
+		// ensureFeedbackContainer's doc comment) - resolved here, not at startAnnotator, so
+		// merely opening the annotator never creates a container the teacher ends up not using
+		const container = await ensureFeedbackContainer(annotatorSubmission.id);
+		if (!container) {
+			annotateError.value = true;
+			return;
+		}
+
 		const file = new File([blob], name, { type: blob.type });
-		await upload(file, annotatorSubmissionId, FileRecordParent.BOARDNODES);
+		await upload(file, container.feedbackContainerId, FileRecordParent.BOARDNODES);
 		annotateError.value = false;
 		closeAnnotator();
 		await load();
@@ -835,10 +856,13 @@ const uploadRecording = async (submission: AssignmentSubmissionResponse) => {
 
 	uploadingAudioUserId.value = submission.userId;
 	try {
+		const container = await ensureFeedbackContainer(submission.id);
+		if (!container) return;
+
 		const blob = recordedAudio.value.blob;
 		const extension = AudioRecorder.getExtension(blob.type);
 		const file = new File([blob], `${FEEDBACK_AUDIO_PREFIX}${Date.now()}.${extension}`, { type: blob.type });
-		await upload(file, submission.id, FileRecordParent.BOARDNODES);
+		await upload(file, container.feedbackContainerId, FileRecordParent.BOARDNODES);
 		discardRecording();
 		await load();
 	} finally {

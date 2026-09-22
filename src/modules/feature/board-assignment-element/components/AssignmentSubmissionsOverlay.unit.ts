@@ -9,6 +9,7 @@ import { mount } from "@vue/test-utils";
 
 const {
 	fetchSubmissionsMock,
+	ensureFeedbackContainerMock,
 	gradeSubmissionMock,
 	returnSubmissionMock,
 	returnSubmissionsBatchMock,
@@ -19,6 +20,7 @@ const {
 	uploadMock,
 } = vi.hoisted(() => ({
 	fetchSubmissionsMock: vi.fn(),
+	ensureFeedbackContainerMock: vi.fn(),
 	gradeSubmissionMock: vi.fn(),
 	returnSubmissionMock: vi.fn(),
 	returnSubmissionsBatchMock: vi.fn(),
@@ -32,6 +34,7 @@ const {
 vi.mock("@data-assignment", () => ({
 	useAssignmentApi: () => ({
 		fetchSubmissions: fetchSubmissionsMock,
+		ensureFeedbackContainer: ensureFeedbackContainerMock,
 		gradeSubmission: gradeSubmissionMock,
 		returnSubmission: returnSubmissionMock,
 		returnSubmissionsBatch: returnSubmissionsBatchMock,
@@ -92,6 +95,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 		fetchFilesMock.mockResolvedValue(undefined);
 		getFileRecordsByParentIdMock.mockReturnValue([]);
 		uploadMock.mockResolvedValue(undefined);
+		ensureFeedbackContainerMock.mockResolvedValue({ feedbackContainerId: "feedback-container-1" });
 	});
 
 	afterEach(() => {
@@ -344,26 +348,34 @@ describe("AssignmentSubmissionsOverlay", () => {
 			isSubmittable: true,
 			submissions: [
 				buildSubmission({
+					feedbackContainerId: "feedback-container-1",
 					feedbackFiles: [{ fileRecordId: "record-fb", name: "feedback-pdf-1.pdf" }],
 				}),
 			],
 		});
-		getFileRecordsByParentIdMock.mockReturnValue([
-			{
-				id: "record-sub",
-				name: "essay.pdf",
-				url: "https://api/files/essay.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-fb",
-				name: "feedback-pdf-1.pdf",
-				url: "https://api/files/feedback-pdf-1.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-		]);
+		// the submission's own file and its feedback now list under two different parent ids
+		getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+			if (parentId === "feedback-container-1") {
+				return [
+					{
+						id: "record-fb",
+						name: "feedback-pdf-1.pdf",
+						url: "https://api/files/feedback-pdf-1.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+				];
+			}
+			return [
+				{
+					id: "record-sub",
+					name: "essay.pdf",
+					url: "https://api/files/essay.pdf",
+					mimeType: "application/pdf",
+					previewStatus: "possible",
+				},
+			];
+		});
 		const { wrapper } = setup();
 
 		await vi.dynamicImportSettled();
@@ -400,11 +412,14 @@ describe("AssignmentSubmissionsOverlay", () => {
 		annotator.vm.$emit("save", { blob, name: "feedback-pdf-123.pdf" });
 		await vi.dynamicImportSettled();
 
+		// a container is created (or reused) for this submission before the upload, never
+		// uploaded to the submission's own id - see A1 in the review notes
+		expect(ensureFeedbackContainerMock).toHaveBeenCalledWith("submission-1");
 		expect(uploadMock).toHaveBeenCalledTimes(1);
 		const [file, parentId, parentType] = uploadMock.mock.calls[0];
 		expect(file.name).toBe("feedback-pdf-123.pdf");
 		expect(file.type).toBe("application/pdf");
-		expect(parentId).toBe("submission-1");
+		expect(parentId).toBe("feedback-container-1");
 		expect(parentType).toBe(FileRecordParent.BOARDNODES);
 		// the overlay reloads so the new feedback file shows up
 		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(2);
@@ -462,6 +477,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 			isSubmittable: true,
 			submissions: [
 				buildSubmission({
+					feedbackContainerId: "feedback-container-1",
 					feedbackFiles: [
 						{ fileRecordId: "record-pdf-2", name: "feedback-pdf-2.pdf" },
 						{ fileRecordId: "record-pdf-1", name: "feedback-pdf-1.pdf" },
@@ -469,29 +485,35 @@ describe("AssignmentSubmissionsOverlay", () => {
 				}),
 			],
 		});
-		getFileRecordsByParentIdMock.mockReturnValue([
-			{
-				id: "record-sub",
-				name: "essay.pdf",
-				url: "https://api/files/essay.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-pdf-1",
-				name: "feedback-pdf-1.pdf",
-				url: "https://api/files/feedback-pdf-1.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-pdf-2",
-				name: "feedback-pdf-2.pdf",
-				url: "https://api/files/feedback-pdf-2.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-		]);
+		getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+			if (parentId === "feedback-container-1") {
+				return [
+					{
+						id: "record-pdf-1",
+						name: "feedback-pdf-1.pdf",
+						url: "https://api/files/feedback-pdf-1.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+					{
+						id: "record-pdf-2",
+						name: "feedback-pdf-2.pdf",
+						url: "https://api/files/feedback-pdf-2.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+				];
+			}
+			return [
+				{
+					id: "record-sub",
+					name: "essay.pdf",
+					url: "https://api/files/essay.pdf",
+					mimeType: "application/pdf",
+					previewStatus: "possible",
+				},
+			];
+		});
 		const { wrapper } = setup();
 
 		await vi.dynamicImportSettled();

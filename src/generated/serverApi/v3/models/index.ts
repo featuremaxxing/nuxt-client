@@ -12,6 +12,7 @@ export * from './assignment-content-body';
 export * from './assignment-element-content';
 export * from './assignment-element-content-body';
 export * from './assignment-element-response';
+export * from './assignment-feedback-container-response';
 export * from './assignment-list-item-response';
 export * from './assignment-list-response';
 export * from './assignment-peer-review-summary-response';

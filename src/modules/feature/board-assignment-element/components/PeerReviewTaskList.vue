@@ -45,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import { isFeedbackName } from "../feedback-files.util";
 import PeerReviewTaskDetail from "./PeerReviewTaskDetail.vue";
 import { FileRecordParent } from "@/types/file/File";
 import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
@@ -74,7 +73,10 @@ const selectedTask = computed(() => tasks.value.find((task) => task.id === selec
 
 const selectedFileRecord = computed(() => {
 	if (!selectedTask.value) return undefined;
-	return getFileRecordsByParentId(selectedTask.value.submissionId).find((record) => !isFeedbackName(record.name));
+	// the submission node only ever holds the student's own files - the reviewer has no access
+	// to the separate AssignmentFeedback container at all (server-enforced, see A1 in the
+	// review notes), so no name filter is needed or even meaningful here any more
+	return getFileRecordsByParentId(selectedTask.value.submissionId)[0];
 });
 
 const load = async () => {

@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
+import { isFeedbackAudioName, latestFeedbackFileNames } from "../feedback-files.util";
 import { useAssignmentFilePreview } from "../file-preview.composable";
 import { AssignmentPreviewKind, previewKindFor } from "../file-preview.util";
 import { AssignmentElement } from "@/types/board/ContentElement";
@@ -190,22 +190,25 @@ const load = async () => {
 				await fetchFiles(ownSubmission.value.id, FileRecordParent.BOARDNODES);
 				const records = getFileRecordsByParentId(ownSubmission.value.id);
 
-				// the own submission file is always shown, whether or not it has been
-				// graded yet - unlike the feedback below, this is the student's own upload
-				ownFileRecord.value = records.find(
-					(record) => !isFeedbackName(record.name) && record.name === ownSubmission.value?.file?.name
-				);
+				// the submission node only ever holds the student's own files now, so no
+				// name filter is needed - always shown, whether or not it has been graded yet
+				ownFileRecord.value = records.find((record) => record.name === ownSubmission.value?.file?.name);
 
-				// feedback (audio + annotated corrections) is revealed together with
-				// points/comment once the teacher has returned the submission
-				if (isReturned.value) {
-					feedbackAudioUrl.value = records.find(
+				// feedback (audio + annotated corrections) lives on its own container and is
+				// only present in the response once the teacher has returned the submission -
+				// see AssignmentSubmissionResponseMapper.mapForOwner
+				const feedbackContainerId = ownSubmission.value.feedbackContainerId;
+				if (isReturned.value && feedbackContainerId) {
+					await fetchFiles(feedbackContainerId, FileRecordParent.BOARDNODES);
+					const feedbackRecords = getFileRecordsByParentId(feedbackContainerId);
+
+					feedbackAudioUrl.value = feedbackRecords.find(
 						(record) => isFeedbackAudioName(record.name) && ownSubmission.value?.feedbackAudio?.name === record.name
 					)?.url;
 					// only the newest correction per kind (pdf/image) is relevant - re-annotating
 					// a correction creates a new version, the server returns feedback files newest first
 					const latestNames = latestFeedbackFileNames(ownSubmission.value.feedbackFiles);
-					feedbackFileRecords.value = records.filter((record) => latestNames.has(record.name));
+					feedbackFileRecords.value = feedbackRecords.filter((record) => latestNames.has(record.name));
 				} else {
 					feedbackAudioUrl.value = undefined;
 					feedbackFileRecords.value = [];

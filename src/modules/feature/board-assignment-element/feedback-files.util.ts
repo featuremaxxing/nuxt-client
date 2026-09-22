@@ -1,13 +1,11 @@
 import { type AssignmentSubmissionFileResponse } from "@api-server";
 
-// Feedback files on a submission node are identified by name prefixes (the file
-// storage does not expose mime types on the list endpoint): `feedback-audio-` for
-// voice feedback, `feedback-pdf-` for annotated PDF corrections and `feedback-img-`
-// for annotated image corrections.
-export const FEEDBACK_PREFIX = "feedback-";
+// Feedback files live on their own AssignmentFeedback node (submission.feedbackContainerId),
+// separate from the student's own submission - the server no longer tells them apart by name
+// (see the server's A1 review fix). Within that node, the audio recording is still told apart
+// from the annotated corrections (PDF/image) by a name prefix (the file storage does not
+// expose mime types on the list endpoint): `feedback-audio-` vs `feedback-pdf-`/`feedback-img-`.
 export const FEEDBACK_AUDIO_PREFIX = "feedback-audio-";
-
-export const isFeedbackName = (name: string) => name.startsWith(FEEDBACK_PREFIX);
 
 export const isFeedbackAudioName = (name: string) => name.startsWith(FEEDBACK_AUDIO_PREFIX);
 
