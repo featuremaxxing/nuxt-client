@@ -714,6 +714,8 @@ export default {
 		"Peer reviews are advisory and are not part of the official grade.",
 	"components.cardElement.assignmentElement.peerReview.summaryLabel": "Peer review ({count})",
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "No peer reviews submitted yet.",
+	"components.cardElement.assignmentElement.peerReview.feedbackSectionTitle": "Feedback from peers",
+	"components.cardElement.assignmentElement.peerReview.notSubmittedYet": "not submitted yet",
 	"components.cardElement.fileElement.pdfLoadError": "The file could not be displayed.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Open comment",
 	"components.cardElement.fileElement.textLoadError": "The file could not be displayed.",

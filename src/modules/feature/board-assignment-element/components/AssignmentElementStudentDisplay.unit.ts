@@ -358,4 +358,64 @@ describe("AssignmentElementStudentDisplay", () => {
 			expect(wrapper.find("[data-testid='assignment-feedback-audio']").exists()).toBe(false);
 		});
 	});
+
+	describe("anonymized peer review feedback", () => {
+		it("shows a submitted peer review's comment and file, without a reviewer name", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: null,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: false,
+				submissions: [
+					buildSubmission({
+						id: "submission-1",
+						status: AssignmentStatus.SUBMITTED,
+						peerReviewFeedback: [
+							{
+								reviewerUserId: undefined,
+								feedbackComment: "clear structure",
+								submittedAt: "2099-01-16T10:00:00.000Z",
+								feedbackContainerId: "peer-container-1",
+								files: [{ fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+							},
+						],
+					} as AssignmentSubmissionResponse),
+				],
+			});
+			getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+				if (parentId === "peer-container-1") {
+					return [
+						{
+							id: "correction-1",
+							name: "feedback-pdf-1.pdf",
+							url: "https://api/files/feedback-pdf-1.pdf",
+							mimeType: "application/pdf",
+							previewStatus: "possible",
+						},
+					];
+				}
+				return [];
+			});
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const section = wrapper.find("[data-testid='assignment-peer-review-feedback']");
+			expect(section.exists()).toBe(true);
+			expect(section.text()).toContain("clear structure");
+			expect(wrapper.find("[data-testid='assignment-peer-review-feedback-file']").text()).toContain(
+				"feedback-pdf-1.pdf"
+			);
+			// server already anonymizes this, but assert the client never introduces an id anyway
+			expect(section.html()).not.toContain("reviewerUserId");
+		});
+
+		it("shows nothing when no peer review has been submitted yet", async () => {
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			expect(wrapper.find("[data-testid='assignment-peer-review-feedback']").exists()).toBe(false);
+		});
+	});
 });

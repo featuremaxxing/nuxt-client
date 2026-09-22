@@ -20,6 +20,7 @@ const {
 	fetchFilesMock,
 	getFileRecordsByParentIdMock,
 	uploadMock,
+	downloadFileMock,
 } = vi.hoisted(() => ({
 	fetchSubmissionsMock: vi.fn(),
 	ensureFeedbackContainerMock: vi.fn(),
@@ -33,6 +34,7 @@ const {
 	fetchFilesMock: vi.fn(),
 	getFileRecordsByParentIdMock: vi.fn(),
 	uploadMock: vi.fn(),
+	downloadFileMock: vi.fn(),
 }));
 
 vi.mock("@data-assignment", () => ({
@@ -63,6 +65,13 @@ vi.mock("@data-file", () => ({
 		upload: uploadMock,
 	}),
 }));
+
+// only downloadFile is mocked, so the test can assert it was called without touching the
+// DOM/anchor click it performs - everything else in the module (CSV export etc.) stays real
+vi.mock("@/utils/fileHelper", async () => {
+	const actual = await vi.importActual<typeof import("@/utils/fileHelper")>("@/utils/fileHelper");
+	return { ...actual, downloadFile: downloadFileMock };
+});
 
 const buildSubmission = (overrides: Partial<AssignmentSubmissionResponse> = {}): AssignmentSubmissionResponse => ({
 	id: "submission-1",
@@ -891,6 +900,52 @@ describe("AssignmentSubmissionsOverlay", () => {
 			expect(manualAssignMock).toHaveBeenCalledWith(element.id, [
 				{ submissionId: "submission-1", reviewerUserId: "user-2" },
 			]);
+		});
+	});
+
+	describe("identified peer review feedback (teacher view)", () => {
+		it("downloads a peer reviewer's correction file via its container id", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({
+						peerReviewFeedback: [
+							{
+								reviewerUserId: "user-2",
+								reviewerFirstName: "Bea",
+								reviewerLastName: "Berg",
+								submittedAt: "2099-01-16T10:00:00.000Z",
+								feedbackContainerId: "peer-container-1",
+								files: [{ fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+							},
+						],
+					}),
+				],
+			});
+			getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+				if (parentId === "peer-container-1") {
+					return [
+						{
+							id: "correction-1",
+							name: "feedback-pdf-1.pdf",
+							url: "https://api/files/feedback-pdf-1.pdf",
+							mimeType: "application/pdf",
+							previewStatus: "possible",
+						},
+					];
+				}
+				return [];
+			});
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			await wrapper.find("[data-testid='submission-peer-review-feedback-download-correction-1']").trigger("click");
+
+			expect(fetchFilesMock).toHaveBeenCalledWith("peer-container-1", "boardnodes");
+			expect(downloadFileMock).toHaveBeenCalledWith("https://api/files/feedback-pdf-1.pdf", "feedback-pdf-1.pdf");
 		});
 	});
 

@@ -736,6 +736,8 @@ export default {
 		"Peer-Reviews sind beratend und fließen nicht in die offizielle Bewertung ein.",
 	"components.cardElement.assignmentElement.peerReview.summaryLabel": "Peer-Review ({count})",
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "Noch keine Peer-Reviews abgegeben.",
+	"components.cardElement.assignmentElement.peerReview.feedbackSectionTitle": "Rückmeldung von Mitlernenden",
+	"components.cardElement.assignmentElement.peerReview.notSubmittedYet": "noch nicht abgegeben",
 	"components.cardElement.fileElement.pdfLoadError": "Die Datei konnte nicht angezeigt werden.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Kommentar öffnen",
 	"components.cardElement.fileElement.textLoadError": "Die Datei konnte nicht angezeigt werden.",

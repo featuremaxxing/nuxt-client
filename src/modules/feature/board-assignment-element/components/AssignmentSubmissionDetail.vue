@@ -165,6 +165,57 @@
 			</p>
 		</div>
 
+		<div
+			v-if="submission.peerReviewFeedback && submission.peerReviewFeedback.length > 0"
+			class="mt-3"
+			data-testid="submission-peer-review-feedback"
+		>
+			<div class="text-overline text-medium-emphasis">
+				{{ t("components.cardElement.assignmentElement.peerReview.feedbackSectionTitle") }}
+			</div>
+			<div
+				v-for="review in submission.peerReviewFeedback"
+				:key="review.reviewerUserId"
+				class="mt-2"
+				data-testid="submission-peer-review-feedback-entry"
+			>
+				<div class="d-flex align-center ga-2">
+					<span class="text-body-2 font-weight-medium">
+						{{ `${review.reviewerLastName ?? ""}, ${review.reviewerFirstName ?? ""}`.replace(/^, |, $/, "") }}
+					</span>
+					<span v-if="!review.submittedAt" class="text-caption text-medium-emphasis">
+						({{ t("components.cardElement.assignmentElement.peerReview.notSubmittedYet") }})
+					</span>
+					<span v-else-if="review.points !== null && review.points !== undefined" class="text-caption">
+						{{ review.points }} {{ t("components.cardElement.assignmentElement.pointsLabel") }}
+					</span>
+				</div>
+				<p v-if="review.feedbackComment" class="text-body-2 mt-1">{{ review.feedbackComment }}</p>
+				<div
+					v-for="file in review.files"
+					:key="file.fileRecordId"
+					class="d-flex align-center ga-2 mt-1"
+					data-testid="submission-peer-review-feedback-file"
+				>
+					<VIcon :icon="mdiFileDocumentOutline" size="small" />
+					<span class="flex-grow-1 text-truncate">{{ file.name }}</span>
+					<VBtn
+						variant="text"
+						size="small"
+						:icon="mdiTrayArrowDown"
+						:data-testid="`submission-peer-review-feedback-download-${file.fileRecordId}`"
+						@click="
+							emit('download-peer-review-file', {
+								containerId: review.feedbackContainerId ?? '',
+								fileRecordId: file.fileRecordId,
+								name: file.name,
+							})
+						"
+					/>
+				</div>
+			</div>
+		</div>
+
 		<div v-if="submission.id === null" class="submission-none mt-4" data-testid="submission-none">
 			<p class="text-body-2">{{ t("components.cardElement.assignmentElement.noSubmissionYet") }}</p>
 			<p class="text-caption text-medium-emphasis">
@@ -363,6 +414,7 @@ const emit = defineEmits<{
 	(e: "view-feedback", record: FileRecord): void;
 	(e: "continue-feedback", record: FileRecord): void;
 	(e: "download-feedback", record: FileRecord): void;
+	(e: "download-peer-review-file", payload: { containerId: string; fileRecordId: string; name: string }): void;
 	(e: "start-recording"): void;
 	(e: "stop-recording"): void;
 	(e: "upload-recording"): void;

@@ -235,6 +235,7 @@
 								@view-feedback="openFeedbackFile"
 								@continue-feedback="onContinueFeedback"
 								@download-feedback="(record) => downloadFile(record.url, record.name)"
+								@download-peer-review-file="onDownloadPeerReviewFile"
 								@start-recording="startRecording(selectedSubmission)"
 								@stop-recording="stopRecording"
 								@upload-recording="uploadRecording(selectedSubmission)"
@@ -541,6 +542,14 @@ const load = async () => {
 	// previews and audio players need the file records (url, preview status) - one request per
 	// submission and, separately, one per feedback container (only submissions a teacher has
 	// already attached feedback to have one), tolerating individual failures
+	// one request per peer reviewer's own correction container - only reviews that already
+	// have one (most don't, until the reviewer opens the annotator)
+	const peerReviewContainerIds = submissions.value.flatMap(
+		(submission) =>
+			submission.peerReviewFeedback?.map((review) => review.feedbackContainerId).filter((id): id is string => !!id) ??
+			[]
+	);
+
 	await Promise.allSettled([
 		...submissions.value
 			.filter((submission) => submission.id !== null)
@@ -548,10 +557,21 @@ const load = async () => {
 		...submissions.value
 			.filter((submission) => submission.feedbackContainerId)
 			.map((submission) => fetchFiles(submission.feedbackContainerId as string, FileRecordParent.BOARDNODES)),
+		...peerReviewContainerIds.map((containerId) => fetchFiles(containerId, FileRecordParent.BOARDNODES)),
 		loadPeerReviewAssignments(),
 	]);
 
 	loading.value = false;
+};
+
+const onDownloadPeerReviewFile = (payload: { containerId: string; fileRecordId: string; name: string }) => {
+	if (!payload.containerId) return;
+	const record = getFileRecordsByParentId(payload.containerId).find(
+		(candidate) => candidate.id === payload.fileRecordId
+	);
+	if (!record) return;
+
+	downloadFile(record.url, record.name);
 };
 
 const recordsOf = (submission: AssignmentSubmissionResponse) =>

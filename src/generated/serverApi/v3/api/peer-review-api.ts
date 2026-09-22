@@ -20,6 +20,8 @@ import { DUMMY_BASE_URL, assertParamExists, setBearerAuthToObject, setSearchPara
 // @ts-ignore
 import { BASE_PATH, RequestArgs, BaseAPI } from '../base';
 // @ts-ignore
+import { AssignmentFeedbackContainerResponse } from '../models';
+// @ts-ignore
 import { PeerReviewAssignBodyParams } from '../models';
 // @ts-ignore
 import { PeerReviewAssignResultResponse } from '../models';
@@ -240,6 +242,37 @@ export const PeerReviewApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerEnsureReviewFeedbackContainer: async (reviewId: string, options: any = {}): Promise<RequestArgs> => {
+            assertParamExists('peerReviewControllerEnsureReviewFeedbackContainer', 'reviewId', reviewId)
+            const localVarPath = `/assignments/peer-review/{reviewId}/feedback-container`
+                .replace(`{${"reviewId"}}`, encodeURIComponent(String(reviewId)));
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * @summary Submit (or update) the caller's own review for an assigned peer review task.
          * @param {string} reviewId The id of the peer review task.
          * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams
@@ -309,6 +342,10 @@ export const PeerReviewApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerMyTasks(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        async peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentFeedbackContainerResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
         async peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PeerReviewTaskResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
@@ -341,6 +378,9 @@ export const PeerReviewApiFactory = function (configuration?: Configuration, bas
         peerReviewControllerMyTasks(options?: any): AxiosPromise<Array<PeerReviewTaskResponse>> {
             return localVarFp.peerReviewControllerMyTasks(options).then((request) => request(axios, basePath));
         },
+        peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any): AxiosPromise<AssignmentFeedbackContainerResponse> {
+            return localVarFp.peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options).then((request) => request(axios, basePath));
+        },
         peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any): AxiosPromise<PeerReviewTaskResponse> {
             return localVarFp.peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options).then((request) => request(axios, basePath));
         },
@@ -371,6 +411,9 @@ export class PeerReviewApi extends BaseAPI {
     }
     public peerReviewControllerMyTasks(options?: any) {
         return PeerReviewApiFp(this.configuration).peerReviewControllerMyTasks(options).then((request) => request(this.axios, this.basePath));
+    }
+    public peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any) {
+        return PeerReviewApiFp(this.configuration).peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options).then((request) => request(this.axios, this.basePath));
     }
     public peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any) {
         return PeerReviewApiFp(this.configuration).peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options).then((request) => request(this.axios, this.basePath));

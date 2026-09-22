@@ -728,6 +728,8 @@ export default {
 		"Las evaluaciones entre pares son orientativas y no forman parte de la calificación oficial.",
 	"components.cardElement.assignmentElement.peerReview.summaryLabel": "Evaluación entre pares ({count})",
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "Aún no se han enviado evaluaciones.",
+	"components.cardElement.assignmentElement.peerReview.feedbackSectionTitle": "Comentarios de compañeros",
+	"components.cardElement.assignmentElement.peerReview.notSubmittedYet": "aún no enviado",
 	"components.cardElement.fileElement.pdfLoadError": "No se pudo mostrar el archivo.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Abrir comentario",
 	"components.cardElement.fileElement.textLoadError": "No se pudo mostrar el archivo.",

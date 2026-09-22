@@ -724,6 +724,8 @@ export default {
 		"Взаємні рецензії мають дорадчий характер і не впливають на офіційну оцінку.",
 	"components.cardElement.assignmentElement.peerReview.summaryLabel": "Взаємне оцінювання ({count})",
 	"components.cardElement.assignmentElement.peerReview.summaryNone": "Рецензій ще немає.",
+	"components.cardElement.assignmentElement.peerReview.feedbackSectionTitle": "Відгуки від однолітків",
+	"components.cardElement.assignmentElement.peerReview.notSubmittedYet": "ще не надіслано",
 	"components.cardElement.fileElement.pdfLoadError": "Не вдалося показати файл.",
 	"components.cardElement.fileElement.pdfCommentOpen": "Відкрити коментар",
 	"components.cardElement.fileElement.textLoadError": "Не вдалося показати файл.",

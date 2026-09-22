@@ -15,6 +15,7 @@ export * from './assignment-element-response';
 export * from './assignment-feedback-container-response';
 export * from './assignment-list-item-response';
 export * from './assignment-list-response';
+export * from './assignment-peer-review-feedback-response';
 export * from './assignment-peer-review-summary-response';
 export * from './assignment-rubric-criterion-body';
 export * from './assignment-rubric-criterion-response';

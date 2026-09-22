@@ -112,6 +112,51 @@
 				</div>
 			</div>
 
+			<div
+				v-if="peerReviewFeedback.length > 0"
+				class="assignment-feedback mt-2"
+				data-testid="assignment-peer-review-feedback"
+			>
+				<div class="assignment-feedback-heading" data-testid="assignment-peer-review-feedback-heading">
+					{{ t("components.cardElement.assignmentElement.peerReview.feedbackSectionTitle") }}
+				</div>
+				<div
+					v-for="(review, index) in peerReviewFeedback"
+					:key="index"
+					class="mt-2"
+					data-testid="assignment-peer-review-feedback-entry"
+				>
+					<p v-if="review.feedbackComment" class="text-body-2">{{ review.feedbackComment }}</p>
+					<div
+						v-for="record in peerReviewFileRecordsOf(review)"
+						:key="record.id"
+						class="d-flex align-center mt-1"
+						data-testid="assignment-peer-review-feedback-file"
+					>
+						<VIcon :icon="mdiFileDocumentOutline" size="small" class="mr-2" />
+						<span class="text-body-2">{{ record.name }}</span>
+						<VSpacer />
+						<VBtn
+							v-if="canPreview(record)"
+							variant="text"
+							size="small"
+							:data-testid="`assignment-peer-review-feedback-view-${record.id}`"
+							@click="openPreview(record)"
+						>
+							{{ t("components.cardElement.assignmentElement.viewFile") }}
+						</VBtn>
+						<VBtn
+							variant="text"
+							size="small"
+							:data-testid="`assignment-peer-review-feedback-download-${record.id}`"
+							@click="downloadFile(record.url, record.name)"
+						>
+							{{ t("components.cardElement.assignmentElement.downloadFile") }}
+						</VBtn>
+					</div>
+				</div>
+			</div>
+
 			<VTextarea
 				v-if="canStillSubmit"
 				v-model="comment"
@@ -218,6 +263,15 @@ const load = async () => {
 				feedbackAudioUrl.value = undefined;
 				feedbackFileRecords.value = [];
 			}
+
+			// Peer feedback is NOT gated on isReturned, unlike the teacher's own feedback above -
+			// the server already only ever sends submitted, anonymized reviews here (see
+			// AssignmentSubmissionResponseMapper.mapForOwner), so nothing more to filter here.
+			await Promise.allSettled(
+				(ownSubmission.value.peerReviewFeedback ?? [])
+					.filter((review) => review.feedbackContainerId)
+					.map((review) => fetchFiles(review.feedbackContainerId as string, FileRecordParent.BOARDNODES))
+			);
 		} else {
 			ownFileRecord.value = undefined;
 			feedbackAudioUrl.value = undefined;
@@ -226,6 +280,11 @@ const load = async () => {
 	}
 	loading.value = false;
 };
+
+const peerReviewFeedback = computed(() => ownSubmission.value?.peerReviewFeedback ?? []);
+
+const peerReviewFileRecordsOf = (review: { feedbackContainerId?: string | null }): FileRecord[] =>
+	review.feedbackContainerId ? getFileRecordsByParentId(review.feedbackContainerId) : [];
 
 const ownFilePreviewUrl = computed(() =>
 	ownFileRecord.value && previewKindFor(ownFileRecord.value) === AssignmentPreviewKind.IMAGE

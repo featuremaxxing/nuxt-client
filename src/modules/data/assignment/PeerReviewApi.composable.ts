@@ -1,5 +1,6 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
+	AssignmentFeedbackContainerResponse,
 	PeerReviewApiFactory,
 	PeerReviewAssignmentResponse,
 	PeerReviewAssignResultResponse,
@@ -76,6 +77,20 @@ export const usePeerReviewApi = () => {
 		}
 	};
 
+	// Gets (or, on first call for this review, creates) the container the reviewer uploads their
+	// own correction files (annotated PDFs/images, no audio) to - see the review notes.
+	const ensureReviewFeedbackContainer = async (
+		reviewId: string
+	): Promise<AssignmentFeedbackContainerResponse | undefined> => {
+		try {
+			const response = await peerReviewApi.peerReviewControllerEnsureReviewFeedbackContainer(reviewId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
 	const fetchMyTasks = async (): Promise<PeerReviewTaskResponse[] | undefined> => {
 		try {
 			const response = await peerReviewApi.peerReviewControllerMyTasks();
@@ -105,6 +120,7 @@ export const usePeerReviewApi = () => {
 		manualAssign,
 		listAssignments,
 		unassign,
+		ensureReviewFeedbackContainer,
 		fetchMyTasks,
 		submitReview,
 	};

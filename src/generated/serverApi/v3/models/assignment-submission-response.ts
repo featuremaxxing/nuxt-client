@@ -14,6 +14,7 @@
 
 
 import { AssignmentCriterionPointsResponse } from './assignment-criterion-points-response';
+import { AssignmentPeerReviewFeedbackResponse } from './assignment-peer-review-feedback-response';
 import { AssignmentPeerReviewSummaryResponse } from './assignment-peer-review-summary-response';
 import { AssignmentStatus } from './assignment-status';
 import { AssignmentSubmissionFileResponse } from './assignment-submission-file-response';
@@ -126,6 +127,12 @@ export interface AssignmentSubmissionResponse {
      * @memberof AssignmentSubmissionResponse
      */
     peerReviews?: AssignmentPeerReviewSummaryResponse | null;
+    /**
+     * identified peer review feedback (files, comment, points) - teacher view: every assignment, with reviewer identity; owner view: only submitted reviews, reviewer identity stripped
+     * @type {Array<AssignmentPeerReviewFeedbackResponse>}
+     * @memberof AssignmentSubmissionResponse
+     */
+    peerReviewFeedback?: Array<AssignmentPeerReviewFeedbackResponse> | null;
     /**
      * first name of the teacher who graded this submission - relevant when a room has more than one teacher; only present for the teacher view, never for the submission owner
      * @type {string}
