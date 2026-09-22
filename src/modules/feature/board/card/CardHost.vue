@@ -27,7 +27,13 @@
 					<CardSkeleton :height />
 				</template>
 				<template v-if="card">
-					<VChip v-if="originTitle" size="x-small" variant="tonal" class="mb-1" data-testid="card-origin-chip">
+					<VChip
+						v-if="originTitle"
+						size="x-small"
+						variant="tonal"
+						class="ml-4 mt-2 mb-1"
+						data-testid="card-origin-chip"
+					>
 						{{ originTitle }}
 					</VChip>
 					<CardTitle
