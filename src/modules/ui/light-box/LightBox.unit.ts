@@ -212,5 +212,20 @@ describe("LightBox", () => {
 				});
 			});
 		});
+
+		describe("when content is a pdf", () => {
+			it("should render the pdf viewer", async () => {
+				const { wrapper } = setup({
+					type: LightBoxContentType.PDF,
+				});
+
+				await vi.dynamicImportSettled();
+
+				// the VDialog teleports its content into the document body
+				const pdfViewer = document.body.querySelector("[data-testid='light-box-pdf']");
+				expect(pdfViewer).not.toBeNull();
+				expect(wrapper.findComponent({ name: "LightBoxPdf" }).exists()).toBe(true);
+			});
+		});
 	});
 });

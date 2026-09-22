@@ -15,6 +15,25 @@ import { computed, ref } from "vue";
 
 vi.mock("@data-tasks");
 
+const mocks = vi.hoisted(() => ({
+	envConfig: { value: { FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: false } },
+	assignmentsOverview: {
+		assignments: [],
+		currentAssignments: [],
+		pastAssignments: [],
+		loading: false,
+		fetchAssignments: vi.fn(),
+	},
+}));
+
+vi.mock("@data-env", () => ({
+	useEnvConfig: () => mocks.envConfig,
+}));
+
+vi.mock("@data-assignment", () => ({
+	useAssignmentsOfOverview: () => mocks.assignmentsOverview,
+}));
+
 describe("TaskOverview.page", () => {
 	let useTasksOfOverviewMock: Mocked<ReturnType<typeof useTasksOfOverview>>;
 
@@ -36,9 +55,11 @@ describe("TaskOverview.page", () => {
 		isLoading = false,
 		status = "completed" as Status,
 		permissions = [Permission.HOMEWORK_CREATE],
+		assignmentToolEnabled = false,
 	} = {}) => {
 		useTasksOfOverviewMock.tasksLoadingState = computed(() => (isLoading ? "loading" : "idle"));
 		useTasksOfOverviewMock.status = ref(status);
+		mocks.envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED = assignmentToolEnabled;
 
 		createTestAppStore({
 			me: {
@@ -140,6 +161,42 @@ describe("TaskOverview.page", () => {
 
 				expect(wireframe.props("fabItems")).toBeUndefined();
 			});
+		});
+	});
+
+	describe("when the assignment tool is enabled", () => {
+		it("should render the assignments tab next to the classic tasks tab", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true, role: RoleName.TEACHER });
+
+			const assignmentsTab = wrapper.find("[data-testid='tab-assignments']");
+			const classicTab = wrapper.find("[data-testid='tab-tasks-classic']");
+
+			expect(assignmentsTab.exists()).toBe(true);
+			expect(classicTab.exists()).toBe(true);
+		});
+
+		it("should render the assignments overview component", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true });
+
+			expect(wrapper.findComponent({ name: "AssignmentsOverview" }).exists()).toBe(true);
+		});
+
+		it("should not render the assignment tabs when the feature is disabled", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: false });
+
+			expect(wrapper.find("[data-testid='tab-assignments']").exists()).toBe(false);
+		});
+
+		it("should show the peer-review tab for students", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true, role: RoleName.STUDENT });
+
+			expect(wrapper.find("[data-testid='tab-peer-review']").exists()).toBe(true);
+		});
+
+		it("should not show the peer-review tab for teachers", () => {
+			const { wrapper } = setup({ assignmentToolEnabled: true, role: RoleName.TEACHER });
+
+			expect(wrapper.find("[data-testid='tab-peer-review']").exists()).toBe(false);
 		});
 	});
 });

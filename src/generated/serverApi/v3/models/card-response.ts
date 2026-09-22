@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -13,6 +13,7 @@
  */
 
 
+import { AssignmentElementResponse } from './assignment-element-response';
 import { CollaborativeTextEditorElementResponse } from './collaborative-text-editor-element-response';
 import { Colors } from './colors';
 import { DeletedElementResponse } from './deleted-element-response';
@@ -59,10 +60,10 @@ export interface CardResponse {
     height: number;
     /**
      * 
-     * @type {Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse>}
+     * @type {Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | AssignmentElementResponse>}
      * @memberof CardResponse
      */
-    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse>;
+    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | AssignmentElementResponse>;
     /**
      * 
      * @type {VisibilitySettingsResponse}

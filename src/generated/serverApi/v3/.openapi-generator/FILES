@@ -5,6 +5,7 @@ api/account-api.ts
 api/admin-students-api.ts
 api/admin-teachers-api.ts
 api/alert-api.ts
+api/assignment-api.ts
 api/authentication-api.ts
 api/authorization-api.ts
 api/board-api.ts
@@ -68,6 +69,16 @@ models/add-room-members-body-params.ts
 models/alert-response.ts
 models/api-validation-error.ts
 models/applicant-ids-body-params.ts
+models/assignment-content-body.ts
+models/assignment-element-content-body.ts
+models/assignment-element-content.ts
+models/assignment-element-response.ts
+models/assignment-list-item-response.ts
+models/assignment-list-response.ts
+models/assignment-status.ts
+models/assignment-submission-file-response.ts
+models/assignment-submission-list-response.ts
+models/assignment-submission-response.ts
 models/authorization-body-params.ts
 models/authorization-context-params.ts
 models/authorization-many-references-body-params.ts
@@ -197,6 +208,7 @@ models/file-storage-type.ts
 models/forbidden-operation-error.ts
 models/force-migration-params.ts
 models/get-meta-tag-data-body.ts
+models/grade-submission-body-params.ts
 models/group-list-response.ts
 models/group-response.ts
 models/group-user-response.ts
@@ -209,6 +221,7 @@ models/helpdesk-wish-create-params.ts
 models/import-user-list-response.ts
 models/import-user-response.ts
 models/index.ts
+models/input-format.ts
 models/instance-feature.ts
 models/language-type.ts
 models/launch-request-method.ts
@@ -382,6 +395,7 @@ models/short-node-response.ts
 models/single-column-board-response.ts
 models/submission-status-list-response.ts
 models/submission-status-response.ts
+models/submit-submission-body-params.ts
 models/successful-response.ts
 models/system-for-ldap-login-response.ts
 models/system-type.ts

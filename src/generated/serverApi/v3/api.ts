@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -18,6 +18,8 @@ export * from './api/account-api';
 export * from './api/admin-students-api';
 export * from './api/admin-teachers-api';
 export * from './api/alert-api';
+export * from './api/assignment-api';
+export * from './api/peer-review-api';
 export * from './api/authentication-api';
 export * from './api/authorization-api';
 export * from './api/board-api';
