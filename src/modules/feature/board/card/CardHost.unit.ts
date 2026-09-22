@@ -110,6 +110,7 @@ describe("CardHost", () => {
 		allowedOperations?: Partial<BoardResponseAllowedOperations>;
 		backgroundColor?: Colors;
 		cardId?: string;
+		originTitle?: string;
 	}) => {
 		const {
 			hasElement = false,
@@ -155,6 +156,7 @@ describe("CardHost", () => {
 				height: card?.height ?? 0,
 				columnIndex: 0,
 				rowIndex: 1,
+				originTitle: options?.originTitle,
 			},
 		});
 
@@ -163,6 +165,23 @@ describe("CardHost", () => {
 			cardId,
 		};
 	};
+
+	describe("origin chip", () => {
+		it("should show where a pinned card comes from", () => {
+			const { wrapper } = setup({ originTitle: "Mathe 9b" });
+
+			const chip = wrapper.find('[data-testid="card-origin-chip"]');
+
+			expect(chip.exists()).toBe(true);
+			expect(chip.text()).toContain("Mathe 9b");
+		});
+
+		it("should not be rendered for a regular card", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find('[data-testid="card-origin-chip"]').exists()).toBe(false);
+		});
+	});
 
 	describe("when component is mounted", () => {
 		it("should be found in dom", () => {

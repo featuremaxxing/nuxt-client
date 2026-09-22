@@ -27,6 +27,9 @@
 					<CardSkeleton :height />
 				</template>
 				<template v-if="card">
+					<VChip v-if="originTitle" size="x-small" variant="tonal" class="mb-1" data-testid="card-origin-chip">
+						{{ originTitle }}
+					</VChip>
 					<CardTitle
 						:is-edit-mode="isEditMode"
 						:value="card.title"
@@ -142,6 +145,8 @@ type Props = {
 	rowIndex: number;
 	columnIndex: number;
 	focusTitleOnEditStart?: boolean;
+	/** name of the room a pinned card comes from - only set in the learning room */
+	originTitle?: string;
 };
 
 const props = defineProps<Props>();

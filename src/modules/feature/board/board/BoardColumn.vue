@@ -60,6 +60,7 @@
 						}"
 						:card-id="element.cardId"
 						:height="element.height"
+						:origin-title="element.originTitle"
 						:row-index="elementIndex"
 						:column-index="reactiveIndex"
 						@move:card-keyboard="onMoveCardKeyboard(elementIndex, element.cardId, $event)"

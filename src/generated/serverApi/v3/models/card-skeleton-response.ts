@@ -38,6 +38,12 @@ export interface CardSkeletonResponse {
      * @memberof CardSkeletonResponse
      */
     pinnedCardId?: string;
+    /**
+     * Name of the room or course the pinned card originally lives in, for the origin chip. Only set inside a personal learning room.
+     * @type {string}
+     * @memberof CardSkeletonResponse
+     */
+    originTitle?: string;
 }
 
 
