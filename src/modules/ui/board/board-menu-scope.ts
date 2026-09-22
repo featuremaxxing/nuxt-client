@@ -14,4 +14,5 @@ export enum BoardMenuScope {
 	H5P_ELEMENT = "h5pElement",
 	POLL_ELEMENT = "pollElement",
 	ASSIGNMENT_ELEMENT = "assignmentElement",
+	AI_QUESTION_ELEMENT = "aiQuestionElement",
 }

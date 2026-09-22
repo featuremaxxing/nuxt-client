@@ -19,6 +19,7 @@ import {
 	mdiPoll,
 	mdiPresentation,
 	mdiPuzzleOutline,
+	mdiRobotOutline,
 	mdiTextBoxEditOutline,
 	mdiTrayArrowUp,
 	mdiVideoOutline,
@@ -177,6 +178,15 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.assignmentElement.subtitle"),
 				action: () => onElementClick(ContentElementType.ASSIGNMENT),
 				testId: "create-element-assignment",
+			});
+		}
+
+		if (envConfig.value.FEATURE_AI_ENABLED) {
+			options.push({
+				icon: mdiRobotOutline,
+				label: t("components.elementTypeSelection.elements.aiQuestionElement.subtitle"),
+				action: () => onElementClick(ContentElementType.AI_QUESTION),
+				testId: "create-element-ai-question",
 			});
 		}
 

@@ -3,6 +3,9 @@ import { AnyContentElement } from "@/types/board/ContentElement";
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import { createApplicationError } from "@/utils/create-application-error.factory";
 import {
+	AiQuestionContentBody,
+	AiQuestionElementContentBody,
+	AiQuestionElementResponse,
 	AssignmentContentBody,
 	AssignmentElementContentBody,
 	AssignmentElementResponse,
@@ -202,6 +205,21 @@ export const useBoardApi = () => {
 				// AssignmentElementContent is not type equal with AssignmentContentBody (nullable vs optional fields)
 				content: element.content as AssignmentContentBody,
 				type: ContentElementType.ASSIGNMENT,
+			};
+
+			return body;
+		}
+
+		const isAiQuestionElement = (element: AnyContentElement): element is AiQuestionElementResponse =>
+			element.type === ContentElementType.AI_QUESTION;
+
+		if (isAiQuestionElement(element)) {
+			const body: AiQuestionElementContentBody = {
+				// The broadcast content carries only question/allowMultipleAttempts; private
+				// fields may ride along from the edit form (see AiQuestionElementEdit) and are
+				// accepted by AiQuestionContentBody.
+				content: element.content as AiQuestionContentBody,
+				type: ContentElementType.AI_QUESTION,
 			};
 
 			return body;

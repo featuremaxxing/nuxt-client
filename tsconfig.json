@@ -21,6 +21,7 @@
 		"paths": {
 			"@data-access": ["./src/modules/data/data-access"],
 			"@data-app": ["./src/modules/data/application"],
+			"@data-ai-question": ["./src/modules/data/ai-question"],
 			"@data-assignment": ["./src/modules/data/assignment"],
 			"@data-board": ["./src/modules/data/board"],
 			"@data-classes": ["./src/modules/data/classes"],
@@ -45,6 +46,7 @@
 			"@data-notification": ["./src/modules/data/notification"],
 			"@data-poll": ["./src/modules/data/poll"],
 			"@feature-auto-logout": ["./src/modules/feature/auto-logout"],
+			"@feature-board-ai-question-element": ["./src/modules/feature/board-ai-question-element"],
 			"@feature-board-assignment-element": ["./src/modules/feature/board-assignment-element"],
 			"@feature-board-file-element": ["./src/modules/feature/board-file-element"],
 			"@feature-board-text-element": ["./src/modules/feature/board-text-element"],

@@ -1,4 +1,5 @@
 import {
+	AiQuestionElementResponse,
 	AssignmentElementResponse,
 	CollaborativeTextEditorElementResponse,
 	ContentElementType,
@@ -18,6 +19,7 @@ import {
 export type FileFolderElement = FileFolderElementResponse;
 export type PollElement = PollElementResponse;
 export type AssignmentElement = AssignmentElementResponse;
+export type AiQuestionElement = AiQuestionElementResponse;
 
 export type AnyContentElement =
 	| LinkElementResponse
@@ -30,7 +32,8 @@ export type AnyContentElement =
 	| VideoConferenceElementResponse
 	| H5pElementResponse
 	| PollElementResponse
-	| AssignmentElementResponse;
+	| AssignmentElementResponse
+	| AiQuestionElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;
 

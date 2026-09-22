@@ -29,6 +29,7 @@ import { AnyContentElement } from "@/types/board/ContentElement";
 import { ElementMove } from "@/types/board/DragAndDrop";
 import { ContentElementType } from "@api-server";
 import { useEnvConfig } from "@data-env";
+import { AiQuestionContentElement } from "@feature-board-ai-question-element";
 import { AssignmentContentElement } from "@feature-board-assignment-element";
 import { CollaborativeTextEditorElement } from "@feature-board-collaborative-text-editor-element";
 import { DeletedElement } from "@feature-board-deleted-element";
@@ -154,6 +155,11 @@ const mapToComponent = (type: ContentElementType) => {
 		case ContentElementType.ASSIGNMENT:
 			if (envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED) {
 				return AssignmentContentElement;
+			}
+			break;
+		case ContentElementType.AI_QUESTION:
+			if (envConfig.value.FEATURE_AI_ENABLED) {
+				return AiQuestionContentElement;
 			}
 			break;
 		default:
