@@ -1,7 +1,7 @@
-import { createPinia, setActivePinia } from "pinia";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useLearningRoomApi } from "./LearningRoomApi.composable";
 import { usePinnedCardsStore } from "./pinnedCards.store";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./LearningRoomApi.composable");
 

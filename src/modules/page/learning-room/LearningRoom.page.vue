@@ -19,14 +19,17 @@
 </template>
 
 <script setup lang="ts">
-import { useLearningRoomApi } from "@data-learning-room";
+import { useBoardStore } from "@data-board";
+import { useLearningRoomApi, usePinnedCardsStore } from "@data-learning-room";
 import { Board } from "@feature-board";
 import { useTitle } from "@vueuse/core";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const { fetchLearningRoom } = useLearningRoomApi();
+const pinnedCardsStore = usePinnedCardsStore();
+const boardStore = useBoardStore();
 
 const boardId = ref<string>();
 const cardCount = ref(0);
@@ -45,6 +48,18 @@ onMounted(async () => {
 		cardCount.value = board.columns.reduce((count, column) => count + column.cards.length, 0);
 	}
 	isLoaded.value = true;
+
+	await pinnedCardsStore.ensureLoaded();
+
+	// Unpinning goes through the learning room api, so the board store never hears
+	// about it and the card would sit there until a reload. The same watcher also
+	// catches pins made in another tab, which arrive via the broadcast channel.
+	watch(
+		() => pinnedCardsStore.pinnedCardIds,
+		async () => {
+			await boardStore.reloadBoard();
+		}
+	);
 });
 
 const showEmptyHint = computed(() => isLoaded.value && cardCount.value === 0);

@@ -1,6 +1,9 @@
 import { useLearningRoomApi } from "./LearningRoomApi.composable";
+import { useBroadcastChannel } from "@vueuse/core";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+
+type PinChange = { cardId: string; isPinned: boolean };
 
 /**
  * Knows which cards the current user has pinned, so every board can render the
@@ -11,6 +14,33 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 	const isLoaded = ref(false);
 
 	const api = useLearningRoomApi();
+
+	// A pin changes two places at once: the card in its room and the entry in the
+	// learning room - often in different tabs. The socket only carries board
+	// content, so the change is announced to the other tabs of this browser.
+	const {
+		isSupported,
+		data: incomingChange,
+		post,
+	} = useBroadcastChannel<PinChange, PinChange>({
+		name: "nbc-pinned-cards",
+	});
+
+	const applyChange = (change: PinChange) => {
+		const next = new Set(pinnedCardIds.value);
+		if (change.isPinned) {
+			next.add(change.cardId);
+		} else {
+			next.delete(change.cardId);
+		}
+		pinnedCardIds.value = next;
+	};
+
+	watch(incomingChange, (change) => {
+		if (change) {
+			applyChange(change);
+		}
+	});
 
 	// every card on a board calls ensureLoaded on mount - without sharing the
 	// in-flight promise that would be one request per card
@@ -56,6 +86,10 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 		pinnedCardIds.value = next;
 
 		const succeeded = wasPinned ? await api.unpinCard(cardId) : await api.pinCard(cardId);
+
+		if (succeeded && isSupported.value) {
+			post({ cardId, isPinned: !wasPinned });
+		}
 
 		if (!succeeded) {
 			const rollback = new Set(pinnedCardIds.value);
