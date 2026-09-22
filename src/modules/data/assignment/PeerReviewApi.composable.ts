@@ -1,6 +1,8 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
+	AssignmentFeedbackContainerResponse,
 	PeerReviewApiFactory,
+	PeerReviewAssignmentResponse,
 	PeerReviewAssignResultResponse,
 	PeerReviewSettingsBodyParams,
 	PeerReviewSettingsResponse,
@@ -55,6 +57,40 @@ export const usePeerReviewApi = () => {
 		}
 	};
 
+	const listAssignments = async (elementId: string): Promise<PeerReviewAssignmentResponse[] | undefined> => {
+		try {
+			const response = await peerReviewApi.peerReviewControllerListAssignments(elementId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
+	const unassign = async (elementId: string, submissionId: string, reviewerUserId: string): Promise<boolean> => {
+		try {
+			await peerReviewApi.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId);
+			return true;
+		} catch (error) {
+			showError(error);
+			return false;
+		}
+	};
+
+	// Gets (or, on first call for this review, creates) the container the reviewer uploads their
+	// own correction files (annotated PDFs/images, no audio) to - see the review notes.
+	const ensureReviewFeedbackContainer = async (
+		reviewId: string
+	): Promise<AssignmentFeedbackContainerResponse | undefined> => {
+		try {
+			const response = await peerReviewApi.peerReviewControllerEnsureReviewFeedbackContainer(reviewId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
 	const fetchMyTasks = async (): Promise<PeerReviewTaskResponse[] | undefined> => {
 		try {
 			const response = await peerReviewApi.peerReviewControllerMyTasks();
@@ -82,6 +118,9 @@ export const usePeerReviewApi = () => {
 		updateSettings,
 		autoAssign,
 		manualAssign,
+		listAssignments,
+		unassign,
+		ensureReviewFeedbackContainer,
 		fetchMyTasks,
 		submitReview,
 	};

@@ -2,6 +2,7 @@ import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
 	AssignmentApiFactory,
 	AssignmentApiInterface,
+	AssignmentFeedbackContainerResponse,
 	AssignmentListResponse,
 	AssignmentSubmissionListResponse,
 	AssignmentSubmissionResponse,
@@ -79,6 +80,21 @@ export const useAssignmentApi = () => {
 		}
 	};
 
+	// Gets (or, on first call for a submission, creates) the AssignmentFeedback node teacher
+	// artifacts (audio, annotated corrections) are uploaded to - see the server's A1 review fix.
+	// Callers upload to feedbackContainerId, never to the submission's own id.
+	const ensureFeedbackContainer = async (
+		submissionId: string
+	): Promise<AssignmentFeedbackContainerResponse | undefined> => {
+		try {
+			const response = await assignmentApi.assignmentControllerEnsureFeedbackContainer(submissionId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
 	const returnSubmission = async (
 		submissionId: string,
 		body: GradeSubmissionBodyParams
@@ -120,6 +136,7 @@ export const useAssignmentApi = () => {
 		createOwnSubmission,
 		submit,
 		deleteOwnSubmission,
+		ensureFeedbackContainer,
 		gradeSubmission,
 		returnSubmission,
 		returnSubmissionsBatch,

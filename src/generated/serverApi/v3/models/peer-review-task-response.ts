@@ -63,6 +63,18 @@ export interface PeerReviewTaskResponse {
      * @memberof PeerReviewTaskResponse
      */
     feedbackComment?: string | null;
+    /**
+     * id of this reviewer\'s own correction container, once one exists - upload target for new corrections
+     * @type {string}
+     * @memberof PeerReviewTaskResponse
+     */
+    feedbackContainerId?: string | null;
+    /**
+     * this reviewer\'s own annotated corrections on the submission, newest first
+     * @type {Array<PeerReviewTaskFileResponse>}
+     * @memberof PeerReviewTaskResponse
+     */
+    correctionFiles?: Array<PeerReviewTaskFileResponse> | null;
 }
 
 

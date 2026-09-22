@@ -2,18 +2,10 @@ import {
 	feedbackFileTimestamp,
 	feedbackKind,
 	isFeedbackAudioName,
-	isFeedbackName,
 	latestFeedbackFileNames,
 } from "./feedback-files.util";
 
 describe("feedback-files.util", () => {
-	describe("isFeedbackName", () => {
-		it("should recognize feedback file names", () => {
-			expect(isFeedbackName("feedback-pdf-1.pdf")).toBe(true);
-			expect(isFeedbackName("essay.pdf")).toBe(false);
-		});
-	});
-
 	describe("isFeedbackAudioName", () => {
 		it("should recognize feedback audio file names", () => {
 			expect(isFeedbackAudioName("feedback-audio-1.webm")).toBe(true);

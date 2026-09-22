@@ -46,15 +46,24 @@ export function downloadFile(url: string, fileName: string) {
 	document.body.removeChild(link);
 }
 
-// Sibling of downloadFile() for content that only exists client-side (e.g. a generated CSV or
-// PDF), rather than something already reachable by URL. Creates a short-lived object URL for the
-// blob, reuses the same hidden-<a>-click trick, then revokes the URL so it doesn't leak memory.
+// Sibling of downloadFile() for content that only exists client-side (e.g. a generated CSV, ZIP,
+// or PDF), rather than something already reachable by URL. Creates a short-lived object URL for
+// the blob, reuses the same hidden-<a>-click trick, then revokes the URL so it doesn't leak
+// memory. Revoking synchronously right after downloadFile() can race the browser's (async)
+// download start in some engines, so it is deferred to the next tick instead of done inline.
 export function downloadBlob(blob: Blob, fileName: string) {
 	const url = URL.createObjectURL(blob);
 	downloadFile(url, fileName);
-	// Revoking synchronously can race the browser's (async) download start in some engines, so
-	// defer it to the next tick instead of doing it inline.
 	setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+// A user-controlled string (a display name, an uploaded file's own name, ...) used as one
+// segment of a path inside a client-built archive (see AssignmentSubmissionsOverlay.vue
+// downloadArchive) must not be allowed to nest the entry into an unrelated folder ("/" or "\")
+// or escape the archive root on extraction ("..", zip slip). Neither the zip library nor the
+// tool that later extracts it is trusted to catch this, so it is stripped here first.
+export function sanitizeZipPathSegment(segment: string): string {
+	return segment.replaceAll(/[/\\]|\.\./g, "_");
 }
 
 // It creates a form element, populates it with hidden input fields for each key-value pair in the data array,

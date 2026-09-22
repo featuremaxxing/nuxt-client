@@ -21,6 +21,7 @@ describe("PeerReviewTaskDetail", () => {
 			},
 			props: {
 				fileRecord: buildFileRecord(),
+				correctionFiles: [],
 				points: null,
 				feedbackComment: "",
 				submitting: false,

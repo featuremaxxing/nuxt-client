@@ -12,6 +12,9 @@ vi.mock("@data-assignment", () => ({
 	useAssignmentApi: () => ({
 		fetchSubmissions: fetchSubmissionsMock,
 	}),
+	usePeerReviewApi: () => ({
+		listAssignments: vi.fn().mockResolvedValue([]),
+	}),
 }));
 
 vi.mock("@data-file", () => ({

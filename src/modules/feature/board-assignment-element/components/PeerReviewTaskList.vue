@@ -30,24 +30,36 @@
 				<PeerReviewTaskDetail
 					v-if="selectedTask"
 					:file-record="selectedFileRecord"
+					:correction-files="selectedCorrectionFiles"
 					:points="draftPoints[selectedTask.id] ?? selectedTask.points ?? null"
 					:feedback-comment="draftComments[selectedTask.id] ?? selectedTask.feedbackComment ?? ''"
 					:submitting="submittingTaskId === selectedTask.id"
 					@view-file="onViewFile"
 					@download-file="onDownloadFile"
+					@annotate-file="onAnnotateFile"
+					@continue-correction="onContinueCorrection"
+					@download-correction="onDownloadCorrection"
 					@update:points="onUpdatePoints"
 					@update:feedback-comment="onUpdateComment"
 					@submit="onSubmit"
 				/>
 			</div>
 		</div>
+
+		<AssignmentPdfAnnotator
+			:is-open="annotatorSource !== undefined"
+			:source="annotatorSource"
+			:error-message="annotateError ? t('components.cardElement.assignmentElement.annotateSaveError') : undefined"
+			@cancel="closeAnnotator"
+			@save="onAnnotatorSave"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { isFeedbackName } from "../feedback-files.util";
+import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 import PeerReviewTaskDetail from "./PeerReviewTaskDetail.vue";
-import { FileRecordParent } from "@/types/file/File";
+import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
 import { PeerReviewTaskResponse } from "@api-server";
 import { notifySuccess } from "@data-app";
@@ -59,8 +71,8 @@ import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
-const { fetchMyTasks, submitReview } = usePeerReviewApi();
-const { fetchFiles, getFileRecordsByParentId } = useFileStorageApi();
+const { fetchMyTasks, submitReview, ensureReviewFeedbackContainer } = usePeerReviewApi();
+const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 
 const loading = ref(false);
@@ -70,11 +82,29 @@ const draftPoints = ref<Record<string, number | null>>({});
 const draftComments = ref<Record<string, string>>({});
 const submittingTaskId = ref<string | undefined>(undefined);
 
+const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
+const annotateError = ref(false);
+// the task being annotated, not just its id - ensureReviewFeedbackContainer needs it at save
+// time, resolved lazily so opening the annotator never blocks on a network round trip
+let annotatorTask: PeerReviewTaskResponse | undefined;
+
 const selectedTask = computed(() => tasks.value.find((task) => task.id === selectedTaskId.value));
 
 const selectedFileRecord = computed(() => {
 	if (!selectedTask.value) return undefined;
-	return getFileRecordsByParentId(selectedTask.value.submissionId).find((record) => !isFeedbackName(record.name));
+	// the submission node only ever holds the student's own files - the reviewer has no access
+	// to the separate AssignmentFeedback container at all (server-enforced, see A1 in the
+	// review notes), so no name filter is needed or even meaningful here any more
+	return getFileRecordsByParentId(selectedTask.value.submissionId)[0];
+});
+
+// this reviewer's own corrections, on their own container - never fetched until that container
+// exists (see load()); newest-first, matching correctionFiles from the server
+const selectedCorrectionFiles = computed((): FileRecord[] => {
+	const containerId = selectedTask.value?.feedbackContainerId;
+	if (!containerId) return [];
+
+	return getFileRecordsByParentId(containerId);
 });
 
 const load = async () => {
@@ -84,7 +114,12 @@ const load = async () => {
 	if (!tasks.value.some((task) => task.id === selectedTaskId.value)) {
 		selectedTaskId.value = tasks.value[0]?.id;
 	}
-	await Promise.allSettled(tasks.value.map((task) => fetchFiles(task.submissionId, FileRecordParent.BOARDNODES)));
+	await Promise.allSettled([
+		...tasks.value.map((task) => fetchFiles(task.submissionId, FileRecordParent.BOARDNODES)),
+		...tasks.value
+			.filter((task) => task.feedbackContainerId)
+			.map((task) => fetchFiles(task.feedbackContainerId as string, FileRecordParent.BOARDNODES)),
+	]);
 	loading.value = false;
 };
 
@@ -116,6 +151,62 @@ const onDownloadFile = () => {
 	if (!record) return;
 
 	downloadFile(record.url, record.name);
+};
+
+const onDownloadCorrection = (record: FileRecord) => {
+	downloadFile(record.url, record.name);
+};
+
+const onAnnotateFile = () => {
+	const task = selectedTask.value;
+	const record = selectedFileRecord.value;
+	if (!task || !record) return;
+
+	startAnnotator(task, record);
+};
+
+const onContinueCorrection = (record: FileRecord) => {
+	const task = selectedTask.value;
+	if (!task) return;
+
+	startAnnotator(task, record);
+};
+
+const startAnnotator = (task: PeerReviewTaskResponse, record: FileRecord) => {
+	annotateError.value = false;
+	annotatorTask = task;
+	annotatorSource.value = {
+		kind: isPdfMimeType(record.mimeType) ? "pdf" : "image",
+		url: record.url,
+		name: record.name,
+	};
+};
+
+const closeAnnotator = () => {
+	annotatorSource.value = undefined;
+};
+
+const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => {
+	if (!annotatorTask) return;
+
+	try {
+		// created on first save, reused on every re-annotation after that
+		const container = await ensureReviewFeedbackContainer(annotatorTask.id);
+		if (!container) {
+			annotateError.value = true;
+			return;
+		}
+
+		const file = new File([blob], name, { type: blob.type });
+		await upload(file, container.feedbackContainerId, FileRecordParent.BOARDNODES);
+		annotateError.value = false;
+		closeAnnotator();
+		await load();
+	} catch {
+		// the file storage RPC can fail on broken records - keep the annotator open so the
+		// reviewer does not lose their strokes, and show the error in place
+		annotateError.value = true;
+	}
 };
 
 const onSubmit = async () => {

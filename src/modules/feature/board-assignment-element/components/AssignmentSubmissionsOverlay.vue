@@ -58,12 +58,16 @@
 					/>
 					<VBtn
 						v-if="peerReviewEnabled"
-						icon
-						variant="text"
+						variant="tonal"
+						size="small"
+						:prepend-icon="mdiAccountMultipleOutline"
 						data-testid="peer-review-manage-button"
 						@click="showPeerReviewPanel = true"
 					>
-						<VIcon :icon="mdiAccountMultipleOutline" />
+						{{ t("components.cardElement.assignmentElement.peerReview.manageButton") }}
+						<VChip size="x-small" class="ml-2" data-testid="peer-review-manage-button-count">
+							{{ assignedSubmissionCount }}/{{ reviewableSubmissionCount }}
+						</VChip>
 					</VBtn>
 					<VMenu>
 						<template #activator="{ props: menuProps }">
@@ -231,6 +235,7 @@
 								@view-feedback="openFeedbackFile"
 								@continue-feedback="onContinueFeedback"
 								@download-feedback="(record) => downloadFile(record.url, record.name)"
+								@download-peer-review-file="onDownloadPeerReviewFile"
 								@start-recording="startRecording(selectedSubmission)"
 								@stop-recording="stopRecording"
 								@upload-recording="uploadRecording(selectedSubmission)"
@@ -283,13 +288,15 @@
 			:element-id="element.id"
 			:mode="element.content.peerReviewMode"
 			:submissions="submissions"
+			:assignments="peerReviewAssignments"
 			@close="showPeerReviewPanel = false"
+			@changed="loadPeerReviewAssignments"
 		/>
 	</VDialog>
 </template>
 
 <script setup lang="ts">
-import { isFeedbackAudioName, isFeedbackName, latestFeedbackFileNames } from "../feedback-files.util";
+import { isFeedbackAudioName, latestFeedbackFileNames } from "../feedback-files.util";
 import { useAssignmentFilePreview } from "../file-preview.composable";
 import AssignmentPdfAnnotator, { type AnnotatorSource } from "./AssignmentPdfAnnotator.vue";
 import AssignmentSubmissionDetail from "./AssignmentSubmissionDetail.vue";
@@ -299,11 +306,11 @@ import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { AudioRecorder } from "@/utils/audio-recorder";
 import { escapeCsvFormulaInjection } from "@/utils/csv";
 import { formatUtc } from "@/utils/date-time.utils";
-import { downloadFile, isPdfMimeType } from "@/utils/fileHelper";
+import { downloadBlob, downloadFile, isPdfMimeType, sanitizeZipPathSegment } from "@/utils/fileHelper";
 import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
-import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import { AssignmentStatus, AssignmentSubmissionResponse, PeerReviewAssignmentResponse } from "@api-server";
 import { notifyError, notifySuccess } from "@data-app";
-import { useAssignmentApi } from "@data-assignment";
+import { useAssignmentApi, usePeerReviewApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
 import {
 	mdiAccountMultipleOutline,
@@ -338,7 +345,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { smAndDown } = useDisplay();
-const { fetchSubmissions, gradeSubmission, returnSubmission, returnSubmissionsBatch } = useAssignmentApi();
+const { fetchSubmissions, ensureFeedbackContainer, gradeSubmission, returnSubmission, returnSubmissionsBatch } =
+	useAssignmentApi();
+const { listAssignments } = usePeerReviewApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 const { openPreview } = useAssignmentFilePreview();
@@ -378,6 +387,24 @@ const maxPoints = computed(() => props.element.content.maxPoints ?? null);
 const criteria = computed(() => props.element.content.criteria ?? []);
 const peerReviewEnabled = computed(() => props.element.content.peerReviewEnabled);
 const showPeerReviewPanel = ref(false);
+const peerReviewAssignments = ref<PeerReviewAssignmentResponse[]>([]);
+
+// the button's counter, so the current state is visible without opening the dialog - see the
+// bug notes on the button being too easy to miss
+const reviewableSubmissionCount = computed(
+	() => submissions.value.filter((submission) => submission.id !== null).length
+);
+const assignedSubmissionCount = computed(
+	() => new Set(peerReviewAssignments.value.map((assignment) => assignment.submissionId)).size
+);
+
+const loadPeerReviewAssignments = async () => {
+	if (!peerReviewEnabled.value) {
+		peerReviewAssignments.value = [];
+		return;
+	}
+	peerReviewAssignments.value = (await listAssignments(props.element.id)) ?? [];
+};
 
 const statusFilters = computed(() => [
 	{ key: "all", label: t("components.cardElement.assignmentElement.filter.all") },
@@ -512,19 +539,46 @@ const load = async () => {
 	const list = await fetchSubmissions(props.element.id);
 	submissions.value = list?.submissions ?? [];
 
-	// previews and audio players need the file records (url, preview status) -
-	// one request per submission, tolerating individual failures
-	await Promise.allSettled(
-		submissions.value
-			.filter((submission) => submission.id !== null)
-			.map((submission) => fetchFiles(submission.id as string, FileRecordParent.BOARDNODES))
+	// previews and audio players need the file records (url, preview status) - one request per
+	// submission and, separately, one per feedback container (only submissions a teacher has
+	// already attached feedback to have one), tolerating individual failures
+	// one request per peer reviewer's own correction container - only reviews that already
+	// have one (most don't, until the reviewer opens the annotator)
+	const peerReviewContainerIds = submissions.value.flatMap(
+		(submission) =>
+			submission.peerReviewFeedback?.map((review) => review.feedbackContainerId).filter((id): id is string => !!id) ??
+			[]
 	);
+
+	await Promise.allSettled([
+		...submissions.value
+			.filter((submission) => submission.id !== null)
+			.map((submission) => fetchFiles(submission.id as string, FileRecordParent.BOARDNODES)),
+		...submissions.value
+			.filter((submission) => submission.feedbackContainerId)
+			.map((submission) => fetchFiles(submission.feedbackContainerId as string, FileRecordParent.BOARDNODES)),
+		...peerReviewContainerIds.map((containerId) => fetchFiles(containerId, FileRecordParent.BOARDNODES)),
+		loadPeerReviewAssignments(),
+	]);
 
 	loading.value = false;
 };
 
+const onDownloadPeerReviewFile = (payload: { containerId: string; fileRecordId: string; name: string }) => {
+	if (!payload.containerId) return;
+	const record = getFileRecordsByParentId(payload.containerId).find(
+		(candidate) => candidate.id === payload.fileRecordId
+	);
+	if (!record) return;
+
+	downloadFile(record.url, record.name);
+};
+
 const recordsOf = (submission: AssignmentSubmissionResponse) =>
 	submission.id ? getFileRecordsByParentId(submission.id) : [];
+
+const feedbackRecordsOf = (submission: AssignmentSubmissionResponse) =>
+	submission.feedbackContainerId ? getFileRecordsByParentId(submission.feedbackContainerId) : [];
 
 // userId -> fileRecordId of a version explicitly picked via the version switcher;
 // falls back to the current (latest) submission file when nothing is selected
@@ -539,7 +593,8 @@ const onSelectVersionOfSelected = (fileRecordId: string) => {
 };
 
 const submissionFileRecord = (submission: AssignmentSubmissionResponse) => {
-	const records = recordsOf(submission).filter((record) => !isFeedbackName(record.name));
+	// the submission node only ever holds the student's own files now - nothing to filter by name
+	const records = recordsOf(submission);
 	// the version switcher can point at an older upload; with nothing picked, fall back to
 	// the server's notion of "latest" (submission.file) rather than array order
 	const wantedId = selectedVersionId.value[submission.userId] ?? submission.file?.fileRecordId;
@@ -549,15 +604,15 @@ const submissionFileRecord = (submission: AssignmentSubmissionResponse) => {
 };
 
 const feedbackAudioRecord = (submission: AssignmentSubmissionResponse) =>
-	recordsOf(submission).find((record) => isFeedbackAudioName(record.name));
+	feedbackRecordsOf(submission).find((record) => isFeedbackAudioName(record.name));
 
 // Only the newest correction per kind (pdf/image) is offered - re-annotating a
 // correction creates a new version and the server returns feedback files newest first.
 const latestFeedbackFileRecords = (submission: AssignmentSubmissionResponse): FileRecord[] => {
 	const latestNames = latestFeedbackFileNames(submission.feedbackFiles);
 	const byName = new Map(
-		recordsOf(submission)
-			.filter((record) => isFeedbackName(record.name) && !isFeedbackAudioName(record.name))
+		feedbackRecordsOf(submission)
+			.filter((record) => !isFeedbackAudioName(record.name))
 			.map((record) => [record.name, record])
 	);
 
@@ -583,7 +638,10 @@ const annotatorSource = ref<AnnotatorSource | undefined>(undefined);
 const annotatorSaving = ref(false);
 const annotateError = ref(false);
 const annotatorStudentName = ref<string | undefined>(undefined);
-let annotatorSubmissionId: string | null = null;
+// the submission being annotated, not just its id - ensureFeedbackContainer needs it at save
+// time (see onAnnotatorSave), and it's only resolved lazily so opening the annotator never
+// blocks on a network round trip
+let annotatorSubmission: AssignmentSubmissionResponse | undefined;
 
 const studentNameOf = (submission: AssignmentSubmissionResponse) =>
 	`${submission.firstName ?? ""} ${submission.lastName ?? ""}`.trim() || undefined;
@@ -597,7 +655,7 @@ const openAnnotator = (submission: AssignmentSubmissionResponse) => {
 
 const startAnnotator = (submission: AssignmentSubmissionResponse, record: FileRecord) => {
 	annotateError.value = false;
-	annotatorSubmissionId = submission.id ?? null;
+	annotatorSubmission = submission;
 	annotatorStudentName.value = studentNameOf(submission);
 	annotatorSource.value = {
 		kind: isPdfMimeType(record.mimeType) ? "pdf" : "image",
@@ -611,12 +669,21 @@ const closeAnnotator = () => {
 };
 
 const onAnnotatorSave = async ({ blob, name }: { blob: Blob; name: string }) => {
-	if (!annotatorSubmissionId) return;
+	if (!annotatorSubmission?.id) return;
 
 	annotatorSaving.value = true;
 	try {
+		// created on first save, reused on every re-annotation after that (see
+		// ensureFeedbackContainer's doc comment) - resolved here, not at startAnnotator, so
+		// merely opening the annotator never creates a container the teacher ends up not using
+		const container = await ensureFeedbackContainer(annotatorSubmission.id);
+		if (!container) {
+			annotateError.value = true;
+			return;
+		}
+
 		const file = new File([blob], name, { type: blob.type });
-		await upload(file, annotatorSubmissionId, FileRecordParent.BOARDNODES);
+		await upload(file, container.feedbackContainerId, FileRecordParent.BOARDNODES);
 		annotateError.value = false;
 		closeAnnotator();
 		await load();
@@ -703,12 +770,25 @@ const gradeBody = (submission: AssignmentSubmissionResponse) => {
 
 	if (criteria.value.length > 0) {
 		const points = criterionPointsFor(submission);
+		// Omitted entirely - not defaulted to 0 per criterion - when nothing has been graded at
+		// all: this used to default every untouched criterion to 0 points, so clicking Save or
+		// Return on a completely ungraded rubric submission silently graded it as 0 across every
+		// criterion instead of failing. The server rejects a rubric grade request with no
+		// criterionPoints at all, which now surfaces as an explicit error instead of a wrong save.
+		const hasAnyPoints = criteria.value.some(
+			(criterion) => points[criterion.id] !== null && points[criterion.id] !== undefined
+		);
+
 		return {
 			feedbackComment,
-			criterionPoints: criteria.value.map((criterion) => ({
-				criterionId: criterion.id,
-				points: points[criterion.id] ?? 0,
-			})),
+			...(hasAnyPoints
+				? {
+						criterionPoints: criteria.value.map((criterion) => ({
+							criterionId: criterion.id,
+							points: points[criterion.id] ?? 0,
+						})),
+					}
+				: {}),
 		};
 	}
 
@@ -782,6 +862,9 @@ const downloadSubmissionFile = async (submission: AssignmentSubmissionResponse) 
 };
 
 const startRecording = async (submission: AssignmentSubmissionResponse) => {
+	// a still-running recorder (e.g. starting a second recording without discarding the first)
+	// must release its microphone before this instance replaces it
+	recorder?.dispose();
 	recorder = new AudioRecorder();
 	try {
 		await recorder.start();
@@ -807,6 +890,10 @@ const discardRecording = () => {
 	recordedAudio.value = undefined;
 	recordingUserId.value = undefined;
 	recordingTargetUserId.value = undefined;
+	// releases the microphone if a recording was in progress (discarding without ever having
+	// stopped it) - stop() already released it for the already-stopped case, dispose() is a
+	// no-op there
+	recorder?.dispose();
 	recorder = undefined;
 };
 
@@ -815,10 +902,13 @@ const uploadRecording = async (submission: AssignmentSubmissionResponse) => {
 
 	uploadingAudioUserId.value = submission.userId;
 	try {
+		const container = await ensureFeedbackContainer(submission.id);
+		if (!container) return;
+
 		const blob = recordedAudio.value.blob;
 		const extension = AudioRecorder.getExtension(blob.type);
 		const file = new File([blob], `${FEEDBACK_AUDIO_PREFIX}${Date.now()}.${extension}`, { type: blob.type });
-		await upload(file, submission.id, FileRecordParent.BOARDNODES);
+		await upload(file, container.feedbackContainerId, FileRecordParent.BOARDNODES);
 		discardRecording();
 		await load();
 	} finally {
@@ -882,9 +972,7 @@ const exportCsv = () => {
 
 		// BOM so Excel opens UTF-8 umlauts correctly
 		const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
-		const url = URL.createObjectURL(blob);
-		downloadFile(url, `${csvFileNameBase()}.csv`);
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `${csvFileNameBase()}.csv`);
 	} finally {
 		isCsvExporting.value = false;
 	}
@@ -906,7 +994,7 @@ const downloadArchive = async () => {
 			const records = recordsOf(submission).filter((record) => !record.isUploading);
 			if (records.length === 0) continue;
 
-			let folder = nameOf(submission);
+			let folder = sanitizeZipPathSegment(nameOf(submission));
 			const seen = usedNames.get(folder) ?? 0;
 			usedNames.set(folder, seen + 1);
 			if (seen > 0) {
@@ -918,20 +1006,22 @@ const downloadArchive = async () => {
 				if (!response.ok) {
 					continue;
 				}
-				zip.file(`${folder}/${record.name}`, await response.blob());
+				zip.file(`${folder}/${sanitizeZipPathSegment(record.name)}`, await response.blob());
 			}
 		}
 
 		const blob = await zip.generateAsync({ type: "blob" });
-		const url = URL.createObjectURL(blob);
-		downloadFile(url, `${csvFileNameBase()}-Abgaben.zip`);
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `${csvFileNameBase()}-Abgaben.zip`);
 	} finally {
 		isArchiveExporting.value = false;
 	}
 };
 
 const onClose = () => {
+	// the overlay stays mounted while closed (v-model, not v-if) - closing mid-recording must
+	// still release the microphone, not just leave it running until the overlay is reopened
+	// (the reload watcher below only cleans up on open, not on close)
+	discardRecording();
 	emit("close");
 };
 
