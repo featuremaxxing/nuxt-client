@@ -13,6 +13,11 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 	const pinnedCardIds = ref<Set<string>>(new Set());
 	const isLoaded = ref(false);
 
+	// Counts changes the server has acknowledged. The pin button follows
+	// pinnedCardIds optimistically, but the learning room must not reload its board
+	// before the pointer is actually gone - it would just fetch the card back.
+	const confirmedChangeCount = ref(0);
+
 	const api = useLearningRoomApi();
 
 	// A pin changes two places at once: the card in its room and the entry in the
@@ -39,6 +44,7 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 	watch(incomingChange, (change) => {
 		if (change) {
 			applyChange(change);
+			confirmedChangeCount.value++;
 		}
 	});
 
@@ -87,8 +93,11 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 
 		const succeeded = wasPinned ? await api.unpinCard(cardId) : await api.pinCard(cardId);
 
-		if (succeeded && isSupported.value) {
-			post({ cardId, isPinned: !wasPinned });
+		if (succeeded) {
+			confirmedChangeCount.value++;
+			if (isSupported.value) {
+				post({ cardId, isPinned: !wasPinned });
+			}
 		}
 
 		if (!succeeded) {
@@ -102,5 +111,5 @@ export const usePinnedCardsStore = defineStore("pinnedCardsStore", () => {
 		}
 	};
 
-	return { pinnedCardIds, isLoaded, ensureLoaded, reload, isPinned, togglePin };
+	return { pinnedCardIds, isLoaded, confirmedChangeCount, ensureLoaded, reload, isPinned, togglePin };
 });

@@ -54,8 +54,10 @@ onMounted(async () => {
 	// Unpinning goes through the learning room api, so the board store never hears
 	// about it and the card would sit there until a reload. The same watcher also
 	// catches pins made in another tab, which arrive via the broadcast channel.
+	// deliberately not pinnedCardIds: that updates optimistically, and reloading
+	// before the server has removed the pointer would fetch the card straight back
 	watch(
-		() => pinnedCardsStore.pinnedCardIds,
+		() => pinnedCardsStore.confirmedChangeCount,
 		async () => {
 			await boardStore.reloadBoard();
 		}

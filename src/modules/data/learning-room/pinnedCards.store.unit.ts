@@ -73,6 +73,28 @@ describe("pinnedCardsStore", () => {
 			expect(store.isPinned("card-1")).toBe(false);
 		});
 
+		// the learning room reloads its board on this counter, so it must only move
+		// once the pointer is really gone on the server
+		it("should count a change only after the server confirmed it", async () => {
+			setup();
+			const store = usePinnedCardsStore();
+
+			expect(store.confirmedChangeCount).toBe(0);
+
+			await store.togglePin("card-1");
+
+			expect(store.confirmedChangeCount).toBe(1);
+		});
+
+		it("should not count a failed change", async () => {
+			setup({ pinSucceeds: false });
+			const store = usePinnedCardsStore();
+
+			await store.togglePin("card-1");
+
+			expect(store.confirmedChangeCount).toBe(0);
+		});
+
 		it("should roll back when the request fails", async () => {
 			setup({ pinSucceeds: false });
 			const store = usePinnedCardsStore();
