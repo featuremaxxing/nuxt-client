@@ -477,6 +477,22 @@ describe("BoardApi.composable", () => {
 			expect(roomsApi.courseRoomsControllerGetRoomBoard).toHaveBeenCalledWith(FAKE_RESPONSE.data.id);
 		});
 
+		// a learning room lives directly under the user - asking the course api with a
+		// user id answered "CourseEntity has not been found" and broke the whole page
+		it("should not look up a course for a personal board", async () => {
+			const { getContextInfo } = useBoardApi();
+
+			boardApi.boardControllerGetBoardContext = vi.fn().mockResolvedValueOnce({
+				status: 200,
+				data: { id: "userId123", type: "user" },
+			});
+
+			const result = await getContextInfo("MY_BOARD_ID123");
+
+			expect(roomsApi.courseRoomsControllerGetRoomBoard).not.toHaveBeenCalled();
+			expect(result).toBeUndefined();
+		});
+
 		it("should return id and name of the parent course/room", async () => {
 			const { getContextInfo } = useBoardApi();
 
