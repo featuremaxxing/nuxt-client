@@ -59,6 +59,12 @@ export interface PollContentBody {
      * @type {string}
      * @memberof PollContentBody
      */
+    opensAt?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof PollContentBody
+     */
     closesAt?: string;
     /**
      *
@@ -72,6 +78,12 @@ export interface PollContentBody {
      * @memberof PollContentBody
      */
     audienceRoles?: Array<BoardRoles>;
+    /**
+     *
+     * @type {boolean}
+     * @memberof PollContentBody
+     */
+    allowVoteChange?: boolean;
 }
 
 

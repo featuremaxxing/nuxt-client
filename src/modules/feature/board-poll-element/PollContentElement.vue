@@ -37,6 +37,12 @@
 				@open:analysis="showAnalysis = true"
 			/>
 
+			<!-- Not mutually exclusive with PollResults below: with showResultsLive on, a voter who
+			     still has an unanswered question (newly added, or originally skipped) sees the
+			     form for it here while the live results stay visible underneath - see
+			     showVoteForm/showResults and hasUnansweredQuestions. -->
+			<PollVoteForm v-if="showVoteForm" :element="element" :existing-answers="pollState.myVote" @voted="onVoted" />
+
 			<PollResults
 				v-if="showResults"
 				:element="element"
@@ -45,11 +51,14 @@
 				:is-editor="canManagePoll"
 			/>
 
-			<PollVoteForm v-else-if="showVoteForm" :element="element" :existing-answers="pollState.myVote" @voted="onVoted" />
-
-			<VCardText v-else-if="hasVoted && !element.content.showResultsLive">
+			<VCardText v-if="!showVoteForm && hasVoted && !element.content.showResultsLive">
 				<p>{{ t("components.cardElement.pollElement.voteRecorded") }}</p>
-				<VBtn variant="text" data-testid="poll-change-vote" @click="isChangingVote = true">
+				<VBtn
+					v-if="element.content.allowVoteChange"
+					variant="text"
+					data-testid="poll-change-vote"
+					@click="isChangingVote = true"
+				>
 					{{ t("components.cardElement.pollElement.changeVote") }}
 				</VBtn>
 			</VCardText>
@@ -133,11 +142,27 @@ const { isOpen: isPollOpen } = usePollOpenState(element);
 // enforces the real visibility rule by never sending `voters` to non-managers.
 const canOpenAnalysis = computed(() => canManagePoll.value || element.value.content.pollStatus === PollStatus.CLOSED);
 
+// Whether at least one of the poll's current questions has no real answer in myVote yet -
+// either it was skipped originally, or it was added to the poll after this person already
+// voted. Mirrors the server's isAnsweredPollQuestion (poll-answer.ts) so both sides agree on
+// what counts as "answered"; PollVoteForm.vue applies the same rule per-question to decide
+// which fields stay editable.
+const hasUnansweredQuestions = computed(() => {
+	const myVote = pollState.value.myVote;
+	if (!myVote) return false;
+
+	return element.value.content.questions.some((question) => {
+		const answer = myVote.find((candidate) => candidate.questionId === question.id);
+		return !answer || (answer.selectedOptionIds.length === 0 && !answer.textAnswer?.trim());
+	});
+});
+
 // An eligible voter (canVote, per the poll's audience) sees the vote form until they've
 // voted; this can be a teacher too once audience is TEACHERS/ALL, independent of
-// canManagePoll. Everyone else - a manager who isn't in the audience, or a voter who has
-// already voted and either the poll shows live results or is closed (frozen snapshot) -
-// sees the aggregate results instead.
+// canManagePoll. A voter who has already voted sees it again if they explicitly asked to
+// change their answers (allowVoteChange only), or - regardless of allowVoteChange - if a
+// question they haven't answered yet exists (hasUnansweredQuestions): that reopening is not
+// a "change", just reaching a question that was never answered in the first place.
 const showVoteForm = computed(() => {
 	if (!canVote.value) return false;
 	// Mirrors the server's isOpen(now) check (see usePollOpenState) rather than just pollStatus:
@@ -145,11 +170,17 @@ const showVoteForm = computed(() => {
 	// closes it, but the server already rejects votes for it - the form must not invite a vote
 	// that would just fail with a generic error.
 	if (!isPollOpen.value) return false;
-	return !hasVoted.value || isChangingVote.value;
+	return !hasVoted.value || isChangingVote.value || hasUnansweredQuestions.value;
 });
 
+// Exclusive of showVoteForm in the two cases where that was always true - voting for the
+// first time, and an explicit "change my answers" - the form is the only thing shown while
+// filling it in from scratch. But once a vote exists and the form is only showing because of
+// a still-unanswered question (hasUnansweredQuestions, not isChangingVote), it no longer
+// blocks results: they coexist, per the template comment.
 const showResults = computed(() => {
-	if (showVoteForm.value) return false;
+	const formBlocksResults = showVoteForm.value && (!hasVoted.value || isChangingVote.value);
+	if (formBlocksResults) return false;
 	if (canManagePoll.value) return true;
 	if (element.value.content.pollStatus === PollStatus.CLOSED) return true;
 	return hasVoted.value && element.value.content.showResultsLive && !isChangingVote.value;

@@ -117,4 +117,95 @@ describe("PollVoteForm", () => {
 
 		expect(wrapper.find("[data-testid='poll-vote-submit']").text()).toContain("changeVote");
 	});
+
+	describe("a newly-added question after the voter already answered an earlier one", () => {
+		const buildTwoQuestionElement = (allowVoteChange: boolean) =>
+			pollElementResponseFactory.build({
+				content: {
+					pollStatus: PollStatus.OPEN,
+					allowVoteChange,
+					questions: [
+						{
+							id: "q1",
+							text: "Already answered",
+							answerMode: PollAnswerMode.SINGLE,
+							chartType: PollChartType.BAR,
+							options: [
+								{ id: "o1", text: "Gut" },
+								{ id: "o2", text: "Ging so" },
+							],
+						},
+						{
+							id: "q2",
+							text: "Added afterwards",
+							answerMode: PollAnswerMode.SINGLE,
+							chartType: PollChartType.BAR,
+							options: [
+								{ id: "o3", text: "A" },
+								{ id: "o4", text: "B" },
+							],
+						},
+					],
+				},
+			});
+
+		it("disables the already-answered question when allowVoteChange is off", () => {
+			const element = buildTwoQuestionElement(false);
+			const { wrapper } = setupWrapper(element, [{ questionId: "q1", selectedOptionIds: ["o1"] }] as never);
+
+			expect(wrapper.find("[data-testid='poll-vote-radio-group-q1'] input").attributes("disabled")).toBeDefined();
+		});
+
+		it("keeps the newly-added question answerable when allowVoteChange is off", () => {
+			const element = buildTwoQuestionElement(false);
+			const { wrapper } = setupWrapper(element, [{ questionId: "q1", selectedOptionIds: ["o1"] }] as never);
+
+			expect(wrapper.find("[data-testid='poll-vote-radio-group-q2'] input").attributes("disabled")).toBeUndefined();
+		});
+
+		it("does not disable the already-answered question when allowVoteChange is on", () => {
+			const element = buildTwoQuestionElement(true);
+			const { wrapper } = setupWrapper(element, [{ questionId: "q1", selectedOptionIds: ["o1"] }] as never);
+
+			expect(wrapper.find("[data-testid='poll-vote-radio-group-q1'] input").attributes("disabled")).toBeUndefined();
+		});
+
+		it("submits the locked question's answer unchanged alongside the new answer", async () => {
+			const element = buildTwoQuestionElement(false);
+			const { wrapper } = setupWrapper(element, [{ questionId: "q1", selectedOptionIds: ["o1"] }] as never);
+
+			await wrapper.find("[data-testid='poll-vote-radio-group-q2'] input").trigger("click");
+			await wrapper.find("[data-testid='poll-vote-submit']").trigger("click");
+			await wrapper.vm.$nextTick();
+
+			expect(castVoteViaSocketMock).toHaveBeenCalledWith({
+				elementId: element.id,
+				answers: expect.arrayContaining([{ questionId: "q1", selectedOptionIds: ["o1"] }]),
+			});
+		});
+
+		it("disables the submit button once every question is locked", () => {
+			const element = pollElementResponseFactory.build({
+				content: {
+					pollStatus: PollStatus.OPEN,
+					allowVoteChange: false,
+					questions: [
+						{
+							id: "q1",
+							text: "Already answered",
+							answerMode: PollAnswerMode.SINGLE,
+							chartType: PollChartType.BAR,
+							options: [
+								{ id: "o1", text: "Gut" },
+								{ id: "o2", text: "Ging so" },
+							],
+						},
+					],
+				},
+			});
+			const { wrapper } = setupWrapper(element, [{ questionId: "q1", selectedOptionIds: ["o1"] }] as never);
+
+			expect(wrapper.find("[data-testid='poll-vote-submit']").attributes("disabled")).toBeDefined();
+		});
+	});
 });

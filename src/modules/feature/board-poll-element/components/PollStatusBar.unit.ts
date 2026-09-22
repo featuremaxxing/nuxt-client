@@ -109,6 +109,61 @@ describe("PollStatusBar", () => {
 		});
 	});
 
+	describe("start/close chips", () => {
+		it("shows a start chip when opensAt is set", () => {
+			const element = pollElementResponseFactory.build({
+				content: { pollStatus: PollStatus.DRAFT, opensAt: "2026-03-04T08:30:00.000Z" },
+			});
+			const { wrapper } = setupWrapper({ element });
+
+			expect(wrapper.find("[data-testid='poll-start-date-chip']").exists()).toBe(true);
+		});
+
+		it("does not show a start chip when opensAt is not set", () => {
+			const element = pollElementResponseFactory.build({ content: { pollStatus: PollStatus.DRAFT, opensAt: null } });
+			const { wrapper } = setupWrapper({ element });
+
+			expect(wrapper.find("[data-testid='poll-start-date-chip']").exists()).toBe(false);
+		});
+
+		it("shows a closes-at chip when closesAt is set", () => {
+			const element = pollElementResponseFactory.build({
+				content: { pollStatus: PollStatus.DRAFT, closesAt: "2026-03-04T09:30:00.000Z" },
+			});
+			const { wrapper } = setupWrapper({ element });
+
+			expect(wrapper.find("[data-testid='poll-closes-at-chip']").exists()).toBe(true);
+		});
+
+		it("shows 'starts on ...' instead of a countdown while the poll is open but opensAt is still in the future", () => {
+			const element = pollElementResponseFactory.build({
+				content: {
+					pollStatus: PollStatus.OPEN,
+					opensAt: "2099-01-01T00:00:00.000Z",
+					closesAt: "2099-01-02T00:00:00.000Z",
+				},
+			});
+			const { wrapper } = setupWrapper({ element });
+
+			const remaining = wrapper.find("[data-testid='poll-remaining-time']");
+			expect(remaining.exists()).toBe(true);
+			expect(remaining.text()).not.toContain("min");
+		});
+
+		it("shows the usual countdown once opensAt has passed", () => {
+			const element = pollElementResponseFactory.build({
+				content: {
+					pollStatus: PollStatus.OPEN,
+					opensAt: "2020-01-01T00:00:00.000Z",
+					closesAt: "2099-01-02T00:00:00.000Z",
+				},
+			});
+			const { wrapper } = setupWrapper({ element });
+
+			expect(wrapper.find("[data-testid='poll-remaining-time']").exists()).toBe(true);
+		});
+	});
+
 	describe("analysis button", () => {
 		it("is visible for an editor", () => {
 			const { wrapper } = setupWrapper({ isEditor: true, canOpenAnalysis: true });

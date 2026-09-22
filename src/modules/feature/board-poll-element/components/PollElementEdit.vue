@@ -36,7 +36,7 @@
 				<VBtn
 					icon
 					variant="text"
-					:disabled="modelValue.questions.length <= 1"
+					:disabled="modelValue.questions.length <= 1 || hasVotes"
 					:data-testid="`poll-question-remove-${questionIndex}`"
 					@click="removeQuestion(questionIndex)"
 				>
@@ -49,6 +49,9 @@
 					:model-value="question.answerMode"
 					:items="answerModeItems"
 					:label="t('components.cardElement.pollElement.answerModeLabel')"
+					:disabled="hasVotes"
+					:hint="hasVotes ? t('components.cardElement.pollElement.structureLockedHint') : undefined"
+					persistent-hint
 					:data-testid="`poll-question-answer-mode-${questionIndex}`"
 					@update:model-value="(value: PollAnswerMode) => (question.answerMode = value)"
 				/>
@@ -73,7 +76,7 @@
 					<VBtn
 						icon
 						variant="text"
-						:disabled="question.options.length <= MIN_OPTIONS"
+						:disabled="question.options.length <= MIN_OPTIONS || hasVotes"
 						:data-testid="`poll-option-remove-${questionIndex}-${optionIndex}`"
 						@click="removeOption(question, optionIndex)"
 					>
@@ -110,13 +113,19 @@
 			data-testid="poll-live-results-toggle"
 			@update:model-value="(value: boolean | null) => (modelValue.showResultsLive = !!value)"
 		/>
+		<VSwitch
+			:model-value="modelValue.allowVoteChange"
+			:label="t('components.cardElement.pollElement.allowVoteChange')"
+			data-testid="poll-allow-vote-change-toggle"
+			@update:model-value="(value: boolean | null) => (modelValue.allowVoteChange = !!value)"
+		/>
 
 		<VSelect
 			:model-value="modelValue.audience"
 			:items="audienceItems"
 			:label="t('components.cardElement.pollElement.audienceLabel')"
-			:disabled="audienceLocked"
-			:hint="audienceLocked ? t('components.cardElement.pollElement.audienceLockedHint') : undefined"
+			:disabled="hasVotes"
+			:hint="hasVotes ? t('components.cardElement.pollElement.audienceLockedHint') : undefined"
 			persistent-hint
 			data-testid="poll-audience-select"
 			@update:model-value="(value: PollAudience) => (modelValue.audience = value)"
@@ -128,7 +137,7 @@
 				:key="role.value"
 				:model-value="(modelValue.audienceRoles ?? []).includes(role.value)"
 				:label="role.title"
-				:disabled="audienceLocked"
+				:disabled="hasVotes"
 				density="compact"
 				hide-details
 				:data-testid="`poll-audience-role-${role.value}`"
@@ -136,8 +145,17 @@
 			/>
 		</div>
 
-		<ClosesAtField
+		<PollDateTimeField
+			:model-value="modelValue.opensAt ?? undefined"
+			:date-label="t('components.cardElement.pollElement.opensAtLabel')"
+			show-now-button
+			data-testid="poll-opens-at"
+			@update:model-value="(value?: string) => (modelValue.opensAt = value)"
+		/>
+		<PollDateTimeField
 			:model-value="modelValue.closesAt ?? undefined"
+			:date-label="t('components.cardElement.pollElement.closesAt')"
+			data-testid="poll-closes-at"
 			@update:model-value="(value?: string) => (modelValue.closesAt = value)"
 		/>
 
@@ -159,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import ClosesAtField from "./ClosesAtField.vue";
+import PollDateTimeField from "./PollDateTimeField.vue";
 import { PollElement } from "@/types/board/ContentElement";
 import {
 	BoardRoles,
@@ -188,14 +206,16 @@ const { modelValue } = useContentElementState(props, { autoSaveDebounce: 400 });
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 10;
 
-// The audience is locked once votes exist (see U-R4 / ContentElementUpdateService -
-// the server rejects the change with a ConflictException regardless; this is only the
-// UX-level heads-up so a teacher doesn't hit that error unexpectedly). Results aren't
+// The audience, and the ability to remove a question/option or change a question's answer
+// mode, are locked once votes exist (see U-R4 and assertPollStructureOnlyGrew in
+// ContentElementUpdateService - the server rejects any of these with a ConflictException
+// regardless; this is only the UX-level heads-up so a teacher doesn't hit that error
+// unexpectedly). Adding a new question or option stays available either way. Results aren't
 // otherwise fetched while editing (see PollContentElement.vue's onMounted), so this
 // component fetches them itself to know whether any vote has been cast yet.
 const { getState, fetchPollResults } = usePollsStore();
 onMounted(() => fetchPollResults(props.element.id));
-const audienceLocked = computed(() => getState(props.element.id).totalVotes > 0);
+const hasVotes = computed(() => getState(props.element.id).totalVotes > 0);
 
 const audienceItems = [
 	{ title: t("components.cardElement.pollElement.audience.students"), value: PollAudience.STUDENTS },

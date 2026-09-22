@@ -50,13 +50,19 @@ export interface PollElementContent {
      */
     showResultsLive: boolean;
     /**
-     * 
+     *
      * @type {PollStatus}
      * @memberof PollElementContent
      */
     pollStatus: PollStatus;
     /**
-     * 
+     *
+     * @type {string}
+     * @memberof PollElementContent
+     */
+    opensAt?: string | null;
+    /**
+     *
      * @type {string}
      * @memberof PollElementContent
      */
@@ -79,6 +85,12 @@ export interface PollElementContent {
      * @memberof PollElementContent
      */
     audienceRoles?: Array<BoardRoles>;
+    /**
+     * whether a voter may revise an already-submitted answer
+     * @type {boolean}
+     * @memberof PollElementContent
+     */
+    allowVoteChange: boolean;
 }
 
 

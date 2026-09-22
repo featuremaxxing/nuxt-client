@@ -34,7 +34,7 @@ describe("PollElementEdit", () => {
 		const wrapper = mount(PollElementEdit, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
-				stubs: { ClosesAtField: true },
+				stubs: { PollDateTimeField: true },
 			},
 			props: {
 				element: usedElement,
@@ -131,6 +131,66 @@ describe("PollElementEdit", () => {
 			setupWrapper();
 
 			expect(fetchPollResultsMock).toHaveBeenCalled();
+		});
+	});
+
+	describe("allowVoteChange toggle", () => {
+		it("reflects the current value", () => {
+			const element = pollElementResponseFactory.build();
+			element.content.allowVoteChange = true;
+			const { wrapper } = setupWrapper(element);
+
+			const input = wrapper.find<HTMLInputElement>("[data-testid='poll-allow-vote-change-toggle'] input");
+			expect(input.element.checked).toBe(true);
+		});
+
+		it("updates the model value when toggled", async () => {
+			const element = pollElementResponseFactory.build();
+			element.content.allowVoteChange = false;
+			const { wrapper } = setupWrapper(element);
+
+			await wrapper.find("[data-testid='poll-allow-vote-change-toggle'] input").setValue(true);
+
+			expect(element.content.allowVoteChange).toBe(true);
+		});
+	});
+
+	describe("locking the poll structure once votes exist", () => {
+		it("does not disable removing a question or option while no vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 0 });
+			const { wrapper } = setupWrapper();
+
+			expect(wrapper.find("[data-testid='poll-question-answer-mode-0'] input").attributes("disabled")).toBeUndefined();
+		});
+
+		it("disables changing an existing question's answer mode once a vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 1 });
+			const { wrapper } = setupWrapper();
+
+			expect(wrapper.find("[data-testid='poll-question-answer-mode-0'] input").attributes("disabled")).toBeDefined();
+		});
+
+		it("disables removing an option once a vote has been cast, even above the minimum", () => {
+			const element = pollElementResponseFactory.build();
+			element.content.questions[0].options.push({ id: "extra-option", text: "Extra" });
+			getStateMock.mockReturnValue({ totalVotes: 1 });
+			const { wrapper } = setupWrapper(element);
+
+			expect(wrapper.find("[data-testid='poll-option-remove-0-0']").attributes("disabled")).toBeDefined();
+		});
+
+		it("still allows adding a new question once a vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 1 });
+			const { wrapper } = setupWrapper();
+
+			expect(wrapper.find("[data-testid='poll-add-question']").attributes("disabled")).toBeUndefined();
+		});
+
+		it("still allows adding a new option once a vote has been cast", () => {
+			getStateMock.mockReturnValue({ totalVotes: 1 });
+			const { wrapper } = setupWrapper();
+
+			expect(wrapper.find("[data-testid='poll-add-option-0']").attributes("disabled")).toBeUndefined();
 		});
 	});
 });

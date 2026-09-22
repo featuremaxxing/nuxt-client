@@ -2,7 +2,7 @@ import PollContentElement from "./PollContentElement.vue";
 import { PollElement } from "@/types/board/ContentElement";
 import { pollElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { PollStatus } from "@api-server";
+import { PollAnswerMode, PollChartType, PollStatus } from "@api-server";
 import { mount } from "@vue/test-utils";
 import { computed } from "vue";
 
@@ -179,12 +179,96 @@ describe("PollContentElement", () => {
 				totalVotes: 1,
 				participantCount: 1,
 				canVote: true,
-				myVote: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+				// matches every question the element actually has, so hasUnansweredQuestions is
+				// false and the form does not reopen for what would otherwise look like a new one
+				myVote: element.content.questions.map((question) => ({
+					questionId: question.id,
+					selectedOptionIds: [question.options[0].id],
+				})),
 			},
 		});
 
 		expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
 		expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
+	});
+
+	describe("a question added to the poll after the voter already voted (the reported bug)", () => {
+		const buildTwoQuestionElement = (showResultsLive: boolean) =>
+			pollElementResponseFactory.build({
+				content: {
+					pollStatus: PollStatus.OPEN,
+					showResultsLive,
+					questions: [
+						{
+							id: "q1",
+							text: "Already answered",
+							answerMode: PollAnswerMode.SINGLE,
+							chartType: PollChartType.BAR,
+							options: [{ id: "o1", text: "A" }],
+						},
+						{
+							id: "q2",
+							text: "Added afterwards",
+							answerMode: PollAnswerMode.SINGLE,
+							chartType: PollChartType.BAR,
+							options: [{ id: "o2", text: "B" }],
+						},
+					],
+				},
+			});
+
+		it("reopens the vote form for the new question, even though the voter already voted", () => {
+			const element = buildTwoQuestionElement(false);
+			const { wrapper } = setupWrapper({
+				isEditMode: false,
+				element,
+				pollState: {
+					totalVotes: 1,
+					participantCount: 1,
+					canVote: true,
+					myVote: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+				},
+			});
+
+			expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
+		});
+
+		it("shows the form together with live results, not exclusively", () => {
+			const element = buildTwoQuestionElement(true);
+			const { wrapper } = setupWrapper({
+				isEditMode: false,
+				canEdit: false,
+				element,
+				pollState: {
+					totalVotes: 1,
+					participantCount: 1,
+					canVote: true,
+					myVote: [{ questionId: "q1", selectedOptionIds: ["o1"] }],
+				},
+			});
+
+			expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(true);
+			expect(wrapper.findComponent({ name: "PollResults" }).exists()).toBe(true);
+		});
+
+		it("does not reopen the form once every question has actually been answered", () => {
+			const element = buildTwoQuestionElement(false);
+			const { wrapper } = setupWrapper({
+				isEditMode: false,
+				element,
+				pollState: {
+					totalVotes: 1,
+					participantCount: 1,
+					canVote: true,
+					myVote: [
+						{ questionId: "q1", selectedOptionIds: ["o1"] },
+						{ questionId: "q2", selectedOptionIds: ["o2"] },
+					],
+				},
+			});
+
+			expect(wrapper.findComponent({ name: "PollVoteForm" }).exists()).toBe(false);
+		});
 	});
 
 	it("shows the poll title", () => {

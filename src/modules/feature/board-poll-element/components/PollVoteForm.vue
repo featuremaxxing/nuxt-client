@@ -1,11 +1,20 @@
 <template>
 	<VCardText class="poll-vote-form">
 		<div v-for="question in element.content.questions" :key="question.id" class="poll-vote-question">
-			<p class="poll-vote-question-text">{{ question.text }}</p>
+			<p class="poll-vote-question-text">
+				{{ question.text }}
+				<VChip v-if="isLocked(question.id)" size="x-small" variant="outlined" class="ml-1">
+					{{ t("components.cardElement.pollElement.answerLocked") }}
+				</VChip>
+				<VChip v-else-if="isNewQuestion(question.id)" size="x-small" color="primary" variant="flat" class="ml-1">
+					{{ t("components.cardElement.pollElement.newQuestions") }}
+				</VChip>
+			</p>
 
 			<VRadioGroup
 				v-if="question.answerMode === PollAnswerMode.SINGLE"
 				:model-value="singleSelections[question.id]"
+				:disabled="isLocked(question.id)"
 				:data-testid="`poll-vote-radio-group-${question.id}`"
 				hide-details
 				@update:model-value="(value: string | null) => (singleSelections[question.id] = value ?? undefined)"
@@ -19,6 +28,7 @@
 					:key="option.id"
 					:model-value="isChecked(question.id, option.id)"
 					:label="option.text"
+					:disabled="isLocked(question.id)"
 					hide-details
 					:data-testid="`poll-vote-checkbox-${question.id}-${option.id}`"
 					@update:model-value="(checked: boolean | null) => toggleOption(question.id, option.id, !!checked)"
@@ -29,6 +39,7 @@
 				v-else
 				:model-value="textAnswers[question.id]"
 				:label="t('components.cardElement.pollElement.freeTextAnswer')"
+				:disabled="isLocked(question.id)"
 				auto-grow
 				rows="2"
 				:data-testid="`poll-vote-textarea-${question.id}`"
@@ -36,7 +47,12 @@
 			/>
 		</div>
 
-		<VBtn color="primary" data-testid="poll-vote-submit" :disabled="submitting" @click="onSubmit">
+		<VBtn
+			color="primary"
+			data-testid="poll-vote-submit"
+			:disabled="submitting || !hasEditableQuestion"
+			@click="onSubmit"
+		>
 			{{
 				hasExistingAnswers
 					? t("components.cardElement.pollElement.changeVote")
@@ -50,7 +66,7 @@
 import { PollElement } from "@/types/board/ContentElement";
 import { PollAnswerMode, PollAnswerResponse } from "@api-server";
 import { usePollSocketApi, usePollsStore } from "@data-poll";
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -68,6 +84,28 @@ const { castVoteViaSocket } = usePollSocketApi();
 
 const hasExistingAnswers = !!props.existingAnswers?.length;
 const submitting = ref(false);
+
+// Whether an answer actually holds a choice/text - mirrors the server's
+// isAnsweredPollQuestion (poll-answer.ts) so both sides agree on what "answered" means.
+const isAnswered = (answer?: PollAnswerResponse): boolean =>
+	!!answer && (answer.selectedOptionIds.length > 0 || !!answer.textAnswer?.trim());
+
+const existingAnswerFor = (questionId: string) =>
+	props.existingAnswers?.find((answer) => answer.questionId === questionId);
+
+// A question stays locked once it's been answered, unless the poll explicitly allows
+// changing answers - the server enforces the same rule (mergePollAnswers), this only keeps
+// the form from inviting an edit that would just be silently dropped, or - on the very last
+// remaining locked question in an otherwise-unchanged submission - rejected outright.
+const isLocked = (questionId: string): boolean =>
+	!props.element.content.allowVoteChange && isAnswered(existingAnswerFor(questionId));
+
+// A question with no entry at all in existingAnswers (as opposed to one that exists but was
+// left blank) was added to the poll after this person's last submission - marked distinctly
+// so a returning voter notices what's new without having to compare against their memory.
+const isNewQuestion = (questionId: string): boolean => !existingAnswerFor(questionId);
+
+const hasEditableQuestion = computed(() => props.element.content.questions.some((question) => !isLocked(question.id)));
 
 const singleSelections = reactive<Record<string, string | undefined>>({});
 const multipleSelections = reactive<Record<string, string[]>>({});

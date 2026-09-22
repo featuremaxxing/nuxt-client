@@ -36,4 +36,31 @@ describe("isPollOpenAt", () => {
 
 		expect(isPollOpenAt(element, new Date())).toBe(false);
 	});
+
+	it("is not open when the poll is OPEN but opensAt is still in the future", () => {
+		const element = buildElement({ opensAt: "2026-01-01T10:00:00.000Z" });
+
+		expect(isPollOpenAt(element, new Date("2026-01-01T09:00:00.000Z"))).toBe(false);
+	});
+
+	it("is open exactly at opensAt", () => {
+		const element = buildElement({ opensAt: "2026-01-01T10:00:00.000Z" });
+
+		expect(isPollOpenAt(element, new Date("2026-01-01T10:00:00.000Z"))).toBe(true);
+	});
+
+	it("is open once opensAt has passed and there is no closesAt", () => {
+		const element = buildElement({ opensAt: "2026-01-01T10:00:00.000Z", closesAt: null });
+
+		expect(isPollOpenAt(element, new Date("2026-01-01T11:00:00.000Z"))).toBe(true);
+	});
+
+	it("is not open once opensAt has passed but closesAt has also passed", () => {
+		const element = buildElement({
+			opensAt: "2026-01-01T10:00:00.000Z",
+			closesAt: "2026-01-01T11:00:00.000Z",
+		});
+
+		expect(isPollOpenAt(element, new Date("2026-01-01T12:00:00.000Z"))).toBe(false);
+	});
 });

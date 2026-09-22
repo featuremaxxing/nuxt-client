@@ -5,11 +5,14 @@ import { computed, ComputedRef, onBeforeUnmount, onMounted, Ref, ref } from "vue
 const TICK_INTERVAL_MS = 30000;
 
 // Mirrors the server's PollElement.isOpen(now) (poll-element.do.ts): a poll only accepts votes
-// while explicitly opened and, if a deadline is set, before it passes. Kept as a free function
-// (not just inline in the composable) so PollContentElement's vote-form gating and
-// PollStatusBar's "closed"/remaining-time label can never disagree about what "open" means.
+// while explicitly opened and, if a start/deadline is set, within that window. Kept as a free
+// function (not just inline in the composable) so PollContentElement's vote-form gating and
+// PollStatusBar's "starts in.../closes in..." labels can never disagree about what "open" means.
 export const isPollOpenAt = (element: PollElement, now: Date): boolean => {
 	if (element.content.pollStatus !== PollStatus.OPEN) return false;
+
+	const opensAt = element.content.opensAt;
+	if (opensAt && now.getTime() < new Date(opensAt).getTime()) return false;
 
 	const closesAt = element.content.closesAt;
 	if (closesAt && now.getTime() >= new Date(closesAt).getTime()) return false;

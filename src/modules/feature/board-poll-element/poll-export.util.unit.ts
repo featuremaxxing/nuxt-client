@@ -16,6 +16,7 @@ describe("poll-export.util", () => {
 			showResultsLive: false,
 			pollStatus: PollStatus.CLOSED,
 			audience: PollAudience.STUDENTS,
+			allowVoteChange: false,
 			questions: [
 				{
 					id: "q1",

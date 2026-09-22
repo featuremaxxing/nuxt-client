@@ -18,6 +18,7 @@ export const pollElementResponseFactory = Factory.define<PollElementResponse>(({
 		showResultsLive: false,
 		pollStatus: PollStatus.DRAFT,
 		audience: PollAudience.STUDENTS,
+		allowVoteChange: false,
 		questions: [
 			{
 				id: `question-${sequence}-1`,

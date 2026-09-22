@@ -9,6 +9,24 @@
 		<VChip v-if="element.content.showResultsLive" size="small" variant="outlined">
 			{{ t("components.cardElement.pollElement.liveResults") }}
 		</VChip>
+		<VChip
+			v-if="startDateLabel"
+			size="small"
+			variant="outlined"
+			:prepend-icon="mdiClockOutline"
+			data-testid="poll-start-date-chip"
+		>
+			{{ startDateLabel }}
+		</VChip>
+		<VChip
+			v-if="closesAtLabel"
+			size="small"
+			variant="outlined"
+			:prepend-icon="mdiClockOutline"
+			data-testid="poll-closes-at-chip"
+		>
+			{{ closesAtLabel }}
+		</VChip>
 		<VChip v-if="remainingTimeLabel" size="small" variant="outlined" data-testid="poll-remaining-time">
 			{{ remainingTimeLabel }}
 		</VChip>
@@ -73,10 +91,11 @@ import { buildPollResultsCsv, buildPollResultsPdf } from "../poll-export.util";
 import { svgToPng } from "../svg-to-png.util";
 import { usePollOpenState } from "../usePollOpenState.composable";
 import { PollElement } from "@/types/board/ContentElement";
+import { formatUtc } from "@/utils/date-time.utils";
 import { downloadBlob } from "@/utils/fileHelper";
 import { PollAnswerMode, PollQuestionResultResponse, PollStatus, PollVoterResponse } from "@api-server";
 import { useCardStore } from "@data-board";
-import { mdiPresentation, mdiTrayArrowDown } from "@icons/material";
+import { mdiClockOutline, mdiPresentation, mdiTrayArrowDown } from "@icons/material";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -118,9 +137,32 @@ const statusColor = computed(() => {
 	}
 });
 
+// Informational chips showing the configured start/end regardless of pollStatus - same
+// presentation as the start/due date chips on AssignmentElementTeacherDisplay.vue.
+const startDateLabel = computed(() => {
+	const formatted = props.element.content.opensAt ? formatUtc(props.element.content.opensAt, "dateTime") : undefined;
+	return formatted ? t("components.cardElement.pollElement.startsAtLabel", { date: formatted }) : undefined;
+});
+
+const closesAtLabel = computed(() => {
+	const formatted = props.element.content.closesAt ? formatUtc(props.element.content.closesAt, "dateTime") : undefined;
+	return formatted ? t("components.cardElement.pollElement.closesAtLabel", { date: formatted }) : undefined;
+});
+
+// The dynamic countdown chip: while OPEN but still before opensAt, this replaces the usual
+// "closes in n min" with an absolute "starts on ..." - a countdown to a start that hasn't
+// happened yet would be misleading here, since the vote form isn't reachable regardless of
+// how the remaining time until closesAt is phrased.
 const remainingTimeLabel = computed(() => {
+	if (props.element.content.pollStatus !== PollStatus.OPEN) return undefined;
+
+	const opensAt = props.element.content.opensAt;
+	if (opensAt && now.value.getTime() < new Date(opensAt).getTime()) {
+		return t("components.cardElement.pollElement.notStartedYet", { date: formatUtc(opensAt, "dateTime") });
+	}
+
 	const closesAt = props.element.content.closesAt;
-	if (!closesAt || props.element.content.pollStatus !== PollStatus.OPEN) return undefined;
+	if (!closesAt) return undefined;
 
 	const diffMs = new Date(closesAt).getTime() - now.value.getTime();
 	if (diffMs <= 0) return t("components.cardElement.pollElement.closed");
