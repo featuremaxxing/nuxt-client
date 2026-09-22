@@ -32,6 +32,12 @@ export interface CardSkeletonResponse {
      * @memberof CardSkeletonResponse
      */
     height: number;
+    /**
+     * Set when this entry is a pinned reference inside a personal learning room. Holds the id of the pointer node - the card itself lives in its original board and is loaded through the regular card api. Use this id to move or unpin the entry.
+     * @type {string}
+     * @memberof CardSkeletonResponse
+     */
+    pinnedCardId?: string;
 }
 
 

@@ -269,6 +269,17 @@ export const routes: Readonly<RouteRecordRaw>[] = [
 		},
 	},
 	{
+		path: `/learning-room`,
+		component: async () => (await import("@page-learning-room")).LearningRoomPage,
+		name: "learning-room",
+		beforeEnter() {
+			if (useEnvConfig().value.FEATURE_PERSONAL_LEARNING_ROOM_ENABLED) {
+				return true;
+			}
+			return { name: "dashboard" };
+		},
+	},
+	{
 		path: `/media-shelf`,
 		component: async () => (await import("@page-media-shelf")).MediaShelfPage,
 		name: "media-shelf",

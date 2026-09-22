@@ -238,6 +238,12 @@ export interface ConfigResponse {
      * @type {boolean}
      * @memberof ConfigResponse
      */
+    FEATURE_PERSONAL_LEARNING_ROOM_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
     FEATURE_COLUMN_BOARD_COLLABORA_ENABLED: boolean;
     /**
      * 

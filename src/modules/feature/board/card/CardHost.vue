@@ -40,6 +40,12 @@
 					/>
 
 					<div v-if="!isDetailView" class="board-menu" :class="boardMenuClasses">
+						<PinCardButton
+							v-if="isLearningRoomEnabled"
+							class="mr-1"
+							:is-pinned="isCardPinned"
+							@toggle-pin="onTogglePin"
+						/>
 						<DetailViewButton class="mr-1" @open-detail-view="onOpenDetailView" />
 						<BoardMenu v-if="hasMenuItem" :scope="BoardMenuScope.CARD" has-background :data-testid="boardMenuTestId">
 							<KebabMenuActionAdd
@@ -110,8 +116,10 @@ import {
 	useCardStore,
 	useCourseBoardEditMode,
 } from "@data-board";
+import { useEnvConfig } from "@data-env";
+import { usePinnedCardsStore } from "@data-learning-room";
 import { withGlobalLoadingState } from "@feature-dialog";
-import { BoardMenu, BoardMenuScope, DetailViewButton } from "@ui-board";
+import { BoardMenu, BoardMenuScope, DetailViewButton, PinCardButton } from "@ui-board";
 import { SvsColorPickerMenu } from "@ui-controls";
 import {
 	KebabMenuActionAdd,
@@ -153,6 +161,17 @@ const cardHost = ref(null);
 const cardId = toRef(props, "cardId");
 const { isFocusContained, isFocusedById } = useBoardFocusHandler(cardId.value, cardHost);
 const { isEditMode, startEditMode, stopEditMode } = useCourseBoardEditMode(cardId.value);
+
+// personal learning room: the pin button sits on every card in every board, so
+// pinning is one click away instead of hidden in the kebab menu
+const envConfig = useEnvConfig();
+const isLearningRoomEnabled = computed(() => envConfig.value.FEATURE_PERSONAL_LEARNING_ROOM_ENABLED === true);
+const pinnedCardsStore = usePinnedCardsStore();
+const isCardPinned = computed(() => pinnedCardsStore.isPinned(props.cardId));
+
+const onTogglePin = async () => {
+	await pinnedCardsStore.togglePin(props.cardId);
+};
 
 const isHovered = useElementHover(cardHost);
 const route = useRoute();
@@ -294,6 +313,10 @@ const onOpenDetailView = () => {
 };
 
 onMounted(async () => {
+	if (isLearningRoomEnabled.value) {
+		// shared promise inside the store, so this is one request per board, not per card
+		void pinnedCardsStore.ensureLoaded();
+	}
 	if (card.value === undefined) {
 		await cardStore.fetchCardRequest({ cardIds: [cardId.value] });
 	}
