@@ -46,11 +46,14 @@ import { AiQuestionElement } from "@/types/board/ContentElement";
 import { useAiQuestionApi } from "@data-ai-question";
 import { useContentElementState } from "@data-board";
 import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
 	element: AiQuestionElement;
 	isEditMode: boolean;
 }>();
+
+const { t } = useI18n();
 
 // Autosaved like every element's edit form. The broadcast content carries only
 // question/allowMultipleAttempts - the teacher's private aiInstructions/expectedAnswer

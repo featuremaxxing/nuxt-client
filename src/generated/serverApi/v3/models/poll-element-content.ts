@@ -50,25 +50,25 @@ export interface PollElementContent {
      */
     showResultsLive: boolean;
     /**
-     *
+     * 
      * @type {PollStatus}
      * @memberof PollElementContent
      */
     pollStatus: PollStatus;
     /**
-     *
+     * 
      * @type {string}
      * @memberof PollElementContent
      */
     opensAt?: string | null;
     /**
-     *
+     * 
      * @type {string}
      * @memberof PollElementContent
      */
     closesAt?: string | null;
     /**
-     *
+     * 
      * @type {PollResultSnapshotResponse}
      * @memberof PollElementContent
      */

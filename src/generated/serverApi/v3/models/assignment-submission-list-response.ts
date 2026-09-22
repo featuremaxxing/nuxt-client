@@ -29,6 +29,12 @@ export interface AssignmentSubmissionListResponse {
      */
     maxPoints?: number | null;
     /**
+     * the grading rubric, when configured - absent/empty means flat-points grading
+     * @type {Array<AssignmentSubmissionRubricCriterionResponse>}
+     * @memberof AssignmentSubmissionListResponse
+     */
+    criteria?: Array<AssignmentSubmissionRubricCriterionResponse> | null;
+    /**
      * 
      * @type {string}
      * @memberof AssignmentSubmissionListResponse
@@ -52,12 +58,6 @@ export interface AssignmentSubmissionListResponse {
      * @memberof AssignmentSubmissionListResponse
      */
     submissions: Array<AssignmentSubmissionResponse>;
-    /**
-     * the grading rubric, when configured - absent/empty means flat-points grading
-     * @type {Array<AssignmentSubmissionRubricCriterionResponse>}
-     * @memberof AssignmentSubmissionListResponse
-     */
-    criteria?: Array<AssignmentSubmissionRubricCriterionResponse> | null;
 }
 
 

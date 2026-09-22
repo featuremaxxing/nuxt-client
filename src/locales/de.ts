@@ -820,7 +820,8 @@ export default {
 	"components.cardElement.aiQuestionElement.attempt": "Versuch {count}",
 	"components.cardElement.aiQuestionElement.singleAttemptHint": "Du kannst diese Frage nur einmal beantworten.",
 	"components.cardElement.aiQuestionElement.aiResponseTitle": "KI-Bewertung",
-	"components.cardElement.aiQuestionElement.aiError": "Die KI ist gerade nicht erreichbar. Bitte versuche es später erneut.",
+	"components.cardElement.aiQuestionElement.aiError":
+		"Die KI ist gerade nicht erreichbar. Bitte versuche es später erneut.",
 	"components.cardElement.aiQuestionElement.aiThinking": "Die KI prüft deine Antwort …",
 	"components.cardElement.aiQuestionElement.answersCount": "Antworten ({count})",
 	"components.cardElement.aiQuestionElement.answersEmpty": "Noch keine Antworten.",

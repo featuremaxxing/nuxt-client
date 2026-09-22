@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { AiQuestionElement } from "@/types/board/ContentElement";
+import { AiQuestionAnswerTeacherResponse } from "@api-server";
 import { useAiQuestionApi } from "@data-ai-question";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -56,17 +57,7 @@ const { fetchAnswers } = useAiQuestionApi();
 
 const ANSWERS_PANEL = "answers";
 const openPanels = ref<string[]>([]);
-const answers = ref<
-	{
-		id: string;
-		userId: string;
-		answer: string;
-		aiResponse: string;
-		attemptCount: number;
-		firstName?: string | null;
-		lastName?: string | null;
-	}[]
->([]);
+const answers = ref<AiQuestionAnswerTeacherResponse[]>([]);
 
 onMounted(async () => {
 	const result = await fetchAnswers(props.element.id);

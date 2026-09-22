@@ -148,7 +148,7 @@
 						count: submission.peerReviews.count,
 					})
 				}}
-				<template v-if="submission.peerReviews.averagePoints !== null">
+				<template v-if="submission.peerReviews.averagePoints != null">
 					· ⌀ {{ submission.peerReviews.averagePoints.toFixed(1) }}
 				</template>
 			</span>
