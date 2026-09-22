@@ -15,6 +15,7 @@ import {
 	isScanStatusError,
 	isScanStatusPending,
 	isScanStatusWontCheck,
+	isTextMimeType,
 	isVideoMimeType,
 	removeFileExtension,
 } from "./fileHelper";
@@ -650,6 +651,54 @@ describe("@/utils/fileHelper", () => {
 
 			it("should return false", () => {
 				const result = isAudioMimeType("");
+
+				expect(result).toBe(false);
+			});
+		});
+	});
+
+	describe("isTextMimeType", () => {
+		describe("when file has a text mime type", () => {
+			it("should return true for text/plain", () => {
+				const result = isTextMimeType("text/plain");
+
+				expect(result).toBe(true);
+			});
+
+			it("should return true for text/csv", () => {
+				const result = isTextMimeType("text/csv");
+
+				expect(result).toBe(true);
+			});
+
+			it("should return true for application/json", () => {
+				const result = isTextMimeType("application/json");
+
+				expect(result).toBe(true);
+			});
+
+			it("should return true for application/xml", () => {
+				const result = isTextMimeType("application/xml");
+
+				expect(result).toBe(true);
+			});
+
+			it("should return true for application/x-yaml", () => {
+				const result = isTextMimeType("application/x-yaml");
+
+				expect(result).toBe(true);
+			});
+		});
+
+		describe("when file has no text mime type", () => {
+			it("should return false", () => {
+				const result = isTextMimeType("application/pdf");
+
+				expect(result).toBe(false);
+			});
+
+			it("should return false", () => {
+				const result = isTextMimeType("");
 
 				expect(result).toBe(false);
 			});

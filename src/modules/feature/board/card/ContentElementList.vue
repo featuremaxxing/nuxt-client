@@ -29,6 +29,7 @@ import { AnyContentElement } from "@/types/board/ContentElement";
 import { ElementMove } from "@/types/board/DragAndDrop";
 import { ContentElementType } from "@api-server";
 import { useEnvConfig } from "@data-env";
+import { AssignmentContentElement } from "@feature-board-assignment-element";
 import { CollaborativeTextEditorElement } from "@feature-board-collaborative-text-editor-element";
 import { DeletedElement } from "@feature-board-deleted-element";
 import { DrawingContentElement } from "@feature-board-drawing-element";
@@ -148,6 +149,11 @@ const mapToComponent = (type: ContentElementType) => {
 		case ContentElementType.POLL:
 			if (envConfig.value.FEATURE_COLUMN_BOARD_POLL_ENABLED) {
 				return PollContentElement;
+			}
+			break;
+		case ContentElementType.ASSIGNMENT:
+			if (envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED) {
+				return AssignmentContentElement;
 			}
 			break;
 		default:

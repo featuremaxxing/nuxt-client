@@ -73,6 +73,7 @@ const ariaLabelForScope: Record<BoardMenuScope, keyof MessageSchema> = {
 	[BoardMenuScope.VIDEO_CONFERENCE_ELEMENT]: "components.board.menu.videoConferenceElement",
 	[BoardMenuScope.H5P_ELEMENT]: "components.board.menu.h5pElement",
 	[BoardMenuScope.POLL_ELEMENT]: "components.board.menu.pollElement",
+	[BoardMenuScope.ASSIGNMENT_ELEMENT]: "components.board.menu.assignmentElement",
 };
 
 const boardMenuAriaLabel = computed(() => ariaLabelForScope[props.scope]);

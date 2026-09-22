@@ -1,7 +1,6 @@
-// Shared CSV cell-escaping. Used by the poll CSV export (poll-export.util.ts) and, in the
-// companion "Aufgaben" branch, the assignment submissions export - kept here so both can pick it
-// up without duplicating the same security-sensitive logic; reconcile into one copy when the two
-// branches merge.
+// Shared CSV cell-escaping, used by both the assignments and the polls export (see
+// AssignmentSubmissionsOverlay.vue exportCsv and poll-export.util.ts buildPollResultsCsv) -
+// kept here so neither export duplicates the same security-sensitive logic.
 //
 // Quoting a cell (as both exports already did) prevents the delimiter/quote/newline from being
 // misread as structure, but it does NOT stop formula injection: Excel and LibreOffice evaluate a

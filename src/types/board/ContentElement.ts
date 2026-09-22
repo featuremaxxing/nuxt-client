@@ -1,4 +1,5 @@
 import {
+	AssignmentElementResponse,
 	CollaborativeTextEditorElementResponse,
 	ContentElementType,
 	DrawingElementResponse,
@@ -16,6 +17,7 @@ import {
 
 export type FileFolderElement = FileFolderElementResponse;
 export type PollElement = PollElementResponse;
+export type AssignmentElement = AssignmentElementResponse;
 
 export type AnyContentElement =
 	| LinkElementResponse
@@ -27,7 +29,8 @@ export type AnyContentElement =
 	| CollaborativeTextEditorElementResponse
 	| VideoConferenceElementResponse
 	| H5pElementResponse
-	| PollElementResponse;
+	| PollElementResponse
+	| AssignmentElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;
 

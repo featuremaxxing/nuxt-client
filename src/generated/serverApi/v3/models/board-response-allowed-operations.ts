@@ -219,23 +219,53 @@ export interface BoardResponseAllowedOperations {
      */
     createOwnPollVote: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof BoardResponseAllowedOperations
      */
     updateOwnPollVote: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof BoardResponseAllowedOperations
      */
     viewPollResults: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof BoardResponseAllowedOperations
      */
     managePoll: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof BoardResponseAllowedOperations
+     */
+    viewAssignmentSubmissions: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof BoardResponseAllowedOperations
+     */
+    createOwnAssignmentSubmission: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof BoardResponseAllowedOperations
+     */
+    updateOwnAssignmentSubmission: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof BoardResponseAllowedOperations
+     */
+    deleteOwnAssignmentSubmission: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof BoardResponseAllowedOperations
+     */
+    gradeAssignmentSubmission: boolean;
     /**
      * 
      * @type {boolean}

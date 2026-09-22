@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schulcloud-Verbund-Software Server API
+ * Schulcloud-Verbund-Software Server API (featuremaxxing)
  * This is v3 of Schulcloud-Verbund-Software Server. Checkout /docs for v1.
  *
  * The version of the OpenAPI document: 3.0
@@ -13,27 +13,27 @@
  */
 
 
+import { AssignmentContentBody } from './assignment-content-body';
 import { ContentElementType } from './content-element-type';
-import { SubmissionContainerContentBody } from './submission-container-content-body';
 
 /**
  * 
  * @export
- * @interface SubmissionContainerElementContentBody
+ * @interface AssignmentElementContentBody
  */
-export interface SubmissionContainerElementContentBody {
+export interface AssignmentElementContentBody {
     /**
      * the type of the updated element
      * @type {ContentElementType}
-     * @memberof SubmissionContainerElementContentBody
+     * @memberof AssignmentElementContentBody
      */
     type: ContentElementType;
     /**
      * 
-     * @type {SubmissionContainerContentBody}
-     * @memberof SubmissionContainerElementContentBody
+     * @type {AssignmentContentBody}
+     * @memberof AssignmentElementContentBody
      */
-    content: SubmissionContainerContentBody;
+    content: AssignmentContentBody;
 }
 
 

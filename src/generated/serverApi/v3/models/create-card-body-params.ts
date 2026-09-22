@@ -49,7 +49,8 @@ export enum CreateCardBodyParamsRequiredEmptyElements {
     FILE_FOLDER = 'fileFolder',
     DELETED = 'deleted',
     H5P = 'h5p',
-    POLL = 'poll'
+    POLL = 'poll',
+    ASSIGNMENT = 'assignment'
 }
 
 
