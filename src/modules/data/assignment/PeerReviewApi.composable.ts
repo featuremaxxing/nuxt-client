@@ -1,6 +1,7 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
 	PeerReviewApiFactory,
+	PeerReviewAssignmentResponse,
 	PeerReviewAssignResultResponse,
 	PeerReviewSettingsBodyParams,
 	PeerReviewSettingsResponse,
@@ -55,6 +56,26 @@ export const usePeerReviewApi = () => {
 		}
 	};
 
+	const listAssignments = async (elementId: string): Promise<PeerReviewAssignmentResponse[] | undefined> => {
+		try {
+			const response = await peerReviewApi.peerReviewControllerListAssignments(elementId);
+			return response.data;
+		} catch (error) {
+			showError(error);
+			return undefined;
+		}
+	};
+
+	const unassign = async (elementId: string, submissionId: string, reviewerUserId: string): Promise<boolean> => {
+		try {
+			await peerReviewApi.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId);
+			return true;
+		} catch (error) {
+			showError(error);
+			return false;
+		}
+	};
+
 	const fetchMyTasks = async (): Promise<PeerReviewTaskResponse[] | undefined> => {
 		try {
 			const response = await peerReviewApi.peerReviewControllerMyTasks();
@@ -82,6 +103,8 @@ export const usePeerReviewApi = () => {
 		updateSettings,
 		autoAssign,
 		manualAssign,
+		listAssignments,
+		unassign,
 		fetchMyTasks,
 		submitReview,
 	};

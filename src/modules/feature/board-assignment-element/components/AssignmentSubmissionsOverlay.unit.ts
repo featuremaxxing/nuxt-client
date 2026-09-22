@@ -15,6 +15,8 @@ const {
 	returnSubmissionsBatchMock,
 	autoAssignMock,
 	manualAssignMock,
+	listAssignmentsMock,
+	unassignMock,
 	fetchFilesMock,
 	getFileRecordsByParentIdMock,
 	uploadMock,
@@ -26,6 +28,8 @@ const {
 	returnSubmissionsBatchMock: vi.fn(),
 	autoAssignMock: vi.fn(),
 	manualAssignMock: vi.fn(),
+	listAssignmentsMock: vi.fn(),
+	unassignMock: vi.fn(),
 	fetchFilesMock: vi.fn(),
 	getFileRecordsByParentIdMock: vi.fn(),
 	uploadMock: vi.fn(),
@@ -42,6 +46,8 @@ vi.mock("@data-assignment", () => ({
 	usePeerReviewApi: () => ({
 		autoAssign: autoAssignMock,
 		manualAssign: manualAssignMock,
+		listAssignments: listAssignmentsMock,
+		unassign: unassignMock,
 	}),
 }));
 
@@ -92,6 +98,8 @@ describe("AssignmentSubmissionsOverlay", () => {
 		returnSubmissionsBatchMock.mockResolvedValue({ returned: [], failed: [] });
 		autoAssignMock.mockResolvedValue({ assignedCount: 0 });
 		manualAssignMock.mockResolvedValue({ assignedCount: 1 });
+		listAssignmentsMock.mockResolvedValue([]);
+		unassignMock.mockResolvedValue(true);
 		fetchFilesMock.mockResolvedValue(undefined);
 		getFileRecordsByParentIdMock.mockReturnValue([]);
 		uploadMock.mockResolvedValue(undefined);
@@ -798,6 +806,64 @@ describe("AssignmentSubmissionsOverlay", () => {
 			await wrapper.find("[data-testid='peer-review-auto-assign']").trigger("click");
 
 			expect(autoAssignMock).toHaveBeenCalledWith(element.id);
+		});
+
+		// Regression: the button used to be an unlabeled icon, easy to miss entirely - it now
+		// carries a label and a counter reflecting the actual assignment state.
+		it("shows a labeled button with a count of assigned submissions", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "manual";
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({ userId: "user-1", id: "submission-1" }),
+					buildSubmission({ userId: "user-2", id: "submission-2" }),
+					buildSubmission({ userId: "user-3", id: null }), // not yet submitted - not reviewable
+				],
+			});
+			listAssignmentsMock.mockResolvedValue([
+				{
+					submissionId: "submission-1",
+					reviewerUserId: "user-2",
+					reviewerFirstName: "Ben",
+					reviewerLastName: "Berger",
+					assignmentMode: "manual",
+					submittedAt: null,
+				},
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const button = wrapper.find("[data-testid='peer-review-manage-button']");
+			expect(button.text()).toContain("components.cardElement.assignmentElement.peerReview.manageButton");
+			expect(wrapper.find("[data-testid='peer-review-manage-button-count']").text()).toContain("1/2");
+		});
+
+		it("refetches assignments (updating the counter) after a change in the panel", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "auto";
+			listAssignmentsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([
+				{
+					submissionId: "submission-1",
+					reviewerUserId: "user-2",
+					assignmentMode: "auto",
+					submittedAt: null,
+				},
+			]);
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			expect(listAssignmentsMock).toHaveBeenCalledTimes(1);
+
+			await wrapper.find("[data-testid='peer-review-manage-button']").trigger("click");
+			await wrapper.find("[data-testid='peer-review-auto-assign']").trigger("click");
+			await vi.dynamicImportSettled();
+
+			expect(listAssignmentsMock).toHaveBeenCalledTimes(2);
 		});
 
 		it("manually assigns a reviewer to a submission", async () => {

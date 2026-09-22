@@ -31,6 +31,7 @@ export * from './criterion-points-body-params';
 export * from './peer-review-assign-body-params';
 export * from './peer-review-assign-result-response';
 export * from './peer-review-assignment-pair-body-params';
+export * from './peer-review-assignment-response';
 export * from './peer-review-settings-body-params';
 export * from './peer-review-settings-response';
 export * from './peer-review-submit-body-params';

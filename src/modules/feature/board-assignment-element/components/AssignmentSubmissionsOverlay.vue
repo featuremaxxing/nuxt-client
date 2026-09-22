@@ -58,12 +58,16 @@
 					/>
 					<VBtn
 						v-if="peerReviewEnabled"
-						icon
-						variant="text"
+						variant="tonal"
+						size="small"
+						:prepend-icon="mdiAccountMultipleOutline"
 						data-testid="peer-review-manage-button"
 						@click="showPeerReviewPanel = true"
 					>
-						<VIcon :icon="mdiAccountMultipleOutline" />
+						{{ t("components.cardElement.assignmentElement.peerReview.manageButton") }}
+						<VChip size="x-small" class="ml-2" data-testid="peer-review-manage-button-count">
+							{{ assignedSubmissionCount }}/{{ reviewableSubmissionCount }}
+						</VChip>
 					</VBtn>
 					<VMenu>
 						<template #activator="{ props: menuProps }">
@@ -283,7 +287,9 @@
 			:element-id="element.id"
 			:mode="element.content.peerReviewMode"
 			:submissions="submissions"
+			:assignments="peerReviewAssignments"
 			@close="showPeerReviewPanel = false"
+			@changed="loadPeerReviewAssignments"
 		/>
 	</VDialog>
 </template>
@@ -301,9 +307,9 @@ import { escapeCsvFormulaInjection } from "@/utils/csv";
 import { formatUtc } from "@/utils/date-time.utils";
 import { downloadBlob, downloadFile, isPdfMimeType, sanitizeZipPathSegment } from "@/utils/fileHelper";
 import { convertDownloadToPreviewUrl, isPreviewPossible } from "@/utils/fileHelper";
-import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import { AssignmentStatus, AssignmentSubmissionResponse, PeerReviewAssignmentResponse } from "@api-server";
 import { notifyError, notifySuccess } from "@data-app";
-import { useAssignmentApi } from "@data-assignment";
+import { useAssignmentApi, usePeerReviewApi } from "@data-assignment";
 import { useFileStorageApi } from "@data-file";
 import {
 	mdiAccountMultipleOutline,
@@ -340,6 +346,7 @@ const { t } = useI18n();
 const { smAndDown } = useDisplay();
 const { fetchSubmissions, ensureFeedbackContainer, gradeSubmission, returnSubmission, returnSubmissionsBatch } =
 	useAssignmentApi();
+const { listAssignments } = usePeerReviewApi();
 const { fetchFiles, getFileRecordsByParentId, upload } = useFileStorageApi();
 const lightBox = useLightBox();
 const { openPreview } = useAssignmentFilePreview();
@@ -379,6 +386,24 @@ const maxPoints = computed(() => props.element.content.maxPoints ?? null);
 const criteria = computed(() => props.element.content.criteria ?? []);
 const peerReviewEnabled = computed(() => props.element.content.peerReviewEnabled);
 const showPeerReviewPanel = ref(false);
+const peerReviewAssignments = ref<PeerReviewAssignmentResponse[]>([]);
+
+// the button's counter, so the current state is visible without opening the dialog - see the
+// bug notes on the button being too easy to miss
+const reviewableSubmissionCount = computed(
+	() => submissions.value.filter((submission) => submission.id !== null).length
+);
+const assignedSubmissionCount = computed(
+	() => new Set(peerReviewAssignments.value.map((assignment) => assignment.submissionId)).size
+);
+
+const loadPeerReviewAssignments = async () => {
+	if (!peerReviewEnabled.value) {
+		peerReviewAssignments.value = [];
+		return;
+	}
+	peerReviewAssignments.value = (await listAssignments(props.element.id)) ?? [];
+};
 
 const statusFilters = computed(() => [
 	{ key: "all", label: t("components.cardElement.assignmentElement.filter.all") },
@@ -523,6 +548,7 @@ const load = async () => {
 		...submissions.value
 			.filter((submission) => submission.feedbackContainerId)
 			.map((submission) => fetchFiles(submission.feedbackContainerId as string, FileRecordParent.BOARDNODES)),
+		loadPeerReviewAssignments(),
 	]);
 
 	loading.value = false;

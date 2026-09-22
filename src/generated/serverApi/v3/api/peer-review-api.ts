@@ -24,6 +24,8 @@ import { PeerReviewAssignBodyParams } from '../models';
 // @ts-ignore
 import { PeerReviewAssignResultResponse } from '../models';
 // @ts-ignore
+import { PeerReviewAssignmentResponse } from '../models';
+// @ts-ignore
 import { PeerReviewSettingsBodyParams } from '../models';
 // @ts-ignore
 import { PeerReviewSettingsResponse } from '../models';
@@ -142,6 +144,74 @@ export const PeerReviewApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerListAssignments: async (elementId: string, options: any = {}): Promise<RequestArgs> => {
+            assertParamExists('peerReviewControllerListAssignments', 'elementId', elementId)
+            const localVarPath = `/assignments/{elementId}/peer-review/assignments`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)));
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+         * @param {string} elementId The id of the assignment element.
+         * @param {string} submissionId The id of the submission.
+         * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerUnassign: async (elementId: string, submissionId: string, reviewerUserId: string, options: any = {}): Promise<RequestArgs> => {
+            assertParamExists('peerReviewControllerUnassign', 'elementId', elementId)
+            assertParamExists('peerReviewControllerUnassign', 'submissionId', submissionId)
+            assertParamExists('peerReviewControllerUnassign', 'reviewerUserId', reviewerUserId)
+            const localVarPath = `/assignments/{elementId}/peer-review/assignments/{submissionId}/{reviewerUserId}`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)))
+                .replace(`{${"submissionId"}}`, encodeURIComponent(String(submissionId)))
+                .replace(`{${"reviewerUserId"}}`, encodeURIComponent(String(reviewerUserId)));
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * @summary List the caller's own peer review tasks.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -227,6 +297,14 @@ export const PeerReviewApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        async peerReviewControllerListAssignments(elementId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PeerReviewAssignmentResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerListAssignments(elementId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        async peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
         async peerReviewControllerMyTasks(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PeerReviewTaskResponse>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerMyTasks(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
@@ -254,6 +332,12 @@ export const PeerReviewApiFactory = function (configuration?: Configuration, bas
         peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any): AxiosPromise<PeerReviewAssignResultResponse> {
             return localVarFp.peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options).then((request) => request(axios, basePath));
         },
+        peerReviewControllerListAssignments(elementId: string, options?: any): AxiosPromise<Array<PeerReviewAssignmentResponse>> {
+            return localVarFp.peerReviewControllerListAssignments(elementId, options).then((request) => request(axios, basePath));
+        },
+        peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options).then((request) => request(axios, basePath));
+        },
         peerReviewControllerMyTasks(options?: any): AxiosPromise<Array<PeerReviewTaskResponse>> {
             return localVarFp.peerReviewControllerMyTasks(options).then((request) => request(axios, basePath));
         },
@@ -278,6 +362,12 @@ export class PeerReviewApi extends BaseAPI {
     }
     public peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any) {
         return PeerReviewApiFp(this.configuration).peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+    public peerReviewControllerListAssignments(elementId: string, options?: any) {
+        return PeerReviewApiFp(this.configuration).peerReviewControllerListAssignments(elementId, options).then((request) => request(this.axios, this.basePath));
+    }
+    public peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any) {
+        return PeerReviewApiFp(this.configuration).peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options).then((request) => request(this.axios, this.basePath));
     }
     public peerReviewControllerMyTasks(options?: any) {
         return PeerReviewApiFp(this.configuration).peerReviewControllerMyTasks(options).then((request) => request(this.axios, this.basePath));

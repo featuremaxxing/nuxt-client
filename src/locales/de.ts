@@ -721,7 +721,11 @@ export default {
 	"components.cardElement.assignmentElement.peerReview.autoAssign": "Automatisch zuteilen",
 	"components.cardElement.assignmentElement.peerReview.manualAssign": "Zuteilen",
 	"components.cardElement.assignmentElement.peerReview.manageTitle": "Peer-Review verwalten",
+	"components.cardElement.assignmentElement.peerReview.manageButton": "Peer-Review",
 	"components.cardElement.assignmentElement.peerReview.selectReviewer": "Reviewer auswählen",
+	"components.cardElement.assignmentElement.peerReview.removeAssignment": "Zuteilung entfernen",
+	"components.cardElement.assignmentElement.peerReview.assignmentSubmitted":
+		"Bereits abgegeben - kann nicht entfernt werden",
 	"components.cardElement.assignmentElement.peerReview.autoAssignSuccess": "{count} Zuteilungen vorgenommen.",
 	"components.cardElement.assignmentElement.peerReview.manualAssignSuccess": "Zuteilung gespeichert.",
 	"components.cardElement.assignmentElement.peerReview.myTasks": "Meine Peer-Reviews",
