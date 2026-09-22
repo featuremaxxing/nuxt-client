@@ -5,13 +5,15 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 
-const { useContentElementStateMock, updateSettingsMock } = vi.hoisted(() => ({
+const { useContentElementStateMock, updateSettingsMock, updateElementSuccessMock } = vi.hoisted(() => ({
 	useContentElementStateMock: vi.fn(),
 	updateSettingsMock: vi.fn(),
+	updateElementSuccessMock: vi.fn(),
 }));
 
 vi.mock("@data-board", () => ({
 	useContentElementState: useContentElementStateMock,
+	useCardStore: () => ({ updateElementSuccess: updateElementSuccessMock }),
 }));
 
 vi.mock("@data-assignment", () => ({
@@ -39,7 +41,14 @@ describe("AssignmentElementEdit", () => {
 	});
 
 	beforeEach(() => {
-		updateSettingsMock.mockResolvedValue(undefined);
+		// mirrors the real endpoint: echoes back the (validated/clamped) settings it was sent
+		updateSettingsMock.mockImplementation(
+			async (_elementId: string, body: { enabled: boolean; mode?: "manual" | "auto"; count?: number }) => ({
+				enabled: body.enabled,
+				mode: body.mode ?? "manual",
+				count: body.count,
+			})
+		);
 	});
 
 	it("should render a start date field before the due date field", () => {
@@ -156,6 +165,38 @@ describe("AssignmentElementEdit", () => {
 			await wrapper.findComponent({ name: "VSelect" }).vm.$emit("update:modelValue", "auto");
 
 			expect(wrapper.find("[data-testid='assignment-peer-review-count']").exists()).toBe(true);
+		});
+
+		// Regression: the dedicated settings endpoint bypasses the generic content-update
+		// autosave entirely, so nothing else ever tells the board store the change happened -
+		// without this, a re-mount (e.g. leaving and re-entering edit mode) reads the stale
+		// value and the checkbox looks like it silently reset. See the bug notes.
+		it("syncs the confirmed settings into the board store after a successful save", async () => {
+			const { wrapper, element } = setupWrapper();
+
+			await wrapper.find("[data-testid='assignment-peer-review-toggle'] input").setValue(true);
+
+			expect(updateElementSuccessMock).toHaveBeenCalledWith({
+				elementId: element.id,
+				data: {
+					type: "assignment",
+					content: expect.objectContaining({
+						peerReviewEnabled: true,
+						peerReviewMode: "manual",
+					}),
+				},
+				isOwnAction: true,
+			});
+		});
+
+		it("reverts the checkbox and leaves the store untouched when saving fails", async () => {
+			updateSettingsMock.mockResolvedValueOnce(undefined);
+			const { wrapper } = setupWrapper();
+
+			await wrapper.find("[data-testid='assignment-peer-review-toggle'] input").setValue(true);
+
+			expect(wrapper.find("[data-testid='assignment-peer-review-mode']").exists()).toBe(false);
+			expect(updateElementSuccessMock).not.toHaveBeenCalled();
 		});
 	});
 });
