@@ -39,6 +39,12 @@ export interface CardSkeletonResponse {
      */
     pinnedCardId?: string;
     /**
+     * Id of the board a pinned card originally lives in, so the client can link back to it. Only set inside a personal learning room.
+     * @type {string}
+     * @memberof CardSkeletonResponse
+     */
+    originBoardId?: string;
+    /**
      * Name of the room or course the pinned card originally lives in, for the origin chip. Only set inside a personal learning room.
      * @type {string}
      * @memberof CardSkeletonResponse

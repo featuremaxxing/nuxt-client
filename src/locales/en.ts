@@ -447,6 +447,7 @@ export default {
 	"components.board.action.delete": "Delete",
 	"components.board.action.deleteFromSection": "Remove from section",
 	"components.board.action.detail-view": "Open detail view",
+	"components.board.action.openOrigin": "Open in room",
 	"components.board.action.pinCard": "Add to my learning room",
 	"components.board.action.unpinCard": "Remove from my learning room",
 	"components.board.action.next-detail-view": "Open next detail view",

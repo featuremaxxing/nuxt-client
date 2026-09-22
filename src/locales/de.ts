@@ -461,6 +461,7 @@ export default {
 	"components.board.action.delete": "Löschen",
 	"components.board.action.deleteFromSection": "Aus Abschnitt entfernen",
 	"components.board.action.detail-view": "Vollansicht öffnen",
+	"components.board.action.openOrigin": "Im Raum öffnen",
 	"components.board.action.pinCard": "In meinen Lernraum",
 	"components.board.action.unpinCard": "Aus meinem Lernraum entfernen",
 	"components.board.action.next-detail-view": "Nächste Vollansicht öffnen",

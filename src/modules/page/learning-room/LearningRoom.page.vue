@@ -32,8 +32,6 @@ const pinnedCardsStore = usePinnedCardsStore();
 const boardStore = useBoardStore();
 
 const boardId = ref<string>();
-const cardCount = ref(0);
-const isLoaded = ref(false);
 
 useTitle(computed(() => t("pages.learningRoom.title")));
 
@@ -45,9 +43,7 @@ onMounted(async () => {
 
 	if (board) {
 		boardId.value = board.id;
-		cardCount.value = board.columns.reduce((count, column) => count + column.cards.length, 0);
 	}
-	isLoaded.value = true;
 
 	await pinnedCardsStore.ensureLoaded();
 
@@ -64,5 +60,12 @@ onMounted(async () => {
 	);
 });
 
-const showEmptyHint = computed(() => isLoaded.value && cardCount.value === 0);
+// follows the live board, so the hint goes away with the first card and comes
+// back once the last one is gone
+const showEmptyHint = computed(() => {
+	const board = boardStore.board;
+	if (!board || board.id !== boardId.value) return false;
+
+	return board.columns.every((column) => column.cards.length === 0);
+});
 </script>

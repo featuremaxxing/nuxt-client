@@ -457,6 +457,7 @@ export default {
 	"components.board.action.delete": "Eliminar",
 	"components.board.action.deleteFromSection": "Quitar de la sección",
 	"components.board.action.detail-view": "Abrir vista detallada",
+	"components.board.action.openOrigin": "Abrir en la sala",
 	"components.board.action.pinCard": "Añadir a mi espacio de aprendizaje",
 	"components.board.action.unpinCard": "Quitar de mi espacio de aprendizaje",
 	"components.board.action.next-detail-view": "Abrir siguiente vista detallada",

@@ -459,6 +459,7 @@ export default {
 	"components.board.action.delete": "Видалити",
 	"components.board.action.deleteFromSection": "Видалити з розділу",
 	"components.board.action.detail-view": "Відкрити детальний вигляд",
+	"components.board.action.openOrigin": "Відкрити в кімнаті",
 	"components.board.action.pinCard": "Додати до мого навчального простору",
 	"components.board.action.unpinCard": "Видалити з мого навчального простору",
 	"components.board.action.next-detail-view": "Відкрити наступний детальний вигляд",
