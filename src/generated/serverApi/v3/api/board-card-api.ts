@@ -51,6 +51,8 @@ import { MoveCardBodyParams } from '../models';
 // @ts-ignore
 import { MoveCardResponse } from '../models';
 // @ts-ignore
+import { PollElementResponse } from '../models';
+// @ts-ignore
 import { RenameBodyParams } from '../models';
 // @ts-ignore
 import { RichTextElementResponse } from '../models';
@@ -430,7 +432,7 @@ export const BoardCardApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse>> {
+        async cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.cardControllerCreateElement(cardId, createContentElementBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -532,7 +534,7 @@ export const BoardCardApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse> {
+        cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse> {
             return localVarFp.cardControllerCreateElement(cardId, createContentElementBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
@@ -627,7 +629,7 @@ export interface BoardCardApiInterface {
      * @throws {RequiredError}
      * @memberof BoardCardApiInterface
      */
-    cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | AssignmentElementResponse>;
+    cardControllerCreateElement(cardId: string, createContentElementBodyParams: CreateContentElementBodyParams, options?: any): AxiosPromise<ExternalToolElementResponse | FileElementResponse | FileFolderElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | DeletedElementResponse | VideoConferenceElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse>;
 
     /**
      * 

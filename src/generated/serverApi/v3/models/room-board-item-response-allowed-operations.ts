@@ -73,6 +73,12 @@ export interface RoomBoardItemResponseAllowedOperations {
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
+    isBoardEditor?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
     copyColumn?: boolean;
     /**
      * 
@@ -211,27 +217,51 @@ export interface RoomBoardItemResponseAllowedOperations {
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
+    createOwnPollVote?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    updateOwnPollVote?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    viewPollResults?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    managePoll?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
     viewAssignmentSubmissions?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     createOwnAssignmentSubmission?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     updateOwnAssignmentSubmission?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     deleteOwnAssignmentSubmission?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */

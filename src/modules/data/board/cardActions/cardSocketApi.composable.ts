@@ -122,7 +122,10 @@ export const useCardSocketApi = () => {
 		try {
 			const response = (await emitWithAck("create-element-request", payload)) as unknown;
 			const anyContentElement = AnyContentElementSchema.parse(response);
-			return anyContentElement;
+			// The schema's `type` check is widened to also accept the poll stand-in literal "poll"
+			// (see ContentElement.schema.ts), which isn't a member of the generated ContentElementType
+			// enum yet - hence the cast back to the app-facing AnyContentElement type here.
+			return anyContentElement as AnyContentElement;
 		} catch {
 			notifyError(t("components.elementTypeSelection.messageError"));
 		}
