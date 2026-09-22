@@ -8,7 +8,9 @@ import { defineStore, storeToRefs } from "pinia";
 import { computed, reactive } from "vue";
 
 export const defaultConfigEnvs: ConfigResponse = {
+	FEATURE_COLUMN_BOARD_POLL_ENABLED: false,
 	FEATURE_NOTIFICATIONS_ENABLED: false,
+	FEATURE_SCHOOL_DATA_READONLY_ENABLED: false,
 	NOT_AUTHENTICATED_REDIRECT_URL: "",
 	SC_THEME: SchulcloudTheme.DEFAULT,
 	JWT_TIMEOUT_SECONDS: -1,
@@ -43,7 +45,6 @@ export const defaultConfigEnvs: ConfigResponse = {
 	TEACHER_STUDENT_VISIBILITY__IS_VISIBLE: false,
 	FEATURE_SCHOOL_POLICY_ENABLED_NEW: false,
 	FEATURE_SCHOOL_TERMS_OF_USE_ENABLED: false,
-	FEATURE_SCHOOL_DATA_READONLY_ENABLED: false,
 	FEATURE_VIDEOCONFERENCE_ENABLED: false,
 	FEATURE_COLUMN_BOARD_ENABLED: false,
 	FEATURE_COLUMN_BOARD_LINK_ELEMENT_ENABLED: false,

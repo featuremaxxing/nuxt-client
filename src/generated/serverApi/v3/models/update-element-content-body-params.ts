@@ -20,6 +20,7 @@ import { FileElementContentBody } from './file-element-content-body';
 import { FileFolderElementContentBody } from './file-folder-element-content-body';
 import { H5pElementContentBody } from './h5p-element-content-body';
 import { LinkElementContentBody } from './link-element-content-body';
+import { PollElementContentBody } from './poll-element-content-body';
 import { RichTextElementContentBody } from './rich-text-element-content-body';
 import { VideoConferenceElementContentBody } from './video-conference-element-content-body';
 
@@ -31,10 +32,10 @@ import { VideoConferenceElementContentBody } from './video-conference-element-co
 export interface UpdateElementContentBodyParams {
     /**
      * 
-     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | AssignmentElementContentBody}
+     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody}
      * @memberof UpdateElementContentBodyParams
      */
-    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | AssignmentElementContentBody;
+    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody;
 }
 
 

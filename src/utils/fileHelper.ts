@@ -46,11 +46,11 @@ export function downloadFile(url: string, fileName: string) {
 	document.body.removeChild(link);
 }
 
-// Sibling of downloadFile() for content that only exists client-side (e.g. a generated CSV or
-// ZIP), rather than something already reachable by URL. Creates a short-lived object URL for the
-// blob, reuses the same hidden-<a>-click trick, then revokes the URL so it doesn't leak memory.
-// Revoking synchronously right after downloadFile() can race the browser's (async) download
-// start in some engines, so it is deferred to the next tick instead of done inline.
+// Sibling of downloadFile() for content that only exists client-side (e.g. a generated CSV, ZIP,
+// or PDF), rather than something already reachable by URL. Creates a short-lived object URL for
+// the blob, reuses the same hidden-<a>-click trick, then revokes the URL so it doesn't leak
+// memory. Revoking synchronously right after downloadFile() can race the browser's (async)
+// download start in some engines, so it is deferred to the next tick instead of done inline.
 export function downloadBlob(blob: Blob, fileName: string) {
 	const url = URL.createObjectURL(blob);
 	downloadFile(url, fileName);
