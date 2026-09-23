@@ -72,6 +72,7 @@ describe("AiQuestionElementStudentDisplay", () => {
 
 	it("should show an inline error and keep the input when the AI call fails", async () => {
 		submitAnswerMock.mockResolvedValue("error");
+		fetchOwnAnswerMock.mockResolvedValue({ answer: null });
 		const { wrapper } = setup();
 		await vi.dynamicImportSettled();
 
@@ -81,6 +82,37 @@ describe("AiQuestionElementStudentDisplay", () => {
 
 		expect(wrapper.find("[data-testid='ai-question-student-error']").exists()).toBe(true);
 		expect((wrapper.find("[data-testid='ai-question-student-answer'] textarea").element as HTMLTextAreaElement).value).toBe("4");
+	});
+
+	// Self-heal regression: a proxy timeout during the slow AI call can make the POST fail
+	// (408) even though the server stored the answer afterwards - the retry then hits the
+	// "already answered" conflict. Instead of an error, the stored response must be shown.
+	it("should recover the stored AI response when a failed POST turns out to be saved", async () => {
+		submitAnswerMock.mockResolvedValue("error");
+		fetchOwnAnswerMock
+			.mockResolvedValueOnce({ answer: null })
+			.mockResolvedValue({
+				answer: {
+					id: "answer-1",
+					userId: "user-1",
+					answer: "4",
+					aiResponse: "Richtig (nachgeladen)!",
+					answeredAt: new Date().toISOString(),
+					attemptCount: 1,
+				},
+			});
+		const { wrapper } = setup();
+		await vi.dynamicImportSettled();
+
+		await wrapper.find("[data-testid='ai-question-student-answer'] textarea").setValue("4");
+		await wrapper.find("[data-testid='ai-question-student-submit']").trigger("click");
+		await vi.dynamicImportSettled();
+
+		expect(fetchOwnAnswerMock).toHaveBeenCalledTimes(2);
+		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").text()).toContain(
+			"Richtig (nachgeladen)!"
+		);
+		expect(wrapper.find("[data-testid='ai-question-student-error']").exists()).toBe(false);
 	});
 
 	it("should show the stored AI response instead of the form once answered", async () => {

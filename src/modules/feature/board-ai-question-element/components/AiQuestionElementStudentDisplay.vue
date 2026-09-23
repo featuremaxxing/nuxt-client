@@ -101,6 +101,17 @@ const onSubmit = async () => {
 	submitting.value = false;
 
 	if (result === "error") {
+		// Self-heal: a proxy timeout during the slow AI call can make the POST fail even
+		// though the server stored the answer afterwards. Re-fetch before showing an
+		// error - if an answer appeared in the meantime, display it instead.
+		const own = await fetchOwnAnswer(props.element.id);
+		if (own?.answer) {
+			aiResponse.value = own.answer.aiResponse;
+			attemptCount.value = own.answer.attemptCount;
+			answerText.value = "";
+			return;
+		}
+
 		// Inline error, input preserved: the student can retry immediately.
 		submitError.value = true;
 		return;
