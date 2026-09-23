@@ -1228,6 +1228,20 @@ export default {
 	"loggedin.text.teamsToRooms.helpLink": "More information about the migration can be found on the {helpLink}.",
 	"loggedin.text.teamsToRooms.helpLink.help": "help pages",
 	"pages.dashboard.title": "Dashboard",
+	"pages.dashboard.features.title": "New features",
+	"pages.dashboard.features.intro": "Discover new ways to learn and collaborate in rooms.",
+	"pages.dashboard.features.assignments.title": "Assignments",
+	"pages.dashboard.features.assignments.description":
+		"Create assignments directly on boards, collect submissions, and provide feedback with points, comments, audio, or corrections.",
+	"pages.dashboard.features.polls.title": "Polls",
+	"pages.dashboard.features.polls.description":
+		"Run polls with multiple questions and answer types and review the results in a clear overview.",
+	"pages.dashboard.features.aiQuestions.title": "AI questions",
+	"pages.dashboard.features.aiQuestions.description":
+		"Have AI review answers to open questions based on your instructions and provide individual feedback.",
+	"pages.dashboard.features.learningRoom.title": "My learning room",
+	"pages.dashboard.features.learningRoom.description":
+		"Pin important cards from different rooms in one personal place and keep track of your learning content.",
 	"pages.dashboard.empty.news": "So far there is no news.",
 	"pages.dashboard.new.features": "There are new features in the {instanceTitle}.",
 	"pages.dashboard.new.features.available": "New features are available",

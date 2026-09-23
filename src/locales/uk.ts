@@ -1244,6 +1244,20 @@ export default {
 	"loggedin.text.teamsToRooms.helpLink": "Більше інформації про міграцію можна знайти на {helpLink}.",
 	"loggedin.text.teamsToRooms.helpLink.help": "сторінки довідки",
 	"pages.dashboard.title": "Панель керування",
+	"pages.dashboard.features.title": "Нові функції",
+	"pages.dashboard.features.intro": "Відкрийте нові можливості для навчання та співпраці в кімнатах.",
+	"pages.dashboard.features.assignments.title": "Завдання",
+	"pages.dashboard.features.assignments.description":
+		"Створюйте завдання безпосередньо на дошках, збирайте роботи та надавайте відгуки з балами, коментарями, аудіо чи виправленнями.",
+	"pages.dashboard.features.polls.title": "Опитування",
+	"pages.dashboard.features.polls.description":
+		"Проводьте опитування з кількома запитаннями й типами відповідей та переглядайте результати у зручному вигляді.",
+	"pages.dashboard.features.aiQuestions.title": "Запитання зі ШІ",
+	"pages.dashboard.features.aiQuestions.description":
+		"Дозвольте ШІ перевіряти відповіді на відкриті запитання за вашими вказівками та надавати індивідуальний відгук.",
+	"pages.dashboard.features.learningRoom.title": "Моя навчальна кімната",
+	"pages.dashboard.features.learningRoom.description":
+		"Закріплюйте важливі картки з різних кімнат в одному особистому місці та стежте за навчальними матеріалами.",
 	"pages.dashboard.empty.news": "Немає останніх новин. Перегляньте розділ новин, щоб бути в курсі.",
 	"pages.dashboard.new.features": "В {instanceTitle} є нові функції",
 	"pages.dashboard.new.features.available": "Доступні нові функції",

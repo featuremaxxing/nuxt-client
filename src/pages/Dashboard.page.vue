@@ -37,6 +37,20 @@
 				<RenderHTML :html="inMaintenanceOrMigrationText" />
 			</WarningAlert>
 
+			<section class="my-8" aria-labelledby="new-features-title" data-testid="new-features">
+				<h2 id="new-features-title" class="mb-2">{{ t("pages.dashboard.features.title") }}</h2>
+				<p class="mb-4">{{ t("pages.dashboard.features.intro") }}</p>
+
+				<VRow>
+					<VCol v-for="feature in newFeatures" :key="feature.title" cols="12" md="6">
+						<VCard height="100%" variant="outlined">
+							<VCardTitle>{{ t(feature.title) }}</VCardTitle>
+							<VCardText>{{ t(feature.description) }}</VCardText>
+						</VCard>
+					</VCol>
+				</VRow>
+			</section>
+
 			<SvsLoading :loading-state="newsLoadingState">
 				<h2 class="mb-4">{{ t("pages.news.title") }}</h2>
 
@@ -86,6 +100,25 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const { isTeacher, isStudent, isAdmin } = useAppStoreRefs();
 const NEWS_LIMIT = 4;
+
+const newFeatures = [
+	{
+		title: "pages.dashboard.features.assignments.title",
+		description: "pages.dashboard.features.assignments.description",
+	},
+	{
+		title: "pages.dashboard.features.polls.title",
+		description: "pages.dashboard.features.polls.description",
+	},
+	{
+		title: "pages.dashboard.features.aiQuestions.title",
+		description: "pages.dashboard.features.aiQuestions.description",
+	},
+	{
+		title: "pages.dashboard.features.learningRoom.title",
+		description: "pages.dashboard.features.learningRoom.description",
+	},
+] as const;
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));
 

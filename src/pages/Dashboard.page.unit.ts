@@ -101,6 +101,17 @@ describe("DashboardPage", () => {
 		expect(wrapper.find("[data-testid='dashboard-title']").exists()).toBe(true);
 	});
 
+	it("presents all new features", async () => {
+		const { wrapper } = setup();
+		await flushPromises();
+
+		const featureSection = wrapper.get("[data-testid='new-features']");
+		expect(featureSection.text()).toContain("pages.dashboard.features.assignments.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.polls.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.aiQuestions.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
+	});
+
 	describe("dashboard news", () => {
 		it("shows empty state when no news", async () => {
 			const { wrapper } = setup({ news: [] });

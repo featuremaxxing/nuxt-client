@@ -95,13 +95,11 @@ describe("@ui-layout/Sidebar", () => {
 		});
 	});
 
-	describe("when user does have needed permission", () => {
-		it("should display items correctly ", async () => {
-			const { wrapper } = setup({
-				isTeamsEnabled: true,
-			});
+	describe("when teams are enabled", () => {
+		it("should still hide the teams page link", () => {
+			const { wrapper } = setup({ isTeamsEnabled: true });
 
-			expect(wrapper.find("[data-testid='sidebar-teams']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='sidebar-teams']").exists()).toBe(false);
 		});
 	});
 
