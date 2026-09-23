@@ -13,6 +13,10 @@ vi.mock("@data-ai-question", () => ({
 	useAiQuestionApi: () => ({ fetchConfig: fetchConfigMock }),
 }));
 
+vi.mock("@data-app", () => ({
+	useAppStoreRefs: () => ({ user: { value: { id: "teacher-1" } } }),
+}));
+
 vi.mock("@data-board", () => ({
 	useContentElementState: useContentElementStateMock,
 }));
@@ -57,6 +61,17 @@ describe("AiQuestionElementEdit", () => {
 		await instructions.find("textarea").setValue("Netter bewerten");
 		expect(modelValue.value).toBe(originalContent);
 		expect(modelValue.value).toMatchObject({ aiInstructions: "Netter bewerten", expectedAnswer: "4" });
+	});
+
+	it("should persist the creator-only editing switch on the model", async () => {
+		const { wrapper, modelValue } = setup();
+		await vi.dynamicImportSettled();
+
+		const originalContent = modelValue.value;
+		await wrapper.find("[data-testid='ai-question-edit-only-creator'] input").setValue(true);
+
+		expect(modelValue.value).toBe(originalContent);
+		expect(modelValue.value.onlyCreatorCanEdit).toBe(true);
 	});
 
 	it("should toggle the multiple-attempts switch on the model", async () => {

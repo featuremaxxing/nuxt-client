@@ -801,6 +801,7 @@ export default {
 	"components.cardElement.aiQuestionElement.expectedAnswerHint":
 		"Видима лише для ШІ як еталон оцінювання – учні та учениці ніколи її не побачать.",
 	"components.cardElement.aiQuestionElement.allowMultipleAttempts": "Дозволити кілька відповідей",
+	"components.cardElement.aiQuestionElement.onlyCreatorCanEdit": "Дозволити редагування лише мені",
 	"components.cardElement.aiQuestionElement.yourAnswer": "Твоя відповідь",
 	"components.cardElement.aiQuestionElement.answerPlaceholder": "Напишіть відповідь …",
 	"components.cardElement.aiQuestionElement.submit": "Доручити ШІ оцінити відповідь",

@@ -805,6 +805,7 @@ export default {
 	"components.cardElement.aiQuestionElement.expectedAnswerHint":
 		"Solo visible para la IA como referencia de evaluación; los estudiantes nunca la verán.",
 	"components.cardElement.aiQuestionElement.allowMultipleAttempts": "Permitir varias respuestas",
+	"components.cardElement.aiQuestionElement.onlyCreatorCanEdit": "Restringir la edición a mí",
 	"components.cardElement.aiQuestionElement.yourAnswer": "Tu respuesta",
 	"components.cardElement.aiQuestionElement.answerPlaceholder": "Escribe tu respuesta …",
 	"components.cardElement.aiQuestionElement.submit": "Que la IA evalúe mi respuesta",

@@ -791,6 +791,7 @@ export default {
 	"components.cardElement.aiQuestionElement.expectedAnswerHint":
 		"Only visible to the AI as a grading reference - students will never see this.",
 	"components.cardElement.aiQuestionElement.allowMultipleAttempts": "Allow multiple answers",
+	"components.cardElement.aiQuestionElement.onlyCreatorCanEdit": "Restrict editing to me",
 	"components.cardElement.aiQuestionElement.yourAnswer": "Your answer",
 	"components.cardElement.aiQuestionElement.answerPlaceholder": "Write your answer …",
 	"components.cardElement.aiQuestionElement.submit": "Have the AI assess my answer",

@@ -44,6 +44,12 @@ export interface AiQuestionContentBody {
      * @memberof AiQuestionContentBody
      */
     allowMultipleAttempts?: boolean;
+    /**
+     * whether only the creating teacher may edit this element; default false
+     * @type {boolean}
+     * @memberof AiQuestionContentBody
+     */
+    onlyCreatorCanEdit?: boolean;
 }
 
 

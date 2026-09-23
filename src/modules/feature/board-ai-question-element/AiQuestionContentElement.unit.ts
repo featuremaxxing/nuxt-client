@@ -6,11 +6,12 @@ import { computed } from "vue";
 
 const mocks = vi.hoisted(() => ({
 	isStudent: { value: false },
+	user: { value: { id: "teacher-1" } },
 	useBoardFocusHandler: vi.fn(),
 }));
 
 vi.mock("@data-app", () => ({
-	useAppStoreRefs: () => ({ isStudent: mocks.isStudent }),
+	useAppStoreRefs: () => ({ isStudent: mocks.isStudent, user: mocks.user }),
 }));
 
 vi.mock("@data-board", () => ({
@@ -19,8 +20,9 @@ vi.mock("@data-board", () => ({
 }));
 
 describe("AiQuestionContentElement", () => {
-	const setup = (isStudent: boolean, isEditMode = true) => {
+	const setup = (isStudent: boolean, isEditMode = true, onlyCreatorCanEdit = false, currentUserId = "teacher-1") => {
 		mocks.isStudent.value = isStudent;
+		mocks.user.value = { id: currentUserId };
 		return mount(AiQuestionContentElement, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
@@ -32,7 +34,14 @@ describe("AiQuestionContentElement", () => {
 				},
 			},
 			props: {
-				element: aiQuestionElementResponseFactory.build(),
+				element: aiQuestionElementResponseFactory.build({
+					content: {
+						question: "Was ist 2+2?",
+						allowMultipleAttempts: false,
+						creatorId: "teacher-1",
+						onlyCreatorCanEdit,
+					},
+				}),
 				isEditMode,
 				columnIndex: 0,
 				rowIndex: 0,
@@ -53,6 +62,14 @@ describe("AiQuestionContentElement", () => {
 
 		expect(wrapper.findComponent({ name: "AiQuestionElementEdit" }).exists()).toBe(false);
 		expect(wrapper.findComponent({ name: "AiQuestionElementStudentDisplay" }).exists()).toBe(true);
+		expect(wrapper.findComponent({ name: "BoardMenu" }).exists()).toBe(false);
+	});
+
+	it("shows the teacher view without edit controls to another teacher when restricted", () => {
+		const wrapper = setup(false, true, true, "teacher-2");
+
+		expect(wrapper.findComponent({ name: "AiQuestionElementEdit" }).exists()).toBe(false);
+		expect(wrapper.findComponent({ name: "AiQuestionElementTeacherDisplay" }).exists()).toBe(true);
 		expect(wrapper.findComponent({ name: "BoardMenu" }).exists()).toBe(false);
 	});
 });

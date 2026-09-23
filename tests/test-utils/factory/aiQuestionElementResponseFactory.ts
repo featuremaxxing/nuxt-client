@@ -1,8 +1,5 @@
 import { timestampsResponseFactory } from "@@/tests/test-utils/factory/timestampsResponseFactory";
-import {
-	AiQuestionElementResponse,
-	ContentElementType,
-} from "@api-server";
+import { AiQuestionElementResponse, ContentElementType } from "@api-server";
 import { Factory } from "fishery";
 
 export const aiQuestionElementResponseFactory = Factory.define<AiQuestionElementResponse>(({ sequence }) => ({
@@ -11,6 +8,8 @@ export const aiQuestionElementResponseFactory = Factory.define<AiQuestionElement
 	content: {
 		question: `Was ist 2+2? (Frage ${sequence})`,
 		allowMultipleAttempts: false,
+		creatorId: "teacher-1",
+		onlyCreatorCanEdit: false,
 	},
 	timestamps: timestampsResponseFactory.build(),
 }));

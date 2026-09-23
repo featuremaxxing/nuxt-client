@@ -813,6 +813,7 @@ export default {
 	"components.cardElement.aiQuestionElement.expectedAnswerHint":
 		"Nur für die KI als Bewertungsreferenz sichtbar – Schülerinnen und Schüler sehen diese nicht.",
 	"components.cardElement.aiQuestionElement.allowMultipleAttempts": "Mehrfache Antworten erlauben",
+	"components.cardElement.aiQuestionElement.onlyCreatorCanEdit": "Nur ich darf diese KI-Frage bearbeiten",
 	"components.cardElement.aiQuestionElement.yourAnswer": "Deine Antwort",
 	"components.cardElement.aiQuestionElement.answerPlaceholder": "Antwort schreiben …",
 	"components.cardElement.aiQuestionElement.submit": "Antwort prüfen lassen",

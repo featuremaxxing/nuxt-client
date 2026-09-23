@@ -31,6 +31,15 @@
 			@update:model-value="(value: string | null) => setPrivateFields({ expectedAnswer: value ?? '' })"
 		/>
 		<VCheckbox
+			v-if="isCreator"
+			:model-value="modelValue.onlyCreatorCanEdit"
+			:label="t('components.cardElement.aiQuestionElement.onlyCreatorCanEdit')"
+			density="compact"
+			hide-details
+			data-testid="ai-question-edit-only-creator"
+			@update:model-value="(value: boolean | null) => setOnlyCreatorCanEdit(!!value)"
+		/>
+		<VCheckbox
 			:model-value="modelValue.allowMultipleAttempts"
 			:label="t('components.cardElement.aiQuestionElement.allowMultipleAttempts')"
 			density="compact"
@@ -44,8 +53,9 @@
 <script setup lang="ts">
 import { AiQuestionElement } from "@/types/board/ContentElement";
 import { useAiQuestionApi } from "@data-ai-question";
+import { useAppStoreRefs } from "@data-app";
 import { useContentElementState } from "@data-board";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -54,6 +64,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const { user } = useAppStoreRefs();
+const isCreator = computed(
+	() => !props.element.content.creatorId || props.element.content.creatorId === user.value?.id
+);
 
 // Autosaved like every element's edit form. The broadcast content carries only
 // question/allowMultipleAttempts - the teacher's private aiInstructions/expectedAnswer
@@ -81,6 +95,10 @@ const setPrivateFields = (patch: { aiInstructions?: string; expectedAnswer?: str
 	};
 	editableContent.aiInstructions = aiInstructions.value;
 	editableContent.expectedAnswer = expectedAnswer.value;
+};
+
+const setOnlyCreatorCanEdit = (value: boolean) => {
+	modelValue.value.onlyCreatorCanEdit = value;
 };
 
 const setAllowMultipleAttempts = (value: boolean) => {

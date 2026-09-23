@@ -32,6 +32,18 @@ export interface AiQuestionElementContent {
      * @memberof AiQuestionElementContent
      */
     allowMultipleAttempts: boolean;
+    /**
+     * creator of the AI question; absent on legacy elements
+     * @type {string}
+     * @memberof AiQuestionElementContent
+     */
+    creatorId?: string;
+    /**
+     * whether only the creating teacher may edit this element
+     * @type {boolean}
+     * @memberof AiQuestionElementContent
+     */
+    onlyCreatorCanEdit: boolean;
 }
 
 

@@ -10,7 +10,7 @@
 			<template #title>
 				{{ element.content.question || t("components.cardElement.aiQuestionElement") }}
 			</template>
-			<template v-if="isEditMode && canManageAiQuestion" #menu>
+			<template v-if="isEditMode && canEditAiQuestion" #menu>
 				<BoardMenu
 					:scope="BoardMenuScope.AI_QUESTION_ELEMENT"
 					has-background
@@ -23,8 +23,8 @@
 			</template>
 		</ContentElementBar>
 
-		<AiQuestionElementEdit v-if="isEditMode && canManageAiQuestion" :element="element" :is-edit-mode="isEditMode" />
-		<AiQuestionElementTeacherDisplay v-else-if="canManageAiQuestion" :element="element" />
+		<AiQuestionElementEdit v-if="isEditMode && canEditAiQuestion" :element="element" :is-edit-mode="isEditMode" />
+		<AiQuestionElementTeacherDisplay v-else-if="isTeacherEditor" :element="element" />
 		<AiQuestionElementStudentDisplay v-else :element="element" />
 	</VCard>
 </template>
@@ -61,7 +61,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { isStudent } = useAppStoreRefs();
+const { isStudent, user } = useAppStoreRefs();
 const { allowedOperations } = useBoardAllowedOperations();
 
 const element = toRef(props, "element");
@@ -72,7 +72,13 @@ useBoardFocusHandler(element.value.id, aiQuestionContentElement);
 // board into "can edit", but the server never grants an AI question's manage view (the
 // teacher's instructions and the expected answer) to such a reader - see the aiQuestion
 // carve-out in board-node.rule.ts.
-const canManageAiQuestion = computed(() => allowedOperations.value.isBoardEditor && !isStudent.value);
+const isTeacherEditor = computed(() => allowedOperations.value.isBoardEditor && !isStudent.value);
+const isCreator = computed(
+	() => !element.value.content.creatorId || element.value.content.creatorId === user.value?.id
+);
+const canEditAiQuestion = computed(
+	() => isTeacherEditor.value && (!element.value.content.onlyCreatorCanEdit || isCreator.value)
+);
 
 const onMoveUp = () => emit("move-up:edit");
 const onMoveDown = () => emit("move-down:edit");
