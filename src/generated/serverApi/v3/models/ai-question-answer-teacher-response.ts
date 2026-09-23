@@ -56,6 +56,11 @@ export interface AiQuestionAnswerTeacherResponse {
      * @memberof AiQuestionAnswerTeacherResponse
      */
     attemptCount: number;
+    points?: number | null;
+    maxPoints?: number | null;
+    aiFlagged?: boolean;
+    aiFlagReason?: string | null;
+    studentFlagged?: boolean;
     /**
      * 
      * @type {object}

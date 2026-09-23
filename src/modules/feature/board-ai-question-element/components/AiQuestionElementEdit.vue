@@ -9,6 +9,25 @@
 			auto-grow
 			data-testid="ai-question-edit-question"
 		/>
+		<div class="d-flex flex-wrap ga-3">
+			<VSelect
+				:model-value="modelValue.gradeLevel"
+				:items="gradeLevels"
+				:label="t('components.cardElement.aiQuestionElement.gradeLevel')"
+				clearable
+				class="flex-grow-1"
+				data-testid="ai-question-edit-grade-level"
+				@update:model-value="(value: number | null) => (modelValue.gradeLevel = value ?? undefined)"
+			/>
+			<VCombobox
+				:model-value="modelValue.subject"
+				:items="subjectOptions"
+				:label="t('components.cardElement.aiQuestionElement.subject')"
+				class="flex-grow-1"
+				data-testid="ai-question-edit-subject"
+				@update:model-value="(value: string | null) => (modelValue.subject = value?.trim() || undefined)"
+			/>
+		</div>
 		<VTextarea
 			:model-value="aiInstructions"
 			:label="t('components.cardElement.aiQuestionElement.aiInstructions')"
@@ -29,6 +48,24 @@
 			persistent-hint
 			data-testid="ai-question-edit-expected-answer"
 			@update:model-value="(value: string | null) => setPrivateFields({ expectedAnswer: value ?? '' })"
+		/>
+		<VCheckbox
+			:model-value="pointsEnabled"
+			:label="t('components.cardElement.aiQuestionElement.pointsEnabled')"
+			density="compact"
+			hide-details
+			data-testid="ai-question-edit-points-enabled"
+			@update:model-value="(value: boolean | null) => setPointsEnabled(!!value)"
+		/>
+		<VTextField
+			v-if="pointsEnabled"
+			:model-value="modelValue.maxPoints"
+			:label="t('components.cardElement.aiQuestionElement.maxPoints')"
+			type="number"
+			min="1"
+			max="1000"
+			data-testid="ai-question-edit-max-points"
+			@update:model-value="setMaxPoints"
 		/>
 		<VCheckbox
 			v-if="isCreator"
@@ -80,6 +117,24 @@ const { fetchConfig } = useAiQuestionApi();
 
 const aiInstructions = ref<string>("");
 const expectedAnswer = ref<string>("");
+const gradeLevels = Array.from({ length: 13 }, (_, index) => index + 1);
+const subjectOptions = [
+	"Deutsch",
+	"Mathematik",
+	"Englisch",
+	"Biologie",
+	"Chemie",
+	"Physik",
+	"Geschichte",
+	"Politik",
+	"Geografie",
+	"Informatik",
+	"Kunst",
+	"Musik",
+	"Sport",
+	"Religion / Ethik",
+];
+const pointsEnabled = computed(() => modelValue.value.maxPoints !== undefined);
 
 const setPrivateFields = (patch: { aiInstructions?: string; expectedAnswer?: string }) => {
 	if (patch.aiInstructions !== undefined) aiInstructions.value = patch.aiInstructions;
@@ -95,6 +150,15 @@ const setPrivateFields = (patch: { aiInstructions?: string; expectedAnswer?: str
 	};
 	editableContent.aiInstructions = aiInstructions.value;
 	editableContent.expectedAnswer = expectedAnswer.value;
+};
+
+const setPointsEnabled = (value: boolean) => {
+	modelValue.value.maxPoints = value ? (modelValue.value.maxPoints ?? 10) : undefined;
+};
+
+const setMaxPoints = (value: string | number | null) => {
+	const parsed = Number(value);
+	modelValue.value.maxPoints = Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, 1000) : 1;
 };
 
 const setOnlyCreatorCanEdit = (value: boolean) => {

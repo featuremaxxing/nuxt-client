@@ -44,6 +44,9 @@ export interface AiQuestionElementContent {
      * @memberof AiQuestionElementContent
      */
     onlyCreatorCanEdit: boolean;
+    gradeLevel?: number;
+    subject?: string;
+    maxPoints?: number;
 }
 
 

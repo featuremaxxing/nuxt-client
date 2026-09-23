@@ -1,5 +1,6 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
+	AiQuestionAnswerResponse,
 	AiQuestionAnswersListResponse,
 	AiQuestionApiFactory,
 	AiQuestionApiInterface,
@@ -58,6 +59,18 @@ export const useAiQuestionApi = () => {
 		}
 	};
 
+	const setAnswerFlag = async (elementId: string, flagged: boolean): Promise<AiQuestionAnswerResponse | undefined> => {
+		try {
+			const response = await $axios.patch<AiQuestionAnswerResponse>(`/v3/ai-questions/${elementId}/answer/flag`, {
+				flagged,
+			});
+			return response.data;
+		} catch (error) {
+			showGenericError(error);
+			return undefined;
+		}
+	};
+
 	const fetchAnswers = async (elementId: string): Promise<AiQuestionAnswersListResponse | undefined> => {
 		try {
 			const response = await aiQuestionApi.aiQuestionControllerListAnswers(elementId);
@@ -68,5 +81,5 @@ export const useAiQuestionApi = () => {
 		}
 	};
 
-	return { fetchConfig, submitAnswer, fetchOwnAnswer, fetchAnswers };
+	return { fetchConfig, submitAnswer, fetchOwnAnswer, setAnswerFlag, fetchAnswers };
 };

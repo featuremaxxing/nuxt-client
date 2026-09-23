@@ -5,15 +5,21 @@ import { flushPromises, mount } from "@vue/test-utils";
 
 const testMessages = {
 	"components.cardElement.aiQuestionElement.attempt": "Attempt {count}",
+	"components.cardElement.aiQuestionElement.points": "{points} of {maxPoints} points",
 };
 
-const { fetchOwnAnswerMock, submitAnswerMock } = vi.hoisted(() => ({
+const { fetchOwnAnswerMock, setAnswerFlagMock, submitAnswerMock } = vi.hoisted(() => ({
 	fetchOwnAnswerMock: vi.fn(),
+	setAnswerFlagMock: vi.fn(),
 	submitAnswerMock: vi.fn(),
 }));
 
 vi.mock("@data-ai-question", () => ({
-	useAiQuestionApi: () => ({ fetchOwnAnswer: fetchOwnAnswerMock, submitAnswer: submitAnswerMock }),
+	useAiQuestionApi: () => ({
+		fetchOwnAnswer: fetchOwnAnswerMock,
+		setAnswerFlag: setAnswerFlagMock,
+		submitAnswer: submitAnswerMock,
+	}),
 }));
 
 describe("AiQuestionElementStudentDisplay", () => {
@@ -36,6 +42,7 @@ describe("AiQuestionElementStudentDisplay", () => {
 
 	beforeEach(() => {
 		fetchOwnAnswerMock.mockResolvedValue({ answer: null });
+		setAnswerFlagMock.mockResolvedValue(undefined);
 		submitAnswerMock.mockResolvedValue({
 			id: "answer-1",
 			userId: "user-1",
@@ -151,6 +158,33 @@ describe("AiQuestionElementStudentDisplay", () => {
 
 		expect(fetchOwnAnswerMock).toHaveBeenCalledTimes(4);
 		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").text()).toContain("spät, aber da");
+	});
+
+	it("should show points and allow the student to flag the assessment", async () => {
+		const answer = {
+			id: "answer-1",
+			userId: "user-1",
+			answer: "4",
+			aiResponse: "Teilweise richtig",
+			answeredAt: new Date().toISOString(),
+			attemptCount: 1,
+			points: 7,
+			maxPoints: 10,
+			aiFlagged: false,
+			aiFlagReason: null,
+			studentFlagged: false,
+		};
+		fetchOwnAnswerMock.mockResolvedValue({ answer });
+		setAnswerFlagMock.mockResolvedValue({ ...answer, studentFlagged: true });
+		const { wrapper, element } = setup();
+		await vi.dynamicImportSettled();
+
+		expect(wrapper.find("[data-testid='ai-question-student-points']").text()).toContain("7");
+		await wrapper.find("[data-testid='ai-question-student-flag']").trigger("click");
+		await vi.dynamicImportSettled();
+
+		expect(setAnswerFlagMock).toHaveBeenCalledWith(element.id, true);
+		expect(wrapper.find("[data-testid='ai-question-student-flagged']").exists()).toBe(true);
 	});
 
 	it("should show the stored AI response instead of the form once answered", async () => {

@@ -49,6 +49,24 @@
 					{{ t("components.cardElement.aiQuestionElement.attempt", { count: attemptCount }) }}
 				</span>
 			</div>
+			<VChip
+				v-if="points !== undefined && maxPoints !== undefined"
+				class="mb-2"
+				color="primary"
+				data-testid="ai-question-student-points"
+			>
+				{{ t("components.cardElement.aiQuestionElement.points", { points, maxPoints }) }}
+			</VChip>
+			<VAlert
+				v-if="aiFlagged"
+				type="warning"
+				variant="tonal"
+				density="compact"
+				class="mb-2"
+				data-testid="ai-question-student-ai-flag"
+			>
+				{{ aiFlagReason || t("components.cardElement.aiQuestionElement.aiFlagged") }}
+			</VAlert>
 			<VSheet
 				color="var(--color-secondary)"
 				class="ai-response-sheet pa-3 rounded-lg"
@@ -59,6 +77,20 @@
 				</p>
 				<p class="ai-question-text">{{ aiResponse }}</p>
 			</VSheet>
+			<div class="d-flex flex-wrap align-center ga-2 mt-2">
+				<VBtn variant="text" :data-testid="'ai-question-student-flag'" @click="toggleStudentFlag">
+					{{
+						t(
+							studentFlagged
+								? "components.cardElement.aiQuestionElement.unflagAssessment"
+								: "components.cardElement.aiQuestionElement.flagAssessment"
+						)
+					}}
+				</VBtn>
+				<VChip v-if="studentFlagged" size="small" color="warning" data-testid="ai-question-student-flagged">
+					{{ t("components.cardElement.aiQuestionElement.flaggedForReview") }}
+				</VChip>
+			</div>
 			<VBtn
 				v-if="element.content.allowMultipleAttempts"
 				variant="text"
@@ -74,6 +106,7 @@
 
 <script setup lang="ts">
 import { AiQuestionElement } from "@/types/board/ContentElement";
+import { AiQuestionAnswerResponse } from "@api-server";
 import { useAiQuestionApi } from "@data-ai-question";
 import { mdiRobotOutline } from "@icons/material";
 import { onMounted, ref } from "vue";
@@ -84,7 +117,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const { fetchOwnAnswer, submitAnswer } = useAiQuestionApi();
+const { fetchOwnAnswer, setAnswerFlag, submitAnswer } = useAiQuestionApi();
 
 const OWN_ANSWER_POLL_ATTEMPTS = 8;
 const OWN_ANSWER_POLL_INTERVAL_MS = 4000;
@@ -95,14 +128,16 @@ const submitError = ref(false);
 // undefined = no answer to show yet; a string is the AI's latest assessment.
 const aiResponse = ref<string | undefined>(undefined);
 const attemptCount = ref(0);
+const points = ref<number>();
+const maxPoints = ref<number>();
+const aiFlagged = ref(false);
+const aiFlagReason = ref<string>();
+const studentFlagged = ref(false);
 
 onMounted(async () => {
 	const result = await fetchOwnAnswer(props.element.id);
 	const ownAnswer = result?.answer;
-	if (ownAnswer) {
-		aiResponse.value = ownAnswer.aiResponse;
-		attemptCount.value = ownAnswer.attemptCount;
-	}
+	if (ownAnswer) applyAnswer(ownAnswer);
 });
 
 const onSubmit = async () => {
@@ -132,11 +167,24 @@ const onSubmit = async () => {
 	}
 
 	submitting.value = false;
-	if (result) {
-		aiResponse.value = result.aiResponse;
-		attemptCount.value = result.attemptCount;
-		answerText.value = "";
-	}
+	if (result) applyAnswer(result);
+};
+
+const applyAnswer = (answer: AiQuestionAnswerResponse) => {
+	aiResponse.value = answer.aiResponse;
+	attemptCount.value = answer.attemptCount;
+	points.value = answer.points ?? undefined;
+	maxPoints.value = answer.maxPoints ?? undefined;
+	aiFlagged.value = answer.aiFlagged ?? false;
+	aiFlagReason.value = answer.aiFlagReason ?? undefined;
+	studentFlagged.value = answer.studentFlagged ?? false;
+	answerText.value = "";
+	submitError.value = false;
+};
+
+const toggleStudentFlag = async () => {
+	const result = await setAnswerFlag(props.element.id, !studentFlagged.value);
+	if (result) applyAnswer(result);
 };
 
 const onResubmit = () => {
@@ -150,11 +198,7 @@ const pollForOwnAnswer = async (): Promise<boolean> => {
 	for (let attempt = 0; attempt < OWN_ANSWER_POLL_ATTEMPTS; attempt += 1) {
 		const own = await fetchOwnAnswer(props.element.id);
 		if (own?.answer) {
-			aiResponse.value = own.answer.aiResponse;
-			attemptCount.value = own.answer.attemptCount;
-			answerText.value = "";
-			submitError.value = false;
-
+			applyAnswer(own.answer);
 			return true;
 		}
 

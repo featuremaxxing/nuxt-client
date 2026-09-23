@@ -50,6 +50,9 @@ export interface AiQuestionContentBody {
      * @memberof AiQuestionContentBody
      */
     onlyCreatorCanEdit?: boolean;
+    gradeLevel?: number;
+    subject?: string;
+    maxPoints?: number;
 }
 
 

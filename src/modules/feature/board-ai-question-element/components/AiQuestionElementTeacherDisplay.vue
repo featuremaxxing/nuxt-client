@@ -4,13 +4,27 @@
 			{{ element.content.question }}
 		</p>
 
+		<VBtn
+			variant="tonal"
+			size="small"
+			class="mb-3"
+			data-testid="ai-question-open-evaluation"
+			@click="evaluationOpen = true"
+		>
+			{{ t("components.cardElement.aiQuestionElement.openEvaluation") }}
+		</VBtn>
+
 		<VExpansionPanels v-model="openPanels" multiple variant="accordion" data-testid="ai-question-teacher-answers">
 			<VExpansionPanel :value="ANSWERS_PANEL">
 				<VExpansionPanelTitle data-testid="ai-question-teacher-answers-toggle">
 					{{ t("components.cardElement.aiQuestionElement.answersCount", { count: answers.length }) }}
 				</VExpansionPanelTitle>
 				<VExpansionPanelText>
-					<p v-if="answers.length === 0" class="text-sm text-medium-emphasis" data-testid="ai-question-teacher-answers-empty">
+					<p
+						v-if="answers.length === 0"
+						class="text-sm text-medium-emphasis"
+						data-testid="ai-question-teacher-answers-empty"
+					>
 						{{ t("components.cardElement.aiQuestionElement.answersEmpty") }}
 					</p>
 					<div
@@ -26,6 +40,17 @@
 							<VChip size="x-small" class="ml-2" data-testid="ai-question-teacher-attempts">
 								{{ t("components.cardElement.aiQuestionElement.attempt", { count: entry.attemptCount }) }}
 							</VChip>
+							<VChip v-if="entry.points != null" size="x-small" class="ml-2" color="primary">
+								{{
+									t("components.cardElement.aiQuestionElement.points", {
+										points: entry.points,
+										maxPoints: entry.maxPoints,
+									})
+								}}
+							</VChip>
+							<VChip v-if="entry.aiFlagged || entry.studentFlagged" size="x-small" class="ml-2" color="warning">
+								{{ t("components.cardElement.aiQuestionElement.flaggedForReview") }}
+							</VChip>
 						</div>
 						<p class="text-sm text-medium-emphasis my-1 answer-text">{{ entry.answer }}</p>
 						<VSheet color="var(--color-secondary)" class="pa-2 rounded-md">
@@ -38,10 +63,12 @@
 				</VExpansionPanelText>
 			</VExpansionPanel>
 		</VExpansionPanels>
+		<AiQuestionEvaluationDialog v-model="evaluationOpen" :answers="answers" />
 	</VCardText>
 </template>
 
 <script setup lang="ts">
+import AiQuestionEvaluationDialog from "./AiQuestionEvaluationDialog.vue";
 import { AiQuestionElement } from "@/types/board/ContentElement";
 import { AiQuestionAnswerTeacherResponse } from "@api-server";
 import { useAiQuestionApi } from "@data-ai-question";
@@ -57,6 +84,7 @@ const { fetchAnswers } = useAiQuestionApi();
 
 const ANSWERS_PANEL = "answers";
 const openPanels = ref<string[]>([]);
+const evaluationOpen = ref(false);
 const answers = ref<AiQuestionAnswerTeacherResponse[]>([]);
 
 onMounted(async () => {

@@ -22,10 +22,7 @@ describe("AiQuestionElementTeacherDisplay", () => {
 		const element = aiQuestionElementResponseFactory.build();
 		const wrapper = mount(AiQuestionElementTeacherDisplay, {
 			global: {
-				plugins: [
-					createTestingVuetify(),
-					createTestingI18n({ locale: "en", messages: { en: testMessages } }),
-				],
+				plugins: [createTestingVuetify(), createTestingI18n({ locale: "en", messages: { en: testMessages } })],
 			},
 			props: { element },
 		});
