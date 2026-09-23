@@ -2,7 +2,7 @@
 	<VCard
 		ref="cardRef"
 		class="content-element-card mb-4"
-		:class="{ 'content-element-card-edit-mode': isEditMode }"
+		:class="{ 'content-element-card-edit-mode': isEditMode, 'checkbox-complete': isComplete }"
 		variant="outlined"
 		data-testid="board-checkbox-element"
 	>
@@ -53,11 +53,8 @@
 					@update:model-value="(checked: boolean | null) => onToggleAudienceRole(role.value, !!checked)"
 				/>
 			</div>
-			<VBtn variant="text" data-testid="checkbox-details" @click="detailsOpen = true">
-				{{ t("components.cardElement.checkboxElement.details") }}
-			</VBtn>
 		</VCardText>
-		<VCardText v-else>
+		<VCardText v-else-if="!state?.canManage">
 			<VCheckbox
 				v-if="state?.myEntry && !state.canManage"
 				:model-value="state.myEntry.checked"
@@ -78,7 +75,20 @@
 					)
 				}}
 			</p>
-			<VBtn v-if="state?.canManage" variant="text" data-testid="checkbox-details" @click="detailsOpen = true">
+		</VCardText>
+		<VCardText v-if="state?.canManage" data-testid="checkbox-teacher-preview">
+			<VProgressLinear
+				:model-value="completionPercent"
+				height="8"
+				rounded
+				color="success"
+				bg-color="surface-variant"
+				data-testid="checkbox-progress"
+			/>
+			<p class="text-caption mt-2 mb-0" data-testid="checkbox-progress-label">
+				{{ completedCount }}/{{ participantCount }} {{ t("components.cardElement.checkboxElement.progress") }}
+			</p>
+			<VBtn variant="text" data-testid="checkbox-details" @click="detailsOpen = true">
 				{{ t("components.cardElement.checkboxElement.details") }}
 			</VBtn>
 		</VCardText>
@@ -86,49 +96,53 @@
 			<VCard>
 				<VCardTitle>{{ t("components.cardElement.checkboxElement.students") }}</VCardTitle>
 				<VCardText>
-					<VList>
-						<VListItem
-							v-for="entry in state?.entries ?? []"
-							:key="entry.userId"
-							:data-testid="`checkbox-student-${entry.userId}`"
-						>
-							<VListItemTitle>{{ entry.firstName }} {{ entry.lastName }}</VListItemTitle>
-							<VListItemSubtitle>
-								{{
-									t(
-										entry.checked
-											? "components.cardElement.checkboxElement.checked"
-											: "components.cardElement.checkboxElement.unchecked"
-									)
-								}}
-								<span v-if="entry.checked && element.content.requireTeacherConfirmation">
-									·
+					<VTable>
+						<thead>
+							<tr>
+								<th scope="col">{{ t("components.cardElement.checkboxElement.students") }}</th>
+								<th scope="col">{{ t("components.cardElement.checkboxElement.status") }}</th>
+								<th v-if="element.content.requireTeacherConfirmation" scope="col" />
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="entry in state?.entries ?? []"
+								:key="entry.userId"
+								:data-testid="`checkbox-student-${entry.userId}`"
+							>
+								<td>{{ entry.firstName }} {{ entry.lastName }}</td>
+								<td>
 									{{
 										t(
-											entry.approved
-												? "components.cardElement.checkboxElement.approved"
-												: "components.cardElement.checkboxElement.pending"
+											entry.checked
+												? element.content.requireTeacherConfirmation
+													? entry.approved
+														? "components.cardElement.checkboxElement.approved"
+														: "components.cardElement.checkboxElement.pending"
+													: "components.cardElement.checkboxElement.checked"
+												: "components.cardElement.checkboxElement.unchecked"
 										)
 									}}
-								</span>
-							</VListItemSubtitle>
-							<template v-if="entry.checked && element.content.requireTeacherConfirmation" #append>
-								<VBtn
-									:disabled="busy"
-									:data-testid="`checkbox-approve-${entry.userId}`"
-									@click="onApprove(entry.userId, !entry.approved)"
-								>
-									{{
-										t(
-											entry.approved
-												? "components.cardElement.checkboxElement.revoke"
-												: "components.cardElement.checkboxElement.confirm"
-										)
-									}}
-								</VBtn>
-							</template>
-						</VListItem>
-					</VList>
+								</td>
+								<td v-if="element.content.requireTeacherConfirmation">
+									<VBtn
+										v-if="entry.checked"
+										:disabled="busy"
+										:data-testid="`checkbox-approve-${entry.userId}`"
+										@click="onApprove(entry.userId, !entry.approved)"
+									>
+										{{
+											t(
+												entry.approved
+													? "components.cardElement.checkboxElement.revoke"
+													: "components.cardElement.checkboxElement.confirm"
+											)
+										}}
+									</VBtn>
+								</td>
+							</tr>
+						</tbody>
+					</VTable>
 				</VCardText>
 			</VCard>
 		</VDialog>
@@ -144,7 +158,7 @@ import { useBoardFocusHandler, useContentElementState } from "@data-board";
 import { mdiCheckboxOutline } from "@icons/material";
 import { BoardMenu, BoardMenuScope, ContentElementBar } from "@ui-board";
 import { KebabMenuActionDelete, KebabMenuActionMoveDown, KebabMenuActionMoveUp } from "@ui-kebab-menu";
-import { onMounted, ref, toRef, watch } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -176,6 +190,21 @@ useBoardFocusHandler(element.value.id, cardRef);
 const { modelValue } = useContentElementState(props, { autoSaveDebounce: 400 });
 const api = useCheckboxApi();
 const state = ref<CheckboxState>();
+const isComplete = computed(
+	() =>
+		!!state.value?.myEntry?.checked &&
+		(!props.element.content.requireTeacherConfirmation || !!state.value.myEntry.approved)
+);
+const participantCount = computed(() => state.value?.entries?.length ?? 0);
+const completedCount = computed(
+	() =>
+		state.value?.entries?.filter(
+			(entry) => entry.checked && (!props.element.content.requireTeacherConfirmation || entry.approved)
+		).length ?? 0
+);
+const completionPercent = computed(() =>
+	participantCount.value ? (completedCount.value / participantCount.value) * 100 : 0
+);
 const busy = ref(false);
 const detailsOpen = ref(false);
 const refresh = async () => {
@@ -227,3 +256,9 @@ const onDelete = async () => {
 		emit("delete:element", props.element.id);
 };
 </script>
+
+<style scoped>
+.checkbox-complete {
+	background-color: rgba(var(--v-theme-success), 0.16);
+}
+</style>

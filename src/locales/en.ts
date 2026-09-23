@@ -601,7 +601,8 @@ export default {
 	"components.cardElement.checkboxElement": "Checkbox",
 	"components.cardElement.checkboxElement.text": "Task",
 	"components.cardElement.checkboxElement.approvalRequired": "Require teacher approval",
-	"components.cardElement.checkboxElement.approvalLocked": "This setting cannot be changed after the first checkbox action.",
+	"components.cardElement.checkboxElement.approvalLocked":
+		"This setting cannot be changed after the first checkbox action.",
 	"components.cardElement.checkboxElement.audienceLabel": "Audience",
 	"components.cardElement.checkboxElement.audience.students": "Students",
 	"components.cardElement.checkboxElement.audience.teachers": "Teachers",
@@ -613,6 +614,8 @@ export default {
 	"components.cardElement.checkboxElement.approved": "Approved",
 	"components.cardElement.checkboxElement.pending": "Awaiting approval",
 	"components.cardElement.checkboxElement.details": "Details",
+	"components.cardElement.checkboxElement.progress": "completed",
+	"components.cardElement.checkboxElement.status": "Status",
 	"components.cardElement.checkboxElement.students": "Participants",
 	"components.cardElement.checkboxElement.confirm": "Approve",
 	"components.cardElement.checkboxElement.revoke": "Revoke approval",

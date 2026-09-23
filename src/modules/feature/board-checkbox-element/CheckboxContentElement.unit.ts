@@ -32,9 +32,9 @@ describe("CheckboxContentElement", () => {
 		check.mockResolvedValue({ myEntry: { checked: true, approved: false }, canManage: false, hasCheckActivity: true });
 	});
 
-	const setup = (isEditMode = false) =>
+	const setup = (isEditMode = false, checkboxElement = element) =>
 		mount(CheckboxContentElement, {
-			props: { element, isEditMode },
+			props: { element: checkboxElement, isEditMode },
 			global: { plugins: [createTestingPinia(), createTestingI18n(), createTestingVuetify()] },
 		});
 
@@ -50,7 +50,29 @@ describe("CheckboxContentElement", () => {
 		await vi.waitFor(() => expect(check).toHaveBeenCalledWith("checkbox-id", true));
 		await nextTick();
 		expect(wrapper.find('[data-testid="checkbox-approval-status"]').text()).toContain("checkboxElement.pending");
+		expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).not.toContain("checkbox-complete");
 		expect(wrapper.find('[data-testid="checkbox-student-check"]').text()).not.toContain("Read chapter");
+	});
+
+	it("turns green immediately after checking when teacher approval is not required", async () => {
+		getState.mockResolvedValue({ myEntry: { checked: false, approved: false }, canManage: false });
+		check.mockResolvedValue({ myEntry: { checked: true, approved: false }, canManage: false });
+		const wrapper = setup(false, {
+			...element,
+			content: { ...element.content, requireTeacherConfirmation: false },
+		});
+		await vi.waitFor(() => expect(wrapper.find('[data-testid="checkbox-student-check"]').exists()).toBe(true));
+		expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).not.toContain("checkbox-complete");
+		await wrapper.findComponent({ name: "VCheckbox" }).vm.$emit("update:modelValue", true);
+		await vi.waitFor(() =>
+			expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).toContain("checkbox-complete")
+		);
+		expect(wrapper.find('[data-testid="checkbox-approval-status"]').exists()).toBe(false);
+		check.mockResolvedValue({ myEntry: { checked: false, approved: false }, canManage: false });
+		await wrapper.findComponent({ name: "VCheckbox" }).vm.$emit("update:modelValue", false);
+		await vi.waitFor(() =>
+			expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).not.toContain("checkbox-complete")
+		);
 	});
 
 	it("does not show a student checkbox for a teacher", async () => {
@@ -61,6 +83,8 @@ describe("CheckboxContentElement", () => {
 		const wrapper = setup();
 		await vi.waitFor(() => expect(wrapper.find('[data-testid="checkbox-details"]').exists()).toBe(true));
 		expect(wrapper.find('[data-testid="checkbox-student-check"]').exists()).toBe(false);
+		expect(wrapper.find('[data-testid="checkbox-progress-label"]').text()).toContain("0/1");
+		expect(Number(wrapper.find('[data-testid="checkbox-progress"]').attributes("aria-valuenow"))).toBe(0);
 		await wrapper.find('[data-testid="checkbox-details"]').trigger("click");
 		await vi.waitFor(() => expect(getState).toHaveBeenCalledTimes(2));
 		expect(check).not.toHaveBeenCalled();
@@ -74,6 +98,42 @@ describe("CheckboxContentElement", () => {
 		await wrapper.findComponent({ name: "VCheckbox" }).vm.$emit("update:modelValue", false);
 		expect(check).not.toHaveBeenCalled();
 		expect(wrapper.find('[data-testid="checkbox-approval-status"]').text()).toContain("checkboxElement.approved");
+		expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).toContain("checkbox-complete");
+	});
+
+	it("counts only approved checks in the teacher progress when confirmation is required", async () => {
+		getState.mockResolvedValue({
+			canManage: true,
+			entries: [
+				{ userId: "one", checked: true, approved: true },
+				{ userId: "two", checked: true, approved: false },
+				{ userId: "three", checked: false, approved: false },
+			],
+		});
+		const wrapper = setup();
+		await vi.waitFor(() => expect(wrapper.find('[data-testid="checkbox-progress-label"]').text()).toContain("1/3"));
+		expect(Number(wrapper.find('[data-testid="checkbox-progress"]').attributes("aria-valuenow"))).toBeCloseTo(100 / 3);
+		expect(wrapper.find('[data-testid="board-checkbox-element"]').classes()).not.toContain("checkbox-complete");
+	});
+
+	it("counts checked participants without approval and handles an empty audience", async () => {
+		getState.mockResolvedValue({ canManage: true, entries: [] });
+		const wrapper = setup(false, {
+			...element,
+			content: { ...element.content, requireTeacherConfirmation: false },
+		});
+		await vi.waitFor(() => expect(wrapper.find('[data-testid="checkbox-progress-label"]').text()).toContain("0/0"));
+		expect(Number(wrapper.find('[data-testid="checkbox-progress"]').attributes("aria-valuenow"))).toBe(0);
+		getState.mockResolvedValue({
+			canManage: true,
+			entries: [
+				{ userId: "one", checked: true, approved: false },
+				{ userId: "two", checked: false, approved: false },
+			],
+		});
+		await wrapper.find('[data-testid="checkbox-details"]').trigger("click");
+		await vi.waitFor(() => expect(wrapper.find('[data-testid="checkbox-progress-label"]').text()).toContain("1/2"));
+		expect(Number(wrapper.find('[data-testid="checkbox-progress"]').attributes("aria-valuenow"))).toBe(50);
 	});
 
 	it("lets an eligible nonowner teacher check even when board editing is active, but never edit or delete", async () => {

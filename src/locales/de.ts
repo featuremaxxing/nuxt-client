@@ -622,7 +622,8 @@ export default {
 	"components.cardElement.checkboxElement": "Checkbox",
 	"components.cardElement.checkboxElement.text": "Aufgabe",
 	"components.cardElement.checkboxElement.approvalRequired": "Bestätigung durch Lehrkraft erforderlich",
-	"components.cardElement.checkboxElement.approvalLocked": "Nach der ersten Checkbox-Aktion kann diese Einstellung nicht mehr geändert werden.",
+	"components.cardElement.checkboxElement.approvalLocked":
+		"Nach der ersten Checkbox-Aktion kann diese Einstellung nicht mehr geändert werden.",
 	"components.cardElement.checkboxElement.audienceLabel": "Zielgruppe",
 	"components.cardElement.checkboxElement.audience.students": "Schülerinnen und Schüler",
 	"components.cardElement.checkboxElement.audience.teachers": "Lehrkräfte",
@@ -634,6 +635,8 @@ export default {
 	"components.cardElement.checkboxElement.approved": "Bestätigt",
 	"components.cardElement.checkboxElement.pending": "Wartet auf Bestätigung",
 	"components.cardElement.checkboxElement.details": "Details",
+	"components.cardElement.checkboxElement.progress": "abgeschlossen",
+	"components.cardElement.checkboxElement.status": "Status",
 	"components.cardElement.checkboxElement.students": "Teilnehmende",
 	"components.cardElement.checkboxElement.confirm": "Bestätigen",
 	"components.cardElement.checkboxElement.revoke": "Bestätigung zurücknehmen",
