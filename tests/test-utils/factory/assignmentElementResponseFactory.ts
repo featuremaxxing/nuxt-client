@@ -1,5 +1,5 @@
 import { timestampsResponseFactory } from "./timestampsResponseFactory";
-import { AssignmentElementResponse, ContentElementType, InputFormat } from "@api-server";
+import { AssignmentElementContentPeerReviewMode, AssignmentElementResponse, ContentElementType, InputFormat } from "@api-server";
 import { Factory } from "fishery";
 
 export const assignmentElementResponseFactory = Factory.define<AssignmentElementResponse>(({ sequence }) => ({
@@ -15,7 +15,7 @@ export const assignmentElementResponseFactory = Factory.define<AssignmentElement
 		maxPoints: 10,
 		lateUntil: null,
 		peerReviewEnabled: false,
-		peerReviewMode: "manual",
+		peerReviewMode: AssignmentElementContentPeerReviewMode.MANUAL,
 		peerReviewCount: 1,
 	},
 	timestamps: timestampsResponseFactory.build(),

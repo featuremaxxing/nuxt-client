@@ -219,53 +219,71 @@ export interface RoomBoardItemResponseAllowedOperations {
      */
     createOwnPollVote?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     updateOwnPollVote?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     viewPollResults?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     managePoll?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     viewAssignmentSubmissions?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     createOwnAssignmentSubmission?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     updateOwnAssignmentSubmission?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     deleteOwnAssignmentSubmission?: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof RoomBoardItemResponseAllowedOperations
      */
     gradeAssignmentSubmission?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    manageAiQuestion?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    createOwnAiQuestionAnswer?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomBoardItemResponseAllowedOperations
+     */
+    updateOwnAiQuestionAnswer?: boolean;
     /**
      * 
      * @type {boolean}

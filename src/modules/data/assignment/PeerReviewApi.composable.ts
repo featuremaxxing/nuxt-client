@@ -1,7 +1,8 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
 import {
+	AssignmentApiFactory,
+	AssignmentApiInterface,
 	AssignmentFeedbackContainerResponse,
-	PeerReviewApiFactory,
 	PeerReviewAssignmentResponse,
 	PeerReviewAssignResultResponse,
 	PeerReviewSettingsBodyParams,
@@ -11,10 +12,12 @@ import {
 } from "@api-server";
 import { notifyError } from "@data-app";
 
-// Thin wrapper around the generated PeerReviewApi, mirroring useAssignmentApi. No local
-// store - the review-task list is small and always refetched after a mutation.
+// Thin wrapper around the generated AssignmentApi (which carries the peer-review routes
+// since upstream merged the PeerReview tag into the Assignment tag), mirroring
+// useAssignmentApi. No local store - the review-task list is small and always refetched
+// after a mutation.
 export const usePeerReviewApi = () => {
-	const peerReviewApi = PeerReviewApiFactory(undefined, "/v3", $axios);
+	const peerReviewApi: AssignmentApiInterface = AssignmentApiFactory(undefined, "/v3", $axios);
 
 	const showError = (error: unknown) => {
 		const { message } = mapAxiosErrorToResponseError(error);

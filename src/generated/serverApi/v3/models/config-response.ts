@@ -234,13 +234,19 @@ export interface ConfigResponse {
      */
     FEATURE_COLUMN_BOARD_POLL_ENABLED: boolean;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof ConfigResponse
      */
     FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: boolean;
     /**
-     *
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
+    FEATURE_PERSONAL_LEARNING_ROOM_ENABLED: boolean;
+    /**
+     * 
      * @type {boolean}
      * @memberof ConfigResponse
      */
@@ -431,6 +437,12 @@ export interface ConfigResponse {
      * @memberof ConfigResponse
      */
     FEATURE_AI_TUTOR_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
+    FEATURE_AI_ENABLED: boolean;
     /**
      * 
      * @type {boolean}

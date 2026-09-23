@@ -1,6 +1,11 @@
 import PeerReviewAssignmentPanel from "./PeerReviewAssignmentPanel.vue";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { AssignmentStatus, AssignmentSubmissionResponse, PeerReviewAssignmentResponse } from "@api-server";
+import {
+	AssignmentReviewAssignmentMode,
+	AssignmentStatus,
+	AssignmentSubmissionResponse,
+	PeerReviewAssignmentResponse,
+} from "@api-server";
 import { mount } from "@vue/test-utils";
 
 const { autoAssignMock, manualAssignMock, unassignMock, notifySuccessMock } = vi.hoisted(() => ({
@@ -43,7 +48,7 @@ const buildAssignment = (overrides: Partial<PeerReviewAssignmentResponse> = {}):
 	reviewerUserId: "user-2",
 	reviewerFirstName: "Bea",
 	reviewerLastName: "Berg",
-	assignmentMode: "manual",
+	assignmentMode: AssignmentReviewAssignmentMode.MANUAL,
 	submittedAt: null,
 	...overrides,
 });
@@ -212,7 +217,7 @@ describe("PeerReviewAssignmentPanel", () => {
 			const { wrapper } = setupWrapper({
 				mode: "auto",
 				assignments: [
-					buildAssignment({ submissionId: "submission-1", reviewerUserId: "user-2", assignmentMode: "auto" }),
+					buildAssignment({ submissionId: "submission-1", reviewerUserId: "user-2", assignmentMode: AssignmentReviewAssignmentMode.AUTO }),
 				],
 			});
 

@@ -55,31 +55,31 @@ export interface PollContentBody {
      */
     pollStatus: PollStatus;
     /**
-     *
+     * 
      * @type {string}
      * @memberof PollContentBody
      */
     opensAt?: string;
     /**
-     *
+     * 
      * @type {string}
      * @memberof PollContentBody
      */
     closesAt?: string;
     /**
-     *
+     * 
      * @type {PollAudience}
      * @memberof PollContentBody
      */
     audience?: PollAudience;
     /**
-     *
+     * 
      * @type {Array<BoardRoles>}
      * @memberof PollContentBody
      */
     audienceRoles?: Array<BoardRoles>;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof PollContentBody
      */

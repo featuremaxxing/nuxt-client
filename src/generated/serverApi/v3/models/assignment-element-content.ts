@@ -77,23 +77,33 @@ export interface AssignmentElementContent {
      */
     criteria?: Array<AssignmentRubricCriterionResponse> | null;
     /**
-     *
+     * 
      * @type {boolean}
      * @memberof AssignmentElementContent
      */
     peerReviewEnabled: boolean;
     /**
-     *
+     * 
      * @type {string}
      * @memberof AssignmentElementContent
      */
-    peerReviewMode: 'manual' | 'auto';
+    peerReviewMode: AssignmentElementContentPeerReviewMode;
     /**
-     *
+     * 
      * @type {number}
      * @memberof AssignmentElementContent
      */
     peerReviewCount: number;
 }
+
+/**
+    * @export
+    * @enum {string}
+    */
+export enum AssignmentElementContentPeerReviewMode {
+    MANUAL = 'manual',
+    AUTO = 'auto'
+}
+
 
 

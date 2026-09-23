@@ -27,7 +27,7 @@ export interface AssignmentSubmissionFileResponse {
      */
     fileRecordId: string;
     /**
-     *
+     * 
      * @type {string}
      * @memberof AssignmentSubmissionFileResponse
      */

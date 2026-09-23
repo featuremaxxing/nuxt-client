@@ -12,28 +12,29 @@
  * Do not edit the class manually.
  */
 
+
 import { CriterionPointsBodyParams } from './criterion-points-body-params';
 
 /**
- *
+ * 
  * @export
  * @interface GradeSubmissionBodyParams
  */
 export interface GradeSubmissionBodyParams {
     /**
-     *
+     * 
      * @type {number}
      * @memberof GradeSubmissionBodyParams
      */
     points?: number;
     /**
-     *
+     * 
      * @type {string}
      * @memberof GradeSubmissionBodyParams
      */
     feedbackComment?: string;
     /**
-     *
+     * 
      * @type {Array<CriterionPointsBodyParams>}
      * @memberof GradeSubmissionBodyParams
      */
