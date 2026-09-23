@@ -148,6 +148,10 @@ const onSubmit = async () => {
 
 	submitting.value = true;
 	submitError.value = false;
+	// A recovery GET after a timed-out re-submission may still return the previous
+	// persisted attempt while the server is evaluating the new answer. Remember which
+	// attempt must arrive so polling cannot mistake that stale answer for the new one.
+	const expectedAttemptCount = attemptCount.value + 1;
 	const result = await submitAnswer(props.element.id, { answer: text }, { silent: true });
 
 	if (result === "error") {
@@ -155,7 +159,7 @@ const onSubmit = async () => {
 		// 408) even though the server finishes and stores the answer shortly after. Poll
 		// for it briefly before showing an error - the student then sees the assessment
 		// as soon as it exists, without clicking again.
-		const recovered = await pollForOwnAnswer();
+		const recovered = await pollForOwnAnswer(expectedAttemptCount);
 		submitting.value = false;
 		if (recovered) {
 			return;
@@ -194,10 +198,10 @@ const onResubmit = () => {
 
 // The AI assessment usually arrives a few seconds after the connection was cut - keep
 // looking for it for ~30 seconds. Returns true once it was found and rendered.
-const pollForOwnAnswer = async (): Promise<boolean> => {
+const pollForOwnAnswer = async (expectedAttemptCount: number): Promise<boolean> => {
 	for (let attempt = 0; attempt < OWN_ANSWER_POLL_ATTEMPTS; attempt += 1) {
 		const own = await fetchOwnAnswer(props.element.id);
-		if (own?.answer) {
+		if (own?.answer && own.answer.attemptCount >= expectedAttemptCount) {
 			applyAnswer(own.answer);
 			return true;
 		}

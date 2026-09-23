@@ -23,8 +23,9 @@ vi.mock("@data-ai-question", () => ({
 }));
 
 describe("AiQuestionElementStudentDisplay", () => {
-	const setup = () => {
+	const setup = (allowMultipleAttempts = false) => {
 		const element = aiQuestionElementResponseFactory.build();
+		element.content.allowMultipleAttempts = allowMultipleAttempts;
 		const wrapper = mount(AiQuestionElementStudentDisplay, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n({ locale: "en", messages: { en: testMessages } })],
@@ -158,6 +159,47 @@ describe("AiQuestionElementStudentDisplay", () => {
 
 		expect(fetchOwnAnswerMock).toHaveBeenCalledTimes(4);
 		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").text()).toContain("spät, aber da");
+	});
+
+	it("should ignore the previous attempt while recovering a timed-out re-submission", async () => {
+		vi.useFakeTimers();
+		submitAnswerMock.mockResolvedValue("error");
+		const previousAnswer = {
+			id: "answer-1",
+			userId: "user-1",
+			answer: "erste Antwort",
+			aiResponse: "Feedback aus Versuch 1",
+			answeredAt: new Date().toISOString(),
+			attemptCount: 1,
+		};
+		const updatedAnswer = {
+			...previousAnswer,
+			answer: "zweite Antwort",
+			aiResponse: "Feedback aus Versuch 2",
+			attemptCount: 2,
+		};
+		fetchOwnAnswerMock
+			.mockResolvedValueOnce({ answer: previousAnswer })
+			.mockResolvedValueOnce({ answer: previousAnswer })
+			.mockResolvedValueOnce({ answer: previousAnswer })
+			.mockResolvedValue({ answer: updatedAnswer });
+		const { wrapper } = setup(true);
+		await vi.dynamicImportSettled();
+
+		await wrapper.find("[data-testid='ai-question-student-resubmit']").trigger("click");
+		await wrapper.find("[data-testid='ai-question-student-answer'] textarea").setValue("zweite Antwort");
+		await wrapper.find("[data-testid='ai-question-student-submit']").trigger("click");
+		await flushPromises();
+
+		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").exists()).toBe(false);
+		await vi.advanceTimersByTimeAsync(8000);
+		await flushPromises();
+
+		expect(fetchOwnAnswerMock).toHaveBeenCalledTimes(4);
+		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").text()).toContain("Feedback aus Versuch 2");
+		expect(wrapper.find("[data-testid='ai-question-student-ai-response']").text()).not.toContain(
+			"Feedback aus Versuch 1"
+		);
 	});
 
 	it("should show points and allow the student to flag the assessment", async () => {
