@@ -28,7 +28,7 @@ describe("SidebarItems Composable", () => {
 	it("should have the expected page links", () => {
 		const { pageLinks } = setup();
 
-		expect(pageLinks.value).toHaveLength(7);
+		expect(pageLinks.value).toHaveLength(8);
 		expect(pageLinks.value.find((link) => link.title === "global.sidebar.item.courses")).toBeUndefined();
 		expect(pageLinks.value.find((link) => link.title === "global.sidebar.item.teams")).toBeUndefined();
 	});

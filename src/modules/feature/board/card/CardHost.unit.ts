@@ -5,15 +5,24 @@ import ContentElementList from "./ContentElementList.vue";
 import { useCardRestApi } from "@/modules/data/board/cardActions/cardRestApi.composable";
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useCardSocketApi } from "@/modules/data/board/cardActions/cardSocketApi.composable";
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { useLearningRoomApi } from "@/modules/data/learning-room/LearningRoomApi.composable";
+import { BoardContextType } from "@/types/board/BoardContext";
 import * as confirmDialogUtils from "@/utils/confirmation-dialog.utils";
-import { mockComposable } from "@@/tests/test-utils";
+import { createTestEnvStore, mockComposable } from "@@/tests/test-utils";
 import { cardResponseFactory, fileElementResponseFactory } from "@@/tests/test-utils/factory";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { BoardResponseAllowedOperations, CardResponse, Colors } from "@api-server";
-import { useBoardFocusHandler, useCardStore, useCourseBoardEditMode, useSharedEditMode } from "@data-board";
+import {
+	useBoardFocusHandler,
+	useCardStore,
+	useCourseBoardEditMode,
+	useSharedBoardPageInformation,
+	useSharedEditMode,
+} from "@data-board";
 import * as featureDialog from "@feature-dialog";
 import { createTestingPinia } from "@pinia/testing";
-import { BoardMenuScope } from "@ui-board";
+import { BoardMenuScope, PinCardButton } from "@ui-board";
 import {
 	KebabMenuActionDelete,
 	KebabMenuActionDuplicate,
@@ -28,7 +37,7 @@ import { useElementHover } from "@vueuse/core";
 import { Mocked } from "vitest";
 import { computed, ref } from "vue";
 import { createRouterMock, injectRouterMock, RouterMock } from "vue-router-mock";
-import { VCard } from "vuetify/components";
+import { VCard, VChip } from "vuetify/components";
 
 vi.mock("@util-board");
 
@@ -47,6 +56,9 @@ vi.mock("@vueuse/core", async (importOriginal) => {
 
 vi.mock("@data-board/BoardFocusHandler.composable");
 vi.mock("@data-board/edit-mode.composable");
+vi.mock("@data-board/BoardPageInformation.composable");
+
+vi.mock("@/modules/data/learning-room/LearningRoomApi.composable");
 
 vi.mock("../shared/AddElementDialog.composable");
 
@@ -98,6 +110,10 @@ describe("CardHost", () => {
 
 		router = createRouterMock();
 		injectRouterMock(router);
+
+		vi.mocked(useLearningRoomApi).mockReturnValue(
+			mockComposable(useLearningRoomApi, { fetchPinnedCardIds: vi.fn().mockResolvedValue([]) })
+		);
 	});
 
 	afterEach(() => {
@@ -110,6 +126,11 @@ describe("CardHost", () => {
 		allowedOperations?: Partial<BoardResponseAllowedOperations>;
 		backgroundColor?: Colors;
 		cardId?: string;
+		originTitle?: string;
+		originBoardId?: string;
+		isPinnedCopy?: boolean;
+		contextType?: BoardContextType;
+		isLearningRoomEnabled?: boolean;
 	}) => {
 		const {
 			hasElement = false,
@@ -129,32 +150,44 @@ describe("CardHost", () => {
 
 		const cardId = card?.id ?? "cardId";
 
+		vi.mocked(useSharedBoardPageInformation).mockReturnValue(
+			mockComposable(useSharedBoardPageInformation, {
+				contextType: computed(() => options?.contextType ?? BoardContextType.ROOM),
+			})
+		);
+
+		const pinia = createTestingPinia({
+			initialState: {
+				cardStore: {
+					cards: card ? { [card.id]: card } : {},
+				},
+				boardStore: {
+					board: {
+						allowedOperations: allowedOperations,
+						id: "boardId",
+					},
+				},
+			},
+			stubActions: false,
+		});
+		createTestEnvStore(
+			{ FEATURE_PERSONAL_LEARNING_ROOM_ENABLED: options?.isLearningRoomEnabled ?? false },
+			undefined,
+			pinia
+		);
+
 		const wrapper = shallowMount(CardHost, {
 			global: {
-				plugins: [
-					createTestingPinia({
-						initialState: {
-							cardStore: {
-								cards: card ? { [card.id]: card } : {},
-							},
-							boardStore: {
-								board: {
-									allowedOperations: allowedOperations,
-									id: "boardId",
-								},
-							},
-						},
-						stubActions: false,
-					}),
-					createTestingVuetify(),
-					createTestingI18n(),
-				],
+				plugins: [pinia, createTestingVuetify(), createTestingI18n()],
 			},
 			propsData: {
 				cardId,
 				height: card?.height ?? 0,
 				columnIndex: 0,
 				rowIndex: 1,
+				originTitle: options?.originTitle,
+				originBoardId: options?.originBoardId,
+				isPinnedCopy: options?.isPinnedCopy,
 			},
 		});
 
@@ -163,6 +196,78 @@ describe("CardHost", () => {
 			cardId,
 		};
 	};
+
+	describe("pinned copy in the learning room", () => {
+		const setupPinnedCopy = () =>
+			setup({
+				isPinnedCopy: true,
+				originTitle: "Mathe 9b",
+				originBoardId: "originBoardId",
+				contextType: BoardContextType.USER,
+				isLearningRoomEnabled: true,
+				allowedOperations: { deleteCard: true, moveCard: true, copyCard: true, updateCardTitle: true },
+			});
+
+		it("should show where the card comes from and link back to it", () => {
+			useShareBoardLinkMock.getShareLinkId.mockReturnValue("card-cardId");
+			const { wrapper } = setupPinnedCopy();
+
+			const chip = wrapper.getComponent(VChip);
+
+			expect(chip.text()).toContain("Mathe 9b");
+			expect(chip.props("to")).toEqual({
+				name: "boards-id",
+				params: { id: "originBoardId" },
+				hash: "#card-cardId",
+			});
+		});
+
+		it("should only offer to open the original or unpin it", () => {
+			// the learning room grants its owner every board right - those must not
+			// reach the original card in the course board
+			const { wrapper } = setupPinnedCopy();
+
+			expect(wrapper.find('[data-testid="kebab-menu-action-open-origin"]').exists()).toBe(true);
+			expect(wrapper.find('[data-testid="kebab-menu-action-unpin-card"]').exists()).toBe(true);
+			expect(wrapper.findComponent(KebabMenuActionDelete).exists()).toBe(false);
+			expect(wrapper.findComponent(KebabMenuActionDuplicate).exists()).toBe(false);
+			expect(wrapper.findComponent(KebabMenuActionExport).exists()).toBe(false);
+		});
+
+		it("should navigate to the original board", async () => {
+			const { wrapper } = setupPinnedCopy();
+
+			await wrapper.find('[data-testid="kebab-menu-action-open-origin"]').trigger("click");
+
+			expect(router.push).toHaveBeenCalledWith(
+				expect.objectContaining({ name: "boards-id", params: { id: "originBoardId" } })
+			);
+		});
+
+		it("should keep the pin button to unpin the card", () => {
+			const { wrapper } = setupPinnedCopy();
+
+			expect(wrapper.findComponent(PinCardButton).exists()).toBe(true);
+		});
+	});
+
+	describe("own card in the learning room", () => {
+		it("should not offer to pin it into the room it already lives in", () => {
+			const { wrapper } = setup({ contextType: BoardContextType.USER, isLearningRoomEnabled: true });
+
+			expect(wrapper.findComponent(PinCardButton).exists()).toBe(false);
+			expect(wrapper.find('[data-testid="card-origin-chip"]').exists()).toBe(false);
+		});
+	});
+
+	describe("regular card in a room", () => {
+		it("should offer the pin button and no origin chip", () => {
+			const { wrapper } = setup({ isLearningRoomEnabled: true });
+
+			expect(wrapper.findComponent(PinCardButton).exists()).toBe(true);
+			expect(wrapper.find('[data-testid="card-origin-chip"]').exists()).toBe(false);
+		});
+	});
 
 	describe("when component is mounted", () => {
 		it("should be found in dom", () => {

@@ -26,9 +26,11 @@ import { handle, on, PermittedStoreActions } from "@/types/board/ActionFactory";
 import { HttpStatusCode } from "@/types/enum/http-status-code.enum";
 import { CreateCardBodyParamsRequiredEmptyElements } from "@api-server";
 import { useAppStore } from "@data-app";
+import { useLearningRoomApi } from "@data-learning-room";
 
 export const useBoardSocketApi = () => {
 	const boardStore = useBoardStore();
+	const { movePinnedCard } = useLearningRoomApi();
 	const pendingDuplicateColumnRequests = usePendingRequestTracker();
 
 	const {
@@ -150,9 +152,65 @@ export const useBoardSocketApi = () => {
 		emitOnSocket("delete-column-request", payload);
 	};
 
+	// A pinned card in the learning room is only a pointer - the card itself lives
+	// in its original board. Moving it has to address the pointer node through the
+	// learning room api; the regular move would try to drag the original out of
+	// its course board (and is rejected by the server for exactly that reason).
+	const findPinnedCardId = (cardId: string): string | undefined => {
+		const columns = boardStore.board?.columns ?? [];
+		for (const column of columns) {
+			const skeleton = column.cards.find((card) => card.cardId === cardId);
+			if (skeleton) {
+				return skeleton.pinnedCardId;
+			}
+		}
+		return undefined;
+	};
+
+	const movePinnedCardRequest = async (payload: MoveCardRequestPayload, pinnedCardId: string) => {
+		try {
+			let toColumnId = payload.toColumnId;
+
+			// dropped next to the last column: create it first, same as the socket path
+			if (toColumnId === undefined && boardStore.board) {
+				const response = await emitWithAck("create-column-request", {
+					boardId: boardStore.board.id,
+				});
+				toColumnId = response.newColumn.id;
+				payload.toColumnIndex = boardStore.getColumnIndex(toColumnId);
+			}
+
+			if (toColumnId === undefined) {
+				return;
+			}
+
+			const succeeded = await movePinnedCard(pinnedCardId, toColumnId, payload.newIndex);
+			if (!succeeded) {
+				resetBoard();
+				return;
+			}
+
+			// no socket round trip here, so the local board has to be updated directly
+			boardStore.moveCardSuccess({
+				...payload,
+				toColumnId,
+				toColumnIndex: payload.toColumnIndex ?? boardStore.getColumnIndex(toColumnId),
+				isOwnAction: true,
+			});
+		} catch {
+			resetBoard();
+		}
+	};
+
 	const moveCardRequest = async (payload: MoveCardRequestPayload) => {
 		const { newIndex, oldIndex, fromColumnId, toColumnId } = payload;
 		if (newIndex === oldIndex && fromColumnId === toColumnId) return;
+
+		const pinnedCardId = findPinnedCardId(payload.cardId);
+		if (pinnedCardId) {
+			await movePinnedCardRequest(payload, pinnedCardId);
+			return;
+		}
 
 		try {
 			if (toColumnId === undefined && boardStore.board) {

@@ -44,6 +44,7 @@ const vueRoutes = [
 	`^/migration/?$`,
 	`^/migration/success/?$`,
 	`^/migration/error/?$`,
+	`^/learning-room/?$`,
 	`^/media-shelf/?$`,
 	`^/media-shelf/fwu-media/?$`,
 	`^/news/?$`,

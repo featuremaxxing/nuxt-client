@@ -265,6 +265,13 @@ export const useBoardApi = () => {
 		});
 
 	const fetchRoomName = async (type: BoardContextType, id: string): Promise<string | undefined> => {
+		// A personal board (learning room, media shelf) sits directly under the user,
+		// there is no room or course above it. Without this the else branch would ask
+		// the course api for a course whose id is actually a user id.
+		if (type === BoardContextType.USER) {
+			return undefined;
+		}
+
 		const name =
 			type === BoardContextType.ROOM
 				? (await roomApi.roomControllerGetRoomDetails(id)).data.name

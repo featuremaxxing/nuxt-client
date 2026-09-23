@@ -12,6 +12,7 @@ import {
 	mdiFormatListChecks,
 	mdiHelpCircleOutline,
 	mdiNewspaperVariantOutline,
+	mdiPinOutline,
 	mdiViewGridOutline,
 } from "@icons/material";
 import { computed, ComputedRef } from "vue";
@@ -27,6 +28,13 @@ export const useSidebarItems = () => {
 			to: "/dashboard",
 			icon: mdiViewGridOutline,
 			testId: "sidebar-dashboard",
+		},
+		{
+			title: "global.sidebar.item.learningRoom",
+			to: "/learning-room",
+			icon: mdiPinOutline,
+			feature: "FEATURE_PERSONAL_LEARNING_ROOM_ENABLED",
+			testId: "sidebar-learning-room",
 		},
 		{
 			title: "global.sidebar.item.rooms",
