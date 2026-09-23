@@ -27,6 +27,7 @@ import { LinkElementResponse } from './link-element-response';
 import { PollElementResponse } from './poll-element-response';
 import { RichTextElementResponse } from './rich-text-element-response';
 import { TimestampsResponse } from './timestamps-response';
+import { CheckboxElementResponse } from './checkbox-element-response';
 import { VideoConferenceElementResponse } from './video-conference-element-response';
 import { VisibilitySettingsResponse } from './visibility-settings-response';
 
@@ -65,7 +66,7 @@ export interface CardResponse {
      * @type {Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse | AiQuestionElementResponse>}
      * @memberof CardResponse
      */
-    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse | AiQuestionElementResponse>;
+    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | CheckboxElementResponse | AssignmentElementResponse | AiQuestionElementResponse>;
     /**
      * 
      * @type {VisibilitySettingsResponse}

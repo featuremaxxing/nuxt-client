@@ -46,6 +46,13 @@ const VideoConferenceElementContentSchema = z.object({
 	title: z.string(),
 });
 
+const CheckboxElementContentSchema = z.object({
+	text: z.string(),
+	requireTeacherConfirmation: z.boolean(),
+	audience: z.enum(PollAudience),
+	audienceRoles: z.array(z.enum(BoardRoles)).optional(),
+});
+
 const CollaborativeTextEditorElementContentSchema = z.object({});
 
 const PollOptionSchema = z.object({
@@ -102,6 +109,7 @@ export const AnyContentElementSchema = z.object({
 		DrawingElementContentSchema,
 		DeletedElementContentSchema,
 		VideoConferenceElementContentSchema,
+		CheckboxElementContentSchema,
 		CollaborativeTextEditorElementContentSchema,
 		PollElementContentSchema,
 	]),

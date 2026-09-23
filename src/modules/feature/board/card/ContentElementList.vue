@@ -31,6 +31,7 @@ import { ContentElementType } from "@api-server";
 import { useEnvConfig } from "@data-env";
 import { AiQuestionContentElement } from "@feature-board-ai-question-element";
 import { AssignmentContentElement } from "@feature-board-assignment-element";
+import { CheckboxContentElement } from "@feature-board-checkbox-element";
 import { CollaborativeTextEditorElement } from "@feature-board-collaborative-text-editor-element";
 import { DeletedElement } from "@feature-board-deleted-element";
 import { DrawingContentElement } from "@feature-board-drawing-element";
@@ -150,6 +151,11 @@ const mapToComponent = (type: ContentElementType) => {
 		case ContentElementType.POLL:
 			if (envConfig.value.FEATURE_COLUMN_BOARD_POLL_ENABLED) {
 				return PollContentElement;
+			}
+			break;
+		case ContentElementType.CHECKBOX:
+			if (envConfig.value.FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED) {
+				return CheckboxContentElement;
 			}
 			break;
 		case ContentElementType.ASSIGNMENT:

@@ -233,6 +233,7 @@ export interface ConfigResponse {
      * @memberof ConfigResponse
      */
     FEATURE_COLUMN_BOARD_POLL_ENABLED: boolean;
+    FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: boolean;
     /**
      * 
      * @type {boolean}
