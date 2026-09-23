@@ -1,26 +1,10 @@
 import DashboardPage from "./Dashboard.page.vue";
 import { initializeAxios } from "@/utils/api";
-import {
-	createTestAppStore,
-	createTestEnvStore,
-	mockApi,
-	mockApiResponse,
-	mockAxiosInstance,
-	newsResponseFactory,
-} from "@@/tests/test-utils";
+import { createTestAppStore, mockApi, mockApiResponse, mockAxiosInstance } from "@@/tests/test-utils";
 import { createTestSchoolStore } from "@@/tests/test-utils/factory/school-test.utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import * as serverApi from "@api-server";
-import {
-	NewsApiInterface,
-	NewsResponse,
-	Permission,
-	ReleaseApiInterface,
-	ReleaseItemResponse,
-	RoleName,
-	RuntimeConfigApiInterface,
-	SchulcloudTheme,
-} from "@api-server";
+import { Permission, ReleaseApiInterface, ReleaseItemResponse, RoleName, RuntimeConfigApiInterface } from "@api-server";
 import { DashboardTasks } from "@feature-dashboard";
 import { createTestingPinia } from "@pinia/testing";
 import { flushPromises } from "@vue/test-utils";
@@ -29,7 +13,6 @@ import { setActivePinia } from "pinia";
 import { Mocked } from "vitest";
 
 describe("DashboardPage", () => {
-	let newsApi: Mocked<NewsApiInterface>;
 	let releasesApi: Mocked<ReleaseApiInterface>;
 	let runtimeConfigApi: Mocked<RuntimeConfigApiInterface>;
 	let axiosMock: Mocked<AxiosInstance>;
@@ -39,18 +22,15 @@ describe("DashboardPage", () => {
 		initializeAxios(axiosMock);
 		setActivePinia(createTestingPinia({ stubActions: false }));
 
-		newsApi = mockApi<NewsApiInterface>();
 		releasesApi = mockApi<ReleaseApiInterface>();
 		runtimeConfigApi = mockApi<RuntimeConfigApiInterface>();
 
-		vi.spyOn(serverApi, "NewsApiFactory").mockReturnValue(newsApi);
 		vi.spyOn(serverApi, "ReleaseApiFactory").mockReturnValue(releasesApi);
 		vi.spyOn(serverApi, "RuntimeConfigApiFactory").mockReturnValue(runtimeConfigApi);
 	});
 
 	const setup = (options?: {
 		roleName?: RoleName;
-		news?: NewsResponse[];
 		releaseDate?: string;
 		latestReleasePublishedAt?: string;
 		permissions?: Permission[];
@@ -70,12 +50,6 @@ describe("DashboardPage", () => {
 				inUserMigration: options?.schoolInMigration ?? false,
 			},
 		});
-
-		newsApi.newsControllerFindAll.mockResolvedValue(
-			mockApiResponse({
-				data: { data: options?.news ?? [], total: options?.news?.length ?? 0, skip: 0, limit: 4 },
-			})
-		);
 
 		const releaseData = options?.latestReleasePublishedAt
 			? [{ id: "release-1", publishedAt: options.latestReleasePublishedAt } as ReleaseItemResponse]
@@ -112,24 +86,12 @@ describe("DashboardPage", () => {
 		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
 	});
 
-	describe("dashboard news", () => {
-		it("shows empty state when no news", async () => {
-			const { wrapper } = setup({ news: [] });
-			await flushPromises();
+	it("does not show the news section or teams migration warning", async () => {
+		const { wrapper } = setup();
+		await flushPromises();
 
-			expect(wrapper.find("[data-testid='empty-state-news']").exists()).toBe(true);
-		});
-
-		it("shows news cards when news exist", async () => {
-			const news = [newsResponseFactory.build(), newsResponseFactory.build()];
-			const { wrapper } = setup({ news });
-			await flushPromises();
-
-			const newsCards = wrapper.findAll("[data-testid^='news-card-item-']");
-			expect(newsCards).toHaveLength(news.length);
-			expect(wrapper.find("[data-testid='news-section']").exists()).toBe(true);
-			expect(wrapper.find("[data-testid='show-all-news']").exists()).toBe(true);
-		});
+		expect(wrapper.find("[data-testid='news-section']").exists()).toBe(false);
+		expect(wrapper.find("[data-testid='teams-to-rooms-migration-alert']").exists()).toBe(false);
 	});
 
 	describe("dashboard tasks", () => {
@@ -152,30 +114,6 @@ describe("DashboardPage", () => {
 			await flushPromises();
 
 			expect(wrapper.findComponent(DashboardTasks).exists()).toBe(false);
-		});
-	});
-
-	describe("teams-to-rooms warning", () => {
-		it("is visible and renders the expected content when not dbc", async () => {
-			createTestEnvStore({ SC_THEME: SchulcloudTheme.N21 });
-			const { wrapper } = setup();
-			await flushPromises();
-
-			const warningAlert = wrapper.findComponent("[data-testid='teams-to-rooms-migration-alert']");
-			expect(warningAlert.exists()).toBe(true);
-			expect(warningAlert.text()).toContain("loggedin.text.teamsToRooms");
-			expect(warningAlert.text()).toContain("loggedin.text.teamsToRooms.possibilities");
-			expect(warningAlert.text()).toContain("loggedin.text.teamsToRooms.migration");
-			expect(warningAlert.text()).toContain("loggedin.text.teamsToRooms.helpLink");
-		});
-
-		it("is not visible when dbc", async () => {
-			createTestEnvStore({ SC_THEME: SchulcloudTheme.DEFAULT });
-			const { wrapper } = setup();
-			await flushPromises();
-
-			const warningAlert = wrapper.findComponent("[data-testid='teams-to-rooms-migration-alert']");
-			expect(warningAlert.exists()).toBe(false);
 		});
 	});
 

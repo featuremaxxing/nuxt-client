@@ -1,6 +1,7 @@
 <template>
 	<SvsLoading :loading-state="tasksLoadingState">
 		<h2 class="mb-0 mt-16">{{ t("common.words.tasks") }}</h2>
+		<DashboardAssignments v-if="isAssignmentToolEnabled" />
 		<template v-if="isTeacher">
 			<DashboardTasksOpen
 				:title="t('components.organisms.TasksDashboardMain.tab.current')"
@@ -60,9 +61,11 @@
 </template>
 
 <script setup lang="ts">
+import DashboardAssignments from "./DashboardAssignments.vue";
 import DashboardTasksOpen from "./DashboardTasksOpen.vue";
 import DashboardTasksSection from "./DashboardTasksSection.vue";
 import { useAppStoreRefs } from "@data-app";
+import { useEnvConfig } from "@data-env";
 import { isTaskOverdue, toSortedByDueDate, useTasks } from "@data-tasks";
 import { SvsLoading } from "@ui-containers";
 import { computed } from "vue";
@@ -70,6 +73,8 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const { isTeacher, isStudent } = useAppStoreRefs();
+const envConfig = useEnvConfig();
+const isAssignmentToolEnabled = computed(() => envConfig.value.FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED === true);
 
 const {
 	drafts,
