@@ -1250,6 +1250,20 @@ export default {
 	"loggedin.text.teamsToRooms.helpLink": "Más información sobre la migración se puede encontrar en {helpLink}.",
 	"loggedin.text.teamsToRooms.helpLink.help": "páginas de ayuda",
 	"pages.dashboard.title": "Panel",
+	"pages.dashboard.features.title": "Nuevas funciones",
+	"pages.dashboard.features.intro": "Descubre nuevas formas de aprender y colaborar en los espacios.",
+	"pages.dashboard.features.assignments.title": "Tareas",
+	"pages.dashboard.features.assignments.description":
+		"Crea tareas directamente en los tableros, recopila entregas y ofrece comentarios con puntos, texto, audio o correcciones.",
+	"pages.dashboard.features.polls.title": "Encuestas",
+	"pages.dashboard.features.polls.description":
+		"Realiza encuestas con varias preguntas y tipos de respuesta y analiza los resultados en una vista clara.",
+	"pages.dashboard.features.aiQuestions.title": "Preguntas con IA",
+	"pages.dashboard.features.aiQuestions.description":
+		"Deja que la IA revise respuestas a preguntas abiertas según tus indicaciones y ofrezca comentarios individuales.",
+	"pages.dashboard.features.learningRoom.title": "Mi espacio de aprendizaje",
+	"pages.dashboard.features.learningRoom.description":
+		"Fija tarjetas importantes de distintos espacios en un lugar personal y mantén tus contenidos de aprendizaje a la vista.",
 	"pages.dashboard.empty.news": "Hasta el momento no hay noticias.",
 	"pages.dashboard.new.features": "Hay nuevas funciones en {instanceTitle}.",
 	"pages.dashboard.new.features.available": "Nuevas funciones disponibles",

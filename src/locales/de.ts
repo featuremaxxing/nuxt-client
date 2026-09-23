@@ -1255,6 +1255,20 @@ export default {
 	"loggedin.text.teamsToRooms.helpLink": "Weitere Infos zur Migration finden sich auf den {helpLink}.",
 	"loggedin.text.teamsToRooms.helpLink.help": "Hilfeseiten",
 	"pages.dashboard.title": "Übersicht",
+	"pages.dashboard.features.title": "Neue Funktionen",
+	"pages.dashboard.features.intro": "Entdecke die neuen Möglichkeiten für Lernen und Zusammenarbeit in Räumen.",
+	"pages.dashboard.features.assignments.title": "Aufgaben",
+	"pages.dashboard.features.assignments.description":
+		"Erstelle Aufgaben direkt auf Boards, sammle Abgaben ein und gib Rückmeldungen mit Punkten, Kommentaren, Audio oder Korrekturen.",
+	"pages.dashboard.features.polls.title": "Umfragen",
+	"pages.dashboard.features.polls.description":
+		"Führe Umfragen mit mehreren Fragen und verschiedenen Antworttypen durch und werte die Ergebnisse übersichtlich aus.",
+	"pages.dashboard.features.aiQuestions.title": "KI-Fragen",
+	"pages.dashboard.features.aiQuestions.description":
+		"Lass Antworten auf offene Fragen von der KI anhand deiner Vorgaben prüfen und individuelles Feedback geben.",
+	"pages.dashboard.features.learningRoom.title": "Mein Lernraum",
+	"pages.dashboard.features.learningRoom.description":
+		"Pinne wichtige Karten aus verschiedenen Räumen an einen persönlichen Ort und behalte deine Lerninhalte im Blick.",
 	"pages.dashboard.empty.news": "Bisher gibt es keine News.",
 	"pages.dashboard.new.features": "Es gibt neue Features in der {instanceTitle}.",
 	"pages.dashboard.new.features.available": "Neue Features sind verfügbar",
