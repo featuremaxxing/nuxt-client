@@ -10,11 +10,13 @@ import {
 	LinkElementResponse,
 	ParentNodeInfoResponse,
 	ParentNodeType,
+	PollElementResponse,
 	RichTextElementResponse,
 	VideoConferenceElementResponse,
 } from "@api-server";
 
 export type FileFolderElement = FileFolderElementResponse;
+export type PollElement = PollElementResponse;
 export type AssignmentElement = AssignmentElementResponse;
 
 export type AnyContentElement =
@@ -27,6 +29,7 @@ export type AnyContentElement =
 	| CollaborativeTextEditorElementResponse
 	| VideoConferenceElementResponse
 	| H5pElementResponse
+	| PollElementResponse
 	| AssignmentElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;

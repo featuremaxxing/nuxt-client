@@ -232,9 +232,15 @@ export interface ConfigResponse {
      * @type {boolean}
      * @memberof ConfigResponse
      */
+    FEATURE_COLUMN_BOARD_POLL_ENABLED: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
     FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof ConfigResponse
      */

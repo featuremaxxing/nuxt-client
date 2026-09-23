@@ -3,7 +3,6 @@ import { Permission, SchulcloudTheme } from "@api-server";
 import { useEnvConfig } from "@data-env";
 import { useFilePaths } from "@data-file";
 import {
-	mdiAccountGroupOutline,
 	mdiAccountSupervisorCircleOutline,
 	mdiApplicationBracketsOutline,
 	mdiBookshelf,
@@ -14,7 +13,6 @@ import {
 	mdiHelpCircleOutline,
 	mdiNewspaperVariantOutline,
 	mdiPinOutline,
-	mdiSchoolOutline,
 	mdiViewGridOutline,
 } from "@icons/material";
 import { computed, ComputedRef } from "vue";
@@ -43,19 +41,6 @@ export const useSidebarItems = () => {
 			to: "/rooms",
 			icon: mdiAccountSupervisorCircleOutline,
 			testId: "sidebar-rooms",
-		},
-		{
-			title: "global.sidebar.item.courses",
-			to: "/rooms/courses-overview",
-			icon: mdiSchoolOutline,
-			testId: "sidebar-courses",
-		},
-		{
-			title: "global.sidebar.item.teams",
-			href: "/teams",
-			icon: mdiAccountGroupOutline,
-			feature: "FEATURE_TEAMS_ENABLED",
-			testId: "sidebar-teams",
 		},
 		{
 			title: "global.sidebar.item.tasks",

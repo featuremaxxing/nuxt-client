@@ -25,18 +25,16 @@ const setup = (envs?: Partial<ConfigResponse>, theme = SchulcloudTheme.BRB) => {
 };
 
 describe("SidebarItems Composable", () => {
-	it("should have correct amount of page links", () => {
+	it("should have the expected page links", () => {
 		const { pageLinks } = setup();
 
-		expect(pageLinks.value).toHaveLength(10);
+		expect(pageLinks.value).toHaveLength(8);
+		expect(pageLinks.value.find((link) => link.title === "global.sidebar.item.courses")).toBeUndefined();
+		expect(pageLinks.value.find((link) => link.title === "global.sidebar.item.teams")).toBeUndefined();
 	});
 
-	it("should have correct amount of page links", () => {
+	it("should make rooms available without permissions", () => {
 		const { pageLinks } = setup();
-
-		expect(pageLinks.value).toHaveLength(10);
-		expect(pageLinks.value[1].permissions).toBeUndefined();
-
 		const roomsLink = pageLinks.value.find((link) => link.title === "global.sidebar.item.rooms");
 
 		expect(roomsLink?.permissions).toBeUndefined();

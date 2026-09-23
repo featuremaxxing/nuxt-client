@@ -1,4 +1,5 @@
 import { ContentElementType } from "./ContentElement";
+import { BoardRoles, PollAnswerMode, PollAudience, PollChartType, PollStatus } from "@api-server";
 import { z } from "zod";
 
 const ExternalToolElementContentSchema = z.object({
@@ -47,6 +48,43 @@ const VideoConferenceElementContentSchema = z.object({
 
 const CollaborativeTextEditorElementContentSchema = z.object({});
 
+const PollOptionSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+});
+
+const PollQuestionSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	answerMode: z.enum(PollAnswerMode),
+	chartType: z.enum(PollChartType),
+	options: z.array(PollOptionSchema),
+});
+
+const PollElementContentSchema = z.object({
+	title: z.string().optional(),
+	questions: z.array(PollQuestionSchema),
+	isAnonymous: z.boolean(),
+	showResultsLive: z.boolean(),
+	pollStatus: z.enum(PollStatus),
+	closesAt: z.string().optional(),
+	audience: z.enum(PollAudience),
+	audienceRoles: z.array(z.enum(BoardRoles)).optional(),
+	resultSnapshot: z
+		.object({
+			frozenAt: z.string(),
+			participantCount: z.number(),
+			perQuestion: z.array(
+				z.object({
+					questionId: z.string(),
+					counts: z.array(z.object({ optionId: z.string(), count: z.number() })),
+					textAnswers: z.array(z.string()).optional(),
+				})
+			),
+		})
+		.optional(),
+});
+
 export const AnyContentElementSchema = z.object({
 	id: z.string(),
 	type: z.enum(ContentElementType),
@@ -65,5 +103,6 @@ export const AnyContentElementSchema = z.object({
 		DeletedElementContentSchema,
 		VideoConferenceElementContentSchema,
 		CollaborativeTextEditorElementContentSchema,
+		PollElementContentSchema,
 	]),
 });

@@ -68,7 +68,12 @@ const element = toRef(props, "element");
 const assignmentContentElement = ref(null);
 useBoardFocusHandler(element.value.id, assignmentContentElement);
 
-const canManageAssignments = computed(() => allowedOperations.value.updateElement);
+// isBoardEditor, not updateElement: updateElement is board-wide and folds a reader on a
+// "readers can edit" board into "can edit" - the server keeps a carve-out that never grants an
+// assignment's manage/teacher view to such a reader (see board-node.rule.ts, hasPermission's
+// isAssignmentNode guard), and isBoardEditor is the field that reflects that carve-out to the
+// client.
+const canManageAssignments = computed(() => allowedOperations.value.isBoardEditor);
 
 // Students must not see an assignment at all before its startDate (teachers do). This is
 // presentation-level only: the server still serves the element in the board payload, but

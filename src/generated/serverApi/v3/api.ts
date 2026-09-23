@@ -47,6 +47,7 @@ export * from './api/meta-tag-extractor-api';
 export * from './api/news-api';
 export * from './api/oauth-api';
 export * from './api/oauth2-api';
+export * from './api/poll-api';
 export * from './api/pseudonym-api';
 export * from './api/registration-api';
 export * from './api/release-api';

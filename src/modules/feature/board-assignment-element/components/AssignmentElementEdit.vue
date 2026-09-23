@@ -150,8 +150,9 @@
 import DueDateTimeField from "./DueDateTimeField.vue";
 import GraceMinutesSelect from "./GraceMinutesSelect.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
+import { ContentElementType, PeerReviewSettingsResponse } from "@api-server";
 import { usePeerReviewApi } from "@data-assignment";
-import { useContentElementState } from "@data-board";
+import { useCardStore, useContentElementState } from "@data-board";
 import { mdiDelete, mdiPlus } from "@icons/material";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -165,6 +166,7 @@ const { t } = useI18n();
 
 const { modelValue } = useContentElementState(props, { autoSaveDebounce: 400 });
 const { updateSettings } = usePeerReviewApi();
+const cardStore = useCardStore();
 
 // Peer review is edited through its own dedicated endpoint (not the generic content-update
 // autosave above), because turning it on can trigger a side effect (auto-assign later, from
@@ -185,24 +187,74 @@ const peerReviewModeItems = computed(() => [
 	{ title: t("components.cardElement.assignmentElement.peerReview.modeAuto"), value: "auto" },
 ]);
 
+// Because the dedicated endpoint above bypasses the generic content-update flow entirely, no
+// socket event ever confirms the change to the board store either - without this, the store's
+// copy of the element (what a re-mount of this component, e.g. leaving and re-entering edit
+// mode, reads its initial values from) stays stale until a full page reload, making the
+// checkbox look like it silently reset instead of having been saved.
+const syncStore = (result: PeerReviewSettingsResponse) => {
+	cardStore.updateElementSuccess({
+		elementId: props.element.id,
+		data: {
+			type: ContentElementType.ASSIGNMENT,
+			content: {
+				...modelValue.value,
+				peerReviewEnabled: result.enabled,
+				peerReviewMode: result.mode,
+				peerReviewCount: result.count,
+			},
+		},
+		isOwnAction: true,
+	});
+};
+
 const onTogglePeerReview = async (enabled: boolean | null) => {
 	peerReviewEnabled.value = !!enabled;
-	await updateSettings(props.element.id, {
+	const result = await updateSettings(props.element.id, {
 		enabled: peerReviewEnabled.value,
 		mode: peerReviewMode.value,
 		count: peerReviewCount.value,
 	});
+	// on failure updateSettings already showed an error toast; nothing was saved, so the
+	// optimistic flip above must not be allowed to look confirmed
+	if (!result) {
+		peerReviewEnabled.value = !enabled;
+		return;
+	}
+	peerReviewMode.value = result.mode;
+	peerReviewCount.value = result.count ?? peerReviewCount.value;
+	syncStore(result);
 };
 
 const onChangePeerReviewMode = async (mode: "manual" | "auto") => {
+	const previous = peerReviewMode.value;
 	peerReviewMode.value = mode;
-	await updateSettings(props.element.id, { enabled: peerReviewEnabled.value, mode, count: peerReviewCount.value });
+	const result = await updateSettings(props.element.id, {
+		enabled: peerReviewEnabled.value,
+		mode,
+		count: peerReviewCount.value,
+	});
+	if (!result) {
+		peerReviewMode.value = previous;
+		return;
+	}
+	syncStore(result);
 };
 
 const onChangePeerReviewCount = async (value: string) => {
+	const previous = peerReviewCount.value;
 	const count = value ? Number(value) : 1;
 	peerReviewCount.value = count;
-	await updateSettings(props.element.id, { enabled: peerReviewEnabled.value, mode: peerReviewMode.value, count });
+	const result = await updateSettings(props.element.id, {
+		enabled: peerReviewEnabled.value,
+		mode: peerReviewMode.value,
+		count,
+	});
+	if (!result) {
+		peerReviewCount.value = previous;
+		return;
+	}
+	syncStore(result);
 };
 
 // A rubric is "on" once at least one criterion exists - an empty/undefined list means

@@ -264,6 +264,68 @@ describe("AssignmentSubmissionDetail", () => {
 		});
 	});
 
+	describe("identified peer review feedback", () => {
+		it("shows the reviewer's name, comment and files", () => {
+			const { wrapper } = setup({
+				submission: buildSubmission({
+					peerReviewFeedback: [
+						{
+							reviewerUserId: "user-2",
+							reviewerFirstName: "Bea",
+							reviewerLastName: "Berg",
+							points: 5,
+							feedbackComment: "well organized",
+							submittedAt: "2099-01-16T10:00:00.000Z",
+							feedbackContainerId: "container-1",
+							files: [{ fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+						},
+					],
+				}),
+			});
+
+			const section = wrapper.find("[data-testid='submission-peer-review-feedback']");
+			expect(section.exists()).toBe(true);
+			expect(section.text()).toContain("Berg, Bea");
+			expect(section.text()).toContain("well organized");
+			expect(wrapper.find("[data-testid='submission-peer-review-feedback-file']").text()).toContain(
+				"feedback-pdf-1.pdf"
+			);
+		});
+
+		it("emits download-peer-review-file with the container id, file id and name", async () => {
+			const { wrapper } = setup({
+				submission: buildSubmission({
+					peerReviewFeedback: [
+						{
+							reviewerUserId: "user-2",
+							submittedAt: "2099-01-16T10:00:00.000Z",
+							feedbackContainerId: "container-1",
+							files: [{ fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+						},
+					],
+				}),
+			});
+
+			await wrapper.find("[data-testid='submission-peer-review-feedback-download-correction-1']").trigger("click");
+
+			expect(wrapper.emitted("download-peer-review-file")).toEqual([
+				[{ containerId: "container-1", fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+			]);
+		});
+
+		it("marks a not-yet-submitted review, without points or files", () => {
+			const { wrapper } = setup({
+				submission: buildSubmission({
+					peerReviewFeedback: [{ reviewerUserId: "user-2", reviewerFirstName: "Carl", reviewerLastName: "Case" }],
+				}),
+			});
+
+			const entry = wrapper.find("[data-testid='submission-peer-review-feedback-entry']");
+			expect(entry.text()).toContain("notSubmittedYet");
+			expect(wrapper.find("[data-testid='submission-peer-review-feedback-file']").exists()).toBe(false);
+		});
+	});
+
 	describe("graded-by indicator", () => {
 		it("shows nothing when no teacher has graded the submission yet", () => {
 			const { wrapper } = setup();

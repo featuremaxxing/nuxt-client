@@ -9,29 +9,38 @@ import { mount } from "@vue/test-utils";
 
 const {
 	fetchSubmissionsMock,
+	ensureFeedbackContainerMock,
 	gradeSubmissionMock,
 	returnSubmissionMock,
 	returnSubmissionsBatchMock,
 	autoAssignMock,
 	manualAssignMock,
+	listAssignmentsMock,
+	unassignMock,
 	fetchFilesMock,
 	getFileRecordsByParentIdMock,
 	uploadMock,
+	downloadFileMock,
 } = vi.hoisted(() => ({
 	fetchSubmissionsMock: vi.fn(),
+	ensureFeedbackContainerMock: vi.fn(),
 	gradeSubmissionMock: vi.fn(),
 	returnSubmissionMock: vi.fn(),
 	returnSubmissionsBatchMock: vi.fn(),
 	autoAssignMock: vi.fn(),
 	manualAssignMock: vi.fn(),
+	listAssignmentsMock: vi.fn(),
+	unassignMock: vi.fn(),
 	fetchFilesMock: vi.fn(),
 	getFileRecordsByParentIdMock: vi.fn(),
 	uploadMock: vi.fn(),
+	downloadFileMock: vi.fn(),
 }));
 
 vi.mock("@data-assignment", () => ({
 	useAssignmentApi: () => ({
 		fetchSubmissions: fetchSubmissionsMock,
+		ensureFeedbackContainer: ensureFeedbackContainerMock,
 		gradeSubmission: gradeSubmissionMock,
 		returnSubmission: returnSubmissionMock,
 		returnSubmissionsBatch: returnSubmissionsBatchMock,
@@ -39,6 +48,8 @@ vi.mock("@data-assignment", () => ({
 	usePeerReviewApi: () => ({
 		autoAssign: autoAssignMock,
 		manualAssign: manualAssignMock,
+		listAssignments: listAssignmentsMock,
+		unassign: unassignMock,
 	}),
 }));
 
@@ -54,6 +65,13 @@ vi.mock("@data-file", () => ({
 		upload: uploadMock,
 	}),
 }));
+
+// only downloadFile is mocked, so the test can assert it was called without touching the
+// DOM/anchor click it performs - everything else in the module (CSV export etc.) stays real
+vi.mock("@/utils/fileHelper", async () => {
+	const actual = await vi.importActual<typeof import("@/utils/fileHelper")>("@/utils/fileHelper");
+	return { ...actual, downloadFile: downloadFileMock };
+});
 
 const buildSubmission = (overrides: Partial<AssignmentSubmissionResponse> = {}): AssignmentSubmissionResponse => ({
 	id: "submission-1",
@@ -89,9 +107,12 @@ describe("AssignmentSubmissionsOverlay", () => {
 		returnSubmissionsBatchMock.mockResolvedValue({ returned: [], failed: [] });
 		autoAssignMock.mockResolvedValue({ assignedCount: 0 });
 		manualAssignMock.mockResolvedValue({ assignedCount: 1 });
+		listAssignmentsMock.mockResolvedValue([]);
+		unassignMock.mockResolvedValue(true);
 		fetchFilesMock.mockResolvedValue(undefined);
 		getFileRecordsByParentIdMock.mockReturnValue([]);
 		uploadMock.mockResolvedValue(undefined);
+		ensureFeedbackContainerMock.mockResolvedValue({ feedbackContainerId: "feedback-container-1" });
 	});
 
 	afterEach(() => {
@@ -344,26 +365,34 @@ describe("AssignmentSubmissionsOverlay", () => {
 			isSubmittable: true,
 			submissions: [
 				buildSubmission({
+					feedbackContainerId: "feedback-container-1",
 					feedbackFiles: [{ fileRecordId: "record-fb", name: "feedback-pdf-1.pdf" }],
 				}),
 			],
 		});
-		getFileRecordsByParentIdMock.mockReturnValue([
-			{
-				id: "record-sub",
-				name: "essay.pdf",
-				url: "https://api/files/essay.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-fb",
-				name: "feedback-pdf-1.pdf",
-				url: "https://api/files/feedback-pdf-1.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-		]);
+		// the submission's own file and its feedback now list under two different parent ids
+		getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+			if (parentId === "feedback-container-1") {
+				return [
+					{
+						id: "record-fb",
+						name: "feedback-pdf-1.pdf",
+						url: "https://api/files/feedback-pdf-1.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+				];
+			}
+			return [
+				{
+					id: "record-sub",
+					name: "essay.pdf",
+					url: "https://api/files/essay.pdf",
+					mimeType: "application/pdf",
+					previewStatus: "possible",
+				},
+			];
+		});
 		const { wrapper } = setup();
 
 		await vi.dynamicImportSettled();
@@ -400,11 +429,14 @@ describe("AssignmentSubmissionsOverlay", () => {
 		annotator.vm.$emit("save", { blob, name: "feedback-pdf-123.pdf" });
 		await vi.dynamicImportSettled();
 
+		// a container is created (or reused) for this submission before the upload, never
+		// uploaded to the submission's own id - see A1 in the review notes
+		expect(ensureFeedbackContainerMock).toHaveBeenCalledWith("submission-1");
 		expect(uploadMock).toHaveBeenCalledTimes(1);
 		const [file, parentId, parentType] = uploadMock.mock.calls[0];
 		expect(file.name).toBe("feedback-pdf-123.pdf");
 		expect(file.type).toBe("application/pdf");
-		expect(parentId).toBe("submission-1");
+		expect(parentId).toBe("feedback-container-1");
 		expect(parentType).toBe(FileRecordParent.BOARDNODES);
 		// the overlay reloads so the new feedback file shows up
 		expect(fetchSubmissionsMock).toHaveBeenCalledTimes(2);
@@ -462,6 +494,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 			isSubmittable: true,
 			submissions: [
 				buildSubmission({
+					feedbackContainerId: "feedback-container-1",
 					feedbackFiles: [
 						{ fileRecordId: "record-pdf-2", name: "feedback-pdf-2.pdf" },
 						{ fileRecordId: "record-pdf-1", name: "feedback-pdf-1.pdf" },
@@ -469,29 +502,35 @@ describe("AssignmentSubmissionsOverlay", () => {
 				}),
 			],
 		});
-		getFileRecordsByParentIdMock.mockReturnValue([
-			{
-				id: "record-sub",
-				name: "essay.pdf",
-				url: "https://api/files/essay.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-pdf-1",
-				name: "feedback-pdf-1.pdf",
-				url: "https://api/files/feedback-pdf-1.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-			{
-				id: "record-pdf-2",
-				name: "feedback-pdf-2.pdf",
-				url: "https://api/files/feedback-pdf-2.pdf",
-				mimeType: "application/pdf",
-				previewStatus: "possible",
-			},
-		]);
+		getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+			if (parentId === "feedback-container-1") {
+				return [
+					{
+						id: "record-pdf-1",
+						name: "feedback-pdf-1.pdf",
+						url: "https://api/files/feedback-pdf-1.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+					{
+						id: "record-pdf-2",
+						name: "feedback-pdf-2.pdf",
+						url: "https://api/files/feedback-pdf-2.pdf",
+						mimeType: "application/pdf",
+						previewStatus: "possible",
+					},
+				];
+			}
+			return [
+				{
+					id: "record-sub",
+					name: "essay.pdf",
+					url: "https://api/files/essay.pdf",
+					mimeType: "application/pdf",
+					previewStatus: "possible",
+				},
+			];
+		});
 		const { wrapper } = setup();
 
 		await vi.dynamicImportSettled();
@@ -778,6 +817,64 @@ describe("AssignmentSubmissionsOverlay", () => {
 			expect(autoAssignMock).toHaveBeenCalledWith(element.id);
 		});
 
+		// Regression: the button used to be an unlabeled icon, easy to miss entirely - it now
+		// carries a label and a counter reflecting the actual assignment state.
+		it("shows a labeled button with a count of assigned submissions", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "manual";
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({ userId: "user-1", id: "submission-1" }),
+					buildSubmission({ userId: "user-2", id: "submission-2" }),
+					buildSubmission({ userId: "user-3", id: null }), // not yet submitted - not reviewable
+				],
+			});
+			listAssignmentsMock.mockResolvedValue([
+				{
+					submissionId: "submission-1",
+					reviewerUserId: "user-2",
+					reviewerFirstName: "Ben",
+					reviewerLastName: "Berger",
+					assignmentMode: "manual",
+					submittedAt: null,
+				},
+			]);
+			const { wrapper } = setup();
+
+			await vi.dynamicImportSettled();
+
+			const button = wrapper.find("[data-testid='peer-review-manage-button']");
+			expect(button.text()).toContain("components.cardElement.assignmentElement.peerReview.manageButton");
+			expect(wrapper.find("[data-testid='peer-review-manage-button-count']").text()).toContain("1/2");
+		});
+
+		it("refetches assignments (updating the counter) after a change in the panel", async () => {
+			element.content.peerReviewEnabled = true;
+			element.content.peerReviewMode = "auto";
+			listAssignmentsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([
+				{
+					submissionId: "submission-1",
+					reviewerUserId: "user-2",
+					assignmentMode: "auto",
+					submittedAt: null,
+				},
+			]);
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			expect(listAssignmentsMock).toHaveBeenCalledTimes(1);
+
+			await wrapper.find("[data-testid='peer-review-manage-button']").trigger("click");
+			await wrapper.find("[data-testid='peer-review-auto-assign']").trigger("click");
+			await vi.dynamicImportSettled();
+
+			expect(listAssignmentsMock).toHaveBeenCalledTimes(2);
+		});
+
 		it("manually assigns a reviewer to a submission", async () => {
 			element.content.peerReviewEnabled = true;
 			element.content.peerReviewMode = "manual";
@@ -803,6 +900,52 @@ describe("AssignmentSubmissionsOverlay", () => {
 			expect(manualAssignMock).toHaveBeenCalledWith(element.id, [
 				{ submissionId: "submission-1", reviewerUserId: "user-2" },
 			]);
+		});
+	});
+
+	describe("identified peer review feedback (teacher view)", () => {
+		it("downloads a peer reviewer's correction file via its container id", async () => {
+			fetchSubmissionsMock.mockResolvedValue({
+				maxPoints: 10,
+				dueDate: null,
+				lateUntil: null,
+				isSubmittable: true,
+				submissions: [
+					buildSubmission({
+						peerReviewFeedback: [
+							{
+								reviewerUserId: "user-2",
+								reviewerFirstName: "Bea",
+								reviewerLastName: "Berg",
+								submittedAt: "2099-01-16T10:00:00.000Z",
+								feedbackContainerId: "peer-container-1",
+								files: [{ fileRecordId: "correction-1", name: "feedback-pdf-1.pdf" }],
+							},
+						],
+					}),
+				],
+			});
+			getFileRecordsByParentIdMock.mockImplementation((parentId: string) => {
+				if (parentId === "peer-container-1") {
+					return [
+						{
+							id: "correction-1",
+							name: "feedback-pdf-1.pdf",
+							url: "https://api/files/feedback-pdf-1.pdf",
+							mimeType: "application/pdf",
+							previewStatus: "possible",
+						},
+					];
+				}
+				return [];
+			});
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			await wrapper.find("[data-testid='submission-peer-review-feedback-download-correction-1']").trigger("click");
+
+			expect(fetchFilesMock).toHaveBeenCalledWith("peer-container-1", "boardnodes");
+			expect(downloadFileMock).toHaveBeenCalledWith("https://api/files/feedback-pdf-1.pdf", "feedback-pdf-1.pdf");
 		});
 	});
 
@@ -861,6 +1004,18 @@ describe("AssignmentSubmissionsOverlay", () => {
 					{ criterionId: "c1", points: 5 },
 					{ criterionId: "c2", points: 4 },
 				],
+			});
+		});
+
+		it("omits criterionPoints entirely (not zeroed) when saving without having touched any criterion", async () => {
+			const { wrapper } = setup();
+			await vi.dynamicImportSettled();
+
+			// no criterion input touched at all
+			await wrapper.find("[data-testid='submission-save-grade']").trigger("click");
+
+			expect(gradeSubmissionMock).toHaveBeenCalledWith("submission-1", {
+				feedbackComment: undefined,
 			});
 		});
 	});

@@ -26,6 +26,45 @@
 			>
 				{{ t("common.actions.download") }}
 			</VBtn>
+			<VBtn
+				v-if="fileRecord && (isPdfMimeType(fileRecord.mimeType) || isImageMimeType(fileRecord.mimeType))"
+				variant="tonal"
+				size="small"
+				:prepend-icon="mdiPencilOutline"
+				data-testid="peer-review-task-annotate"
+				@click="emit('annotate-file')"
+			>
+				{{ t("components.cardElement.assignmentElement.annotate") }}
+			</VBtn>
+		</div>
+
+		<div v-if="correctionFiles.length > 0" class="mb-3">
+			<div
+				v-for="record in correctionFiles"
+				:key="record.id"
+				class="d-flex align-center ga-2 mt-1"
+				data-testid="peer-review-correction-file"
+			>
+				<VIcon :icon="mdiFileDocumentOutline" size="small" />
+				<span class="flex-grow-1 text-truncate">{{ record.name }}</span>
+				<VBtn
+					v-if="isPdfMimeType(record.mimeType) || isImageMimeType(record.mimeType)"
+					variant="tonal"
+					size="small"
+					:prepend-icon="mdiPencilOutline"
+					:data-testid="`peer-review-correction-annotate-${record.id}`"
+					@click="emit('continue-correction', record)"
+				>
+					{{ t("components.cardElement.assignmentElement.annotator.continue") }}
+				</VBtn>
+				<VBtn
+					variant="text"
+					size="small"
+					:icon="mdiTrayArrowDown"
+					:data-testid="`peer-review-correction-download-${record.id}`"
+					@click="emit('download-correction', record)"
+				/>
+			</div>
 		</div>
 
 		<VTextField
@@ -61,14 +100,23 @@
 
 <script setup lang="ts">
 import { FileRecord } from "@/types/file/File";
-import { isPdfMimeType } from "@/utils/fileHelper";
-import { mdiDownload, mdiEyeOutline, mdiFileDocumentOutline } from "@icons/material";
+import { isImageMimeType, isPdfMimeType } from "@/utils/fileHelper";
+import {
+	mdiDownload,
+	mdiEyeOutline,
+	mdiFileDocumentOutline,
+	mdiPencilOutline,
+	mdiTrayArrowDown,
+} from "@icons/material";
 import { useI18n } from "vue-i18n";
 
 // Pure display of one peer review task's form - all state lives in the parent list, this
 // only renders it and reports interactions via events, mirroring AssignmentSubmissionDetail.
 defineProps<{
 	fileRecord: FileRecord | undefined;
+	// this reviewer's own annotated corrections so far - no audio (see the review notes), just
+	// the PDF/image annotator AssignmentSubmissionDetail already uses for the teacher
+	correctionFiles: FileRecord[];
 	points: number | null;
 	feedbackComment: string;
 	submitting: boolean;
@@ -77,6 +125,9 @@ defineProps<{
 const emit = defineEmits<{
 	(e: "view-file"): void;
 	(e: "download-file"): void;
+	(e: "annotate-file"): void;
+	(e: "continue-correction", record: FileRecord): void;
+	(e: "download-correction", record: FileRecord): void;
 	(e: "update:points", value: string): void;
 	(e: "update:feedbackComment", value: string): void;
 	(e: "submit"): void;
