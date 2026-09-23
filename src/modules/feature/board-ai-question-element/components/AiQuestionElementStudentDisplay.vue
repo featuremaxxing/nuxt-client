@@ -30,7 +30,14 @@
 					{{ t("components.cardElement.aiQuestionElement.aiThinking") }}
 				</span>
 			</div>
-			<VAlert v-if="submitError" type="error" variant="tonal" density="compact" class="mt-2" data-testid="ai-question-student-error">
+			<VAlert
+				v-if="submitError"
+				type="error"
+				variant="tonal"
+				density="compact"
+				class="mt-2"
+				data-testid="ai-question-student-error"
+			>
 				{{ t("components.cardElement.aiQuestionElement.aiError") }}
 			</VAlert>
 		</template>
@@ -42,8 +49,14 @@
 					{{ t("components.cardElement.aiQuestionElement.attempt", { count: attemptCount }) }}
 				</span>
 			</div>
-			<VSheet color="var(--color-secondary)" class="ai-response-sheet pa-3 rounded-lg" data-testid="ai-question-student-ai-response">
-				<p class="text-sm text-medium-emphasis mb-1">{{ t("components.cardElement.aiQuestionElement.aiResponseTitle") }}</p>
+			<VSheet
+				color="var(--color-secondary)"
+				class="ai-response-sheet pa-3 rounded-lg"
+				data-testid="ai-question-student-ai-response"
+			>
+				<p class="text-sm text-medium-emphasis mb-1">
+					{{ t("components.cardElement.aiQuestionElement.aiResponseTitle") }}
+				</p>
 				<p class="ai-question-text">{{ aiResponse }}</p>
 			</VSheet>
 			<VBtn
@@ -73,6 +86,9 @@ const props = defineProps<{
 const { t } = useI18n();
 const { fetchOwnAnswer, submitAnswer } = useAiQuestionApi();
 
+const OWN_ANSWER_POLL_ATTEMPTS = 8;
+const OWN_ANSWER_POLL_INTERVAL_MS = 4000;
+
 const answerText = ref<string>("");
 const submitting = ref(false);
 const submitError = ref(false);
@@ -98,17 +114,15 @@ const onSubmit = async () => {
 	submitting.value = true;
 	submitError.value = false;
 	const result = await submitAnswer(props.element.id, { answer: text }, { silent: true });
-	submitting.value = false;
 
 	if (result === "error") {
-		// Self-heal: a proxy timeout during the slow AI call can make the POST fail even
-		// though the server stored the answer afterwards. Re-fetch before showing an
-		// error - if an answer appeared in the meantime, display it instead.
-		const own = await fetchOwnAnswer(props.element.id);
-		if (own?.answer) {
-			aiResponse.value = own.answer.aiResponse;
-			attemptCount.value = own.answer.attemptCount;
-			answerText.value = "";
+		// Self-heal: a proxy timeout during the slow AI call can make the POST fail (e.g.
+		// 408) even though the server finishes and stores the answer shortly after. Poll
+		// for it briefly before showing an error - the student then sees the assessment
+		// as soon as it exists, without clicking again.
+		const recovered = await pollForOwnAnswer();
+		submitting.value = false;
+		if (recovered) {
 			return;
 		}
 
@@ -117,6 +131,7 @@ const onSubmit = async () => {
 		return;
 	}
 
+	submitting.value = false;
 	if (result) {
 		aiResponse.value = result.aiResponse;
 		attemptCount.value = result.attemptCount;
@@ -127,6 +142,28 @@ const onSubmit = async () => {
 const onResubmit = () => {
 	aiResponse.value = undefined;
 	submitError.value = false;
+};
+
+// The AI assessment usually arrives a few seconds after the connection was cut - keep
+// looking for it for ~30 seconds. Returns true once it was found and rendered.
+const pollForOwnAnswer = async (): Promise<boolean> => {
+	for (let attempt = 0; attempt < OWN_ANSWER_POLL_ATTEMPTS; attempt += 1) {
+		const own = await fetchOwnAnswer(props.element.id);
+		if (own?.answer) {
+			aiResponse.value = own.answer.aiResponse;
+			attemptCount.value = own.answer.attemptCount;
+			answerText.value = "";
+			submitError.value = false;
+
+			return true;
+		}
+
+		if (attempt < OWN_ANSWER_POLL_ATTEMPTS - 1) {
+			await new Promise((resolve) => setTimeout(resolve, OWN_ANSWER_POLL_INTERVAL_MS));
+		}
+	}
+
+	return false;
 };
 </script>
 

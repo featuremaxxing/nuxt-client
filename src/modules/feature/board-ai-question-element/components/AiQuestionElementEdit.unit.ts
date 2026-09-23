@@ -47,6 +47,7 @@ describe("AiQuestionElementEdit", () => {
 
 		expect(fetchConfigMock).toHaveBeenCalledWith(wrapper.vm.$props.element.id);
 
+		const originalContent = modelValue.value;
 		const instructions = wrapper.find("[data-testid='ai-question-edit-instructions']");
 		const expectedAnswer = wrapper.find("[data-testid='ai-question-edit-expected-answer']");
 		expect((instructions.find("textarea").element as HTMLTextAreaElement).value).toBe("Streng bewerten");
@@ -54,6 +55,7 @@ describe("AiQuestionElementEdit", () => {
 
 		// editing one private field must keep the other (both ride along in the autosave)
 		await instructions.find("textarea").setValue("Netter bewerten");
+		expect(modelValue.value).toBe(originalContent);
 		expect(modelValue.value).toMatchObject({ aiInstructions: "Netter bewerten", expectedAnswer: "4" });
 	});
 
@@ -61,8 +63,10 @@ describe("AiQuestionElementEdit", () => {
 		const { wrapper, modelValue } = setup();
 		await vi.dynamicImportSettled();
 
+		const originalContent = modelValue.value;
 		await wrapper.find("[data-testid='ai-question-edit-multiple-attempts'] input").setValue(true);
 
+		expect(modelValue.value).toBe(originalContent);
 		expect(modelValue.value.allowMultipleAttempts).toBe(true);
 	});
 

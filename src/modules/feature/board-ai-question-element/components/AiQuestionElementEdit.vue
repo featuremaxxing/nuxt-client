@@ -71,17 +71,20 @@ const setPrivateFields = (patch: { aiInstructions?: string; expectedAnswer?: str
 	if (patch.aiInstructions !== undefined) aiInstructions.value = patch.aiInstructions;
 	if (patch.expectedAnswer !== undefined) expectedAnswer.value = patch.expectedAnswer;
 
-	// Cast is deliberate: the private fields ride along in the PATCH body although the
-	// broadcast content type does not declare them (AiQuestionContentBody accepts them).
-	modelValue.value = {
-		...modelValue.value,
-		aiInstructions: aiInstructions.value,
-		expectedAnswer: expectedAnswer.value,
-	} as AiQuestionElement["content"];
+	// useContentElementState watches the original reactive content object. Mutate it in
+	// place so the autosave sees the change; replacing modelValue.value would disconnect
+	// the new object from that watcher. The private fields are accepted by the PATCH DTO
+	// even though the broadcast content type intentionally does not expose them.
+	const editableContent = modelValue.value as AiQuestionElement["content"] & {
+		aiInstructions: string;
+		expectedAnswer: string;
+	};
+	editableContent.aiInstructions = aiInstructions.value;
+	editableContent.expectedAnswer = expectedAnswer.value;
 };
 
 const setAllowMultipleAttempts = (value: boolean) => {
-	modelValue.value = { ...modelValue.value, allowMultipleAttempts: value };
+	modelValue.value.allowMultipleAttempts = value;
 };
 
 onMounted(async () => {
