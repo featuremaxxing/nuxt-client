@@ -10,7 +10,7 @@
 			<template #title>
 				{{ element.content.question || t("components.cardElement.aiQuestionElement") }}
 			</template>
-			<template v-if="isEditMode" #menu>
+			<template v-if="isEditMode && canManageAiQuestion" #menu>
 				<BoardMenu
 					:scope="BoardMenuScope.AI_QUESTION_ELEMENT"
 					has-background
@@ -23,7 +23,7 @@
 			</template>
 		</ContentElementBar>
 
-		<AiQuestionElementEdit v-if="isEditMode" :element="element" :is-edit-mode="isEditMode" />
+		<AiQuestionElementEdit v-if="isEditMode && canManageAiQuestion" :element="element" :is-edit-mode="isEditMode" />
 		<AiQuestionElementTeacherDisplay v-else-if="canManageAiQuestion" :element="element" />
 		<AiQuestionElementStudentDisplay v-else :element="element" />
 	</VCard>
@@ -35,6 +35,7 @@ import AiQuestionElementStudentDisplay from "./components/AiQuestionElementStude
 import AiQuestionElementTeacherDisplay from "./components/AiQuestionElementTeacherDisplay.vue";
 import { AiQuestionElement } from "@/types/board/ContentElement";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
+import { useAppStoreRefs } from "@data-app";
 import { useBoardAllowedOperations, useBoardFocusHandler } from "@data-board";
 import { mdiRobotOutline } from "@icons/material";
 import { BoardMenu, BoardMenuScope, ContentElementBar } from "@ui-board";
@@ -60,6 +61,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { isStudent } = useAppStoreRefs();
 const { allowedOperations } = useBoardAllowedOperations();
 
 const element = toRef(props, "element");
@@ -70,7 +72,7 @@ useBoardFocusHandler(element.value.id, aiQuestionContentElement);
 // board into "can edit", but the server never grants an AI question's manage view (the
 // teacher's instructions and the expected answer) to such a reader - see the aiQuestion
 // carve-out in board-node.rule.ts.
-const canManageAiQuestion = computed(() => allowedOperations.value.isBoardEditor);
+const canManageAiQuestion = computed(() => allowedOperations.value.isBoardEditor && !isStudent.value);
 
 const onMoveUp = () => emit("move-up:edit");
 const onMoveDown = () => emit("move-down:edit");
