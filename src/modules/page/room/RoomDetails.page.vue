@@ -13,6 +13,14 @@
 					@room:delete="onDelete"
 					@room:leave="onLeaveRoom"
 				/>
+				<RouterLink
+					v-if="isProgressEnabled && roomProgress && roomProgress.summary.total > 0"
+					:to="`/rooms/${room.id}/progress`"
+					class="ml-4 text-body-2"
+					data-testid="room-progress-link"
+				>
+					{{ t("pages.roomDetails.progress.link") }}
+				</RouterLink>
 			</div>
 		</template>
 		<EmptyState
@@ -27,6 +35,7 @@
 		<RoomBoardGrid
 			:room-id="room.id"
 			:boards="visibleBoards"
+			:progress-by-board-id="progressByBoardId"
 			@update:board-visibility="onUpdateBoardVisibility"
 			@delete:board="onDeleteBoard"
 			@duplicate:board="onDuplicateBoard"
@@ -48,6 +57,8 @@ import { askConfirmation } from "@/utils/confirmation-dialog.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { RoomBoardItemResponse } from "@api-server";
 import { useAppStoreRefs } from "@data-app";
+import { ProgressSummary, RoomProgress, useBoardProgressApi } from "@data-board-progress";
+import { useEnvConfig } from "@data-env";
 import { useRoomAllowedOperations, useRoomDetailsStore, useRoomStore } from "@data-room";
 import { useCopyFlow } from "@feature-copy";
 import { RoomBoardGrid, RoomMenu } from "@feature-room";
@@ -59,7 +70,7 @@ import { LeaveRoomProhibitedDialog, SelectBoardLayoutDialog } from "@ui-room-det
 import { FabAction } from "@ui-speed-dial-menu";
 import { useTitle } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, ComputedRef, ref, toRef } from "vue";
+import { computed, ComputedRef, onMounted, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
@@ -89,6 +100,19 @@ const visibleBoards = computed(() =>
 );
 
 const roomTitle = computed(() => room.value.name);
+
+const isProgressEnabled = computed(() => useEnvConfig().value.FEATURE_BOARD_PROGRESS_ENABLED);
+const roomProgress = ref<RoomProgress>();
+const progressByBoardId = computed<Record<string, ProgressSummary> | undefined>(() => {
+	if (!roomProgress.value) return undefined;
+	return Object.fromEntries(roomProgress.value.boards.map((board) => [board.boardId, board.summary]));
+});
+const refreshProgress = async () => {
+	if (!isProgressEnabled.value) return;
+	roomProgress.value = await useBoardProgressApi().getRoomProgress(room.value.id);
+};
+onMounted(refreshProgress);
+watch(() => room.value.id, refreshProgress);
 
 const boardLayoutDialogIsOpen = ref(false);
 

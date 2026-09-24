@@ -62,6 +62,7 @@
 				/>
 			</div>
 		</div>
+		<BoardProgressBar :board-id="boardId" :room-id="roomId" class="mb-2" />
 		<VDivider v-if="isPageScrollMode && hasScrolledInPageMode" class="mx-n6" role="presentation" />
 	</div>
 </template>
@@ -75,8 +76,14 @@ import BoardEditableChip from "./BoardEditableChip.vue";
 import KebabMenuActionEditingSettings from "./KebabMenuActionEditingSettings.vue";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
 import { upperCaseFirstChar } from "@/utils/textFormatting";
-import { useBoardAllowedOperations, useBoardFocusHandler, useCourseBoardEditMode } from "@data-board";
+import {
+	useBoardAllowedOperations,
+	useBoardFocusHandler,
+	useCourseBoardEditMode,
+	useSharedBoardPageInformation,
+} from "@data-board";
 import { useEnvConfig } from "@data-env";
+import { BoardProgressBar } from "@feature-board-progress";
 import { BoardMenu, BoardMenuScope } from "@ui-board";
 import {
 	KebabMenuActionChangeLayout,
@@ -121,6 +128,7 @@ const boardHeader = ref<HTMLDivElement | null>(null);
 const { isFocusedById } = useBoardFocusHandler(boardId.value, boardHeader);
 const { allowedOperations } = useBoardAllowedOperations();
 const { isPageScrollMode, toggleScrollMode } = useBoardScrollMode();
+const { roomId } = useSharedBoardPageInformation();
 
 const onToggleScrollMode = () => {
 	const columnBoard = document.querySelector<HTMLElement>(".column-board");

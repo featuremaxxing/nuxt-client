@@ -20,6 +20,7 @@
 				:room-id="roomId"
 				:board="element"
 				:index
+				:progress="progressByBoardId?.[element.id]"
 				@contextmenu.prevent
 				@click.capture="onItemClick"
 				@focusin="focusedBoard = $event.target"
@@ -39,6 +40,7 @@ import { useSafeTask } from "@/composables/async-tasks.composable";
 import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
 import { notifyError } from "@data-app";
+import { ProgressSummary } from "@data-board-progress";
 import { useRoomAllowedOperations, useRoomDetailsStore } from "@data-room";
 import { getGridContainerColumnsCount } from "@util-browser";
 import { useErrorHandler } from "@util-error-handling";
@@ -51,6 +53,7 @@ import { useI18n } from "vue-i18n";
 const props = defineProps({
 	roomId: { type: String, required: true },
 	boards: { type: Array as PropType<RoomBoardItem[]>, required: true },
+	progressByBoardId: { type: Object as PropType<Record<string, ProgressSummary>>, default: undefined },
 });
 
 const emit = defineEmits<{

@@ -23,6 +23,13 @@
 			>
 				<h2 class="text-break text-body-1 font-weight-bold ma-0">{{ board.title }}</h2>
 			</VCardTitle>
+			<ProgressBar
+				v-if="progress && progress.total > 0"
+				:done="progress.done"
+				:total="progress.total"
+				class="mx-4"
+				:data-testid="`board-grid-item-progress-${index}`"
+			/>
 		</RouterLink>
 
 		<KebabMenu v-if="hasAnyAllowedOperation" class="board-grid-item-menu" :data-testid="`board-dot-menu-${index}`">
@@ -58,6 +65,8 @@
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
+import { ProgressSummary } from "@data-board-progress";
+import { ProgressBar } from "@feature-board-progress";
 import { mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
 import {
 	KebabMenu,
@@ -73,6 +82,7 @@ const props = defineProps({
 	roomId: { type: String, required: true },
 	board: { type: Object as PropType<RoomBoardItem>, required: true },
 	index: { type: Number, required: true },
+	progress: { type: Object as PropType<ProgressSummary>, default: undefined },
 });
 
 const { t } = useI18n();
