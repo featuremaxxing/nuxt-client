@@ -9,6 +9,7 @@ import { computed, reactive } from "vue";
 
 export const defaultConfigEnvs: ConfigResponse = {
 	FEATURE_COLUMN_BOARD_POLL_ENABLED: false,
+	FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: false,
 	FEATURE_NOTIFICATIONS_ENABLED: false,
 	FEATURE_SCHOOL_DATA_READONLY_ENABLED: false,
 	NOT_AUTHENTICATED_REDIRECT_URL: "",

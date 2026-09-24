@@ -3,9 +3,9 @@ import { useAddElementDialog } from "./AddElementDialog.composable";
 import { ElementTypeSelectionOptions } from "./SharedElementTypeSelection.composable";
 import { injectStrict } from "@/utils/inject";
 import { createTestEnvStore, expectNotification, mockedPiniaStoreTyping, ObjectIdMock } from "@@/tests/test-utils";
-import { ContentElementType } from "@api-server";
+import { ContentElementType, MeResponse, RoleName } from "@api-server";
 import { ConfigResponse } from "@api-server";
-import { useNotificationStore } from "@data-app";
+import { useAppStore, useNotificationStore } from "@data-app";
 import { useBoardAllowedOperations, useBoardFeatures, useCardStore } from "@data-board";
 import { useAddCollaboraFile } from "@feature-collabora";
 import { createTestingPinia } from "@pinia/testing";
@@ -686,6 +686,37 @@ describe("ElementTypeSelection Composable", () => {
 				const option = elementTypeOptions.value.find((opt) => opt.testId === "create-element-poll");
 
 				expect(option).toBeUndefined();
+			});
+		});
+
+		describe("checkbox element", () => {
+			it("offers creation only when the flag is enabled", () => {
+				useAppStore().meResponse = { roles: [{ id: "teacher", name: RoleName.TEACHER }] } as MeResponse;
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true } as Partial<ConfigResponse>,
+				});
+				useAddElementDialog(addElementMock, cardId).askType();
+				const option = elementTypeOptions.value.find((item) => item.testId === "create-element-checkbox");
+				expect(option).toBeDefined();
+				option?.action();
+				expect(addElementMock).toHaveBeenCalledWith({ type: ContentElementType.CHECKBOX, cardId });
+			});
+
+			it("does not offer creation when disabled", () => {
+				useAppStore().meResponse = { roles: [{ id: "teacher", name: RoleName.TEACHER }] } as MeResponse;
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: false } as Partial<ConfigResponse>,
+				});
+				useAddElementDialog(addElementMock, cardId).askType();
+				expect(elementTypeOptions.value.find((item) => item.testId === "create-element-checkbox")).toBeUndefined();
+			});
+			it("does not offer creation to a student even if the board allows editing", () => {
+				useAppStore().meResponse = { roles: [{ id: "student", name: RoleName.STUDENT }] } as MeResponse;
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true } as Partial<ConfigResponse>,
+				});
+				useAddElementDialog(addElementMock, cardId).askType();
+				expect(elementTypeOptions.value.find((item) => item.testId === "create-element-checkbox")).toBeUndefined();
 			});
 		});
 

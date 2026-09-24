@@ -13,6 +13,7 @@ export enum BoardMenuScope {
 	VIDEO_CONFERENCE_ELEMENT = "videoConferenceElement",
 	H5P_ELEMENT = "h5pElement",
 	POLL_ELEMENT = "pollElement",
+	CHECKBOX_ELEMENT = "checkboxElement",
 	ASSIGNMENT_ELEMENT = "assignmentElement",
 	AI_QUESTION_ELEMENT = "aiQuestionElement",
 }

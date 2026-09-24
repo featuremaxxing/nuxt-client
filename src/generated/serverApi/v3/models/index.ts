@@ -293,6 +293,7 @@ export * from './poll-content-body';
 export * from './poll-element-content';
 export * from './poll-element-content-body';
 export * from './poll-element-response';
+export * from './checkbox-element-response';
 export * from './poll-option-body';
 export * from './poll-option-response';
 export * from './poll-question-body';

@@ -1,7 +1,7 @@
 import { ElementTypeSelectionOptions, useSharedElementTypeSelection } from "./SharedElementTypeSelection.composable";
 import { AnyContentElement } from "@/types/board/ContentElement";
 import { BoardFeature, ContentElementType, PreferredToolResponse } from "@api-server";
-import { notifyInfo } from "@data-app";
+import { notifyInfo, useAppStore } from "@data-app";
 import {
 	type CreateElementRequestPayload,
 	useBoardAllowedOperations,
@@ -11,6 +11,7 @@ import {
 import { useEnvConfig } from "@data-env";
 import { useAddCollaboraFile } from "@feature-collabora";
 import {
+	mdiCheckboxOutline,
 	mdiClipboardTextOutline,
 	mdiFileDocumentOutline,
 	mdiFolderOpenOutline,
@@ -169,6 +170,15 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.pollElement.subtitle"),
 				action: () => onElementClick(ContentElementType.POLL),
 				testId: "create-element-poll",
+			});
+		}
+
+		if (envConfig.value.FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED && useAppStore().isTeacher) {
+			options.push({
+				icon: mdiCheckboxOutline,
+				label: t("components.elementTypeSelection.elements.checkboxElement.subtitle"),
+				action: () => onElementClick(ContentElementType.CHECKBOX),
+				testId: "create-element-checkbox",
 			});
 		}
 
