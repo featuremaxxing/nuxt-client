@@ -13,48 +13,65 @@
 		</EmptyState>
 		<template v-else-if="progress">
 			<ProgressBar :done="progress.summary.done" :total="progress.summary.total" :label="overallLabel" class="mb-6" />
-			<VCard v-for="board in visibleBoards" :key="board.boardId" class="mb-4" variant="outlined">
-				<VCardTitle>
-					<RouterLink :to="`/boards/${board.boardId}`" class="text-decoration-none">{{ board.boardTitle }}</RouterLink>
-				</VCardTitle>
-				<VCardText>
-					<ProgressBar
-						:done="board.summary.done"
-						:total="board.summary.total"
-						:label="itemLabel(board.summary)"
-						class="mb-4"
-					/>
-					<VList>
-						<VListItem
-							v-for="item in board.items"
-							:key="item.elementId"
-							:to="`/boards/${board.boardId}#card-${item.cardId}`"
-							:data-testid="`progress-item-${item.elementId}`"
-						>
-							<template #prepend>
-								<VIcon :icon="iconFor(item.type)" />
-							</template>
-							<VListItemTitle>{{ item.title }}</VListItemTitle>
-							<VListItemSubtitle>{{ item.cardTitle }}</VListItemSubtitle>
-							<template #append>
-								<span v-if="board.isTeacherView" data-testid="progress-item-count">
-									{{ item.doneCount }}/{{ item.eligibleCount }}
-								</span>
-								<VIcon v-else-if="item.done" :icon="mdiCheck" color="success" data-testid="progress-item-done" />
-							</template>
-						</VListItem>
-					</VList>
-				</VCardText>
-			</VCard>
+			<VTabs v-if="studentRows.length > 0" v-model="tab" class="mb-4" data-testid="room-progress-tabs">
+				<VTab value="students" data-testid="room-progress-tab-students">
+					{{ t("pages.room.progress.tab.students") }}
+				</VTab>
+				<VTab value="items" data-testid="room-progress-tab-items">{{ t("pages.room.progress.tab.items") }}</VTab>
+			</VTabs>
+			<StudentProgressTable v-if="studentRows.length > 0 && tab === 'students'" :rows="studentRows" />
+			<template v-else>
+				<VCard v-for="board in visibleBoards" :key="board.boardId" class="mb-4" variant="outlined">
+					<VCardTitle>
+						<RouterLink :to="`/boards/${board.boardId}`" class="text-decoration-none">{{
+							board.boardTitle
+						}}</RouterLink>
+					</VCardTitle>
+					<VCardText>
+						<ProgressBar
+							:done="board.summary.done"
+							:total="board.summary.total"
+							:label="itemLabel(board.summary)"
+							class="mb-4"
+						/>
+						<VList>
+							<VListItem
+								v-for="item in board.items"
+								:key="item.elementId"
+								:to="`/boards/${board.boardId}#card-${item.cardId}`"
+								:data-testid="`progress-item-${item.elementId}`"
+							>
+								<template #prepend>
+									<VIcon :icon="iconFor(item.type)" />
+								</template>
+								<VListItemTitle>{{ item.title }}</VListItemTitle>
+								<VListItemSubtitle>{{ item.cardTitle }}</VListItemSubtitle>
+								<template #append>
+									<span v-if="board.isTeacherView" data-testid="progress-item-count">
+										{{ item.doneCount }}/{{ item.eligibleCount }}
+									</span>
+									<VIcon v-else-if="item.done" :icon="mdiCheck" color="success" data-testid="progress-item-done" />
+								</template>
+							</VListItem>
+						</VList>
+					</VCardText>
+				</VCard>
+			</template>
 		</template>
 	</DefaultWireframe>
 </template>
 
 <script setup lang="ts">
 import { buildPageTitle } from "@/utils/pageTitle";
-import { ProgressElementType, ProgressSummary, RoomProgress, useBoardProgressApi } from "@data-board-progress";
+import {
+	aggregateStudentProgress,
+	ProgressElementType,
+	ProgressSummary,
+	RoomProgress,
+	useBoardProgressApi,
+} from "@data-board-progress";
 import { useRoomDetailsStore } from "@data-room";
-import { ProgressBar } from "@feature-board-progress";
+import { ProgressBar, StudentProgressTable } from "@feature-board-progress";
 import { mdiCheck, mdiCheckboxOutline, mdiClipboardTextOutline, mdiPoll } from "@icons/material";
 import { EmptyState, LearningContentEmptyStateSvg } from "@ui-empty-state";
 import { Breadcrumb, DefaultWireframe } from "@ui-layout";
@@ -84,6 +101,10 @@ onMounted(async () => {
 });
 
 const visibleBoards = computed(() => progress.value?.boards.filter((board) => board.items.length > 0) ?? []);
+
+// Only teachers get a per-student breakdown from the server, so the tab only shows up for them.
+const studentRows = computed(() => aggregateStudentProgress(progress.value?.boards ?? []));
+const tab = ref<"students" | "items">("students");
 
 const pageTitle = computed(() => t("pages.room.progress.title"));
 useTitle(computed(() => buildPageTitle(pageTitle.value, room.value?.name)));
