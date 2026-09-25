@@ -1,8 +1,15 @@
 <template>
 	<section v-if="loading || currentAssignments.length > 0" class="mt-8" data-testid="dashboard-assignments">
 		<h3 class="text-h3 mb-2">{{ t("pages.assignments.current") }}</h3>
-		<div v-if="loading" class="text-caption" data-testid="dashboard-assignments-loading">
-			{{ t("common.labels.loading") }}
+		<div
+			v-if="loading"
+			class="d-flex align-center ga-2 text-body-2 py-2"
+			role="status"
+			aria-live="polite"
+			data-testid="dashboard-assignments-loading"
+		>
+			<VProgressCircular indeterminate size="20" width="2" />
+			<span>{{ t("common.labels.loading") }}</span>
 		</div>
 		<VList v-else class="py-0" data-testid="dashboard-assignments-list">
 			<AssignmentsOverviewListItem

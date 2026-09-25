@@ -3,13 +3,13 @@
 		class="room-grid-item d-flex flex-column"
 		:data-testid="`board-grid-item-${index}`"
 		:ripple="false"
-		variant="elevated"
+		variant="outlined"
 	>
 		<VCardItem class="d-block flex-grow-1">
 			<RouterLink tabindex="-1" :to="roomPath" class="room-link-item overflow-visible">
 				<VBadge :model-value="room.isLocked" bordered :icon="mdiLock" :data-testid="`room-badge-lock-${index}`">
-					<VAvatar rounded="lg" :class="avatarColor" class="room-grid-avatar" :data-testid="`room-avatar-${index}`">
-						<span class="text-h1 text-white text-decoration-none" :data-testid="`room-short-title-${index}`">
+					<VAvatar rounded :class="avatarColor" class="room-grid-avatar" :data-testid="`room-avatar-${index}`">
+						<span class="room-grid-symbol text-decoration-none" :data-testid="`room-short-title-${index}`">
 							{{ roomShortName }}
 						</span>
 					</VAvatar>
@@ -82,8 +82,18 @@ const roomAriaLabel = computed(() => `${t("common.labels.room")} ${props.room.na
 </script>
 
 <style lang="scss" scoped>
-.room-grid-item:focus-within {
-	outline: auto;
+.room-grid-item {
+	transition: border-color var(--lr-duration-fast) var(--lr-ease-out);
+
+	&:hover,
+	&:focus-within {
+		border-color: var(--lr-ink-edge) !important;
+	}
+
+	&:focus-within {
+		outline: 2px solid var(--lr-focus);
+		outline-offset: 2px;
+	}
 }
 
 :deep(.v-card-item__content) {
@@ -110,10 +120,21 @@ const roomAriaLabel = computed(() => `${t("common.labels.room")} ${props.room.na
 }
 
 .room-grid-avatar {
-	width: 5em;
-	height: 5em;
+	width: 5.25rem;
+	height: 5.25rem;
+	flex-shrink: 0;
 	user-select: none;
-	transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-	transition-property: width, height;
+	border: 1px solid rgba(20, 26, 34, 0.18);
+}
+
+// the room as a chart element: its two-letter symbol, set like an element symbol
+.room-grid-symbol {
+	font-family: var(--font-accent);
+	font-stretch: var(--font-stretch-symbol);
+	font-weight: 800;
+	font-size: 2.25rem;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	color: var(--lr-cat-ink);
 }
 </style>

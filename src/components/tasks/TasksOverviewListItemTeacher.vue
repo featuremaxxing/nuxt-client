@@ -1,6 +1,6 @@
 <template>
 	<VListItem
-		:style="`border-left: 4px solid ${task.displayColor ?? 'transparent'};`"
+		class="lr-task-row"
 		v-bind="$attrs"
 		:aria-label="ariaLabel"
 		role="article"
@@ -8,6 +8,11 @@
 		tabindex="0"
 		@click="handleClick"
 	>
+		<template #prepend>
+			<span class="lr-task-symbol" :style="{ background: toCategoryColor(task.displayColor) }" aria-hidden="true">
+				{{ taskSymbol }}
+			</span>
+		</template>
 		<template #default>
 			<div>
 				<VListItemSubtitle data-testId="task-label" class="d-inline-flex">
@@ -53,9 +58,10 @@
 import TasksOverviewListItemMenu from "./TasksOverviewListItemMenu.vue";
 import TaskChipsTeacher from "@/components/tasks/task-chips/TaskChipsTeacher.vue";
 import { CopyParams } from "@/types/copy/CopyParams";
+import { toCategoryColor } from "@/utils/color.utils";
 import { formatUtc, isToday } from "@/utils/date-time.utils";
 import { TaskResponse } from "@api-server";
-import { isTaskDraft, useTaskActions, useTasksOfOverview } from "@data-tasks";
+import { getTaskSymbol, isTaskDraft, useTaskActions, useTasksOfOverview } from "@data-tasks";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
@@ -94,6 +100,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+const taskSymbol = computed(() => getTaskSymbol(props.task));
 const { name: currentBreakpoint } = useDisplay();
 
 const isDraft = computed(() => isTaskDraft(props.task));
@@ -144,6 +152,27 @@ const onShareTask = (taskId: string) => {
 </script>
 
 <style lang="scss" scoped>
+.lr-task-row {
+	border-bottom: 1px solid var(--lr-line);
+}
+
+.lr-task-symbol {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	margin-inline-end: var(--lr-space-4);
+	border: 1px solid rgba(20, 26, 34, 0.18);
+	border-radius: var(--lr-radius);
+	color: var(--lr-cat-ink);
+	font-family: var(--font-accent);
+	font-stretch: var(--font-stretch-symbol);
+	font-weight: 800;
+	font-size: 1.125rem;
+	flex-shrink: 0;
+}
+
 .fill {
 	fill: currentColor;
 }

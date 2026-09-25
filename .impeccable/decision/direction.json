@@ -1,0 +1,131 @@
+{
+  "title": "Visuelle Welt für Lernraum",
+  "question": "Der Würfel hat das Lernposter zugeteilt. Behalten, eine Alternative nehmen oder neu würfeln.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Das Lernposter",
+      "kicker": "THE ROLL",
+      "lineage": "Periodensystem-Wandtafel aus dem Chemieraum",
+      "thesis": "Jeder Raum, jede Aufgabe ein Element: die Plattform als das Wandposter, das alle aus dem Chemieraum kennen.",
+      "palette": ["#F3F5F7", "#141A22", "#FF6A4D", "#F5BE2E", "#17A889", "#3D86F5", "#8A5CF6"],
+      "materials": ["laminierte Wandtafel", "Kachelraster mit Legende", "große Kürzel und Ordnungszahlen"],
+      "viewport": "Dashboard als Tafel: Heute fällige Aufgaben als große Element-Kacheln (Fachkürzel 'Ma', Frist als Ordnungszahl), darüber die Legende der Stati, links eine schmale Gruppen-Leiste als Navigation.",
+      "risk": "Kippt ins Gimmick, wenn Kacheln nur Deko sind statt echte Daten zu tragen; das Raster muss auf 390 px sauber auf eine Spalte fallen.",
+      "raised": [
+        {"from": "challenger-labanotation", "raise": "Status hat Form, nicht nur Farbe: gefüllt = erledigt, schraffiert = abgegeben, Kontur = offen."},
+        {"from": "challenger-deepdive", "raise": "Ein einziges Akzentband markiert 'heute' quer durch jede Ansicht."},
+        {"from": "challenger-alphabet", "raise": "Kürzel und Zahlen in monumentaler Größe: die Kachel-Symbole tragen die Seite."},
+        {"from": "challenger-darkroom", "raise": "Aufgaben durchlaufen feste Stationen (offen, abgegeben, bewertet), sichtbar auf jeder Kachel."},
+        {"from": "challenger-ikeda", "raise": "Tabellenziffern für Fristen, Zähler und Fortschritt."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Heftumschläge",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Polypropylen-Heftumschläge in Fächerfarben, Lineatur kariert und liniert",
+      "thesis": "Jeder Raum ist ein Heft: kräftige Umschlagfarbe außen, Lineatur innen.",
+      "palette": ["#FFFFFF", "#1B1F24", "#E63946", "#2A9D8F", "#2B6CE0", "#F4A300"],
+      "materials": ["transparente Kunststoffumschläge", "Karo- und Linienraster", "Etikettenfeld"],
+      "viewport": "Räume als Heftstapel mit Etikett, das Board innen auf Karopapier-Raster.",
+      "risk": "Fächerfarben-Kodierung ist das, was viele Schul-Apps schon tun; wirkt schnell vertraut statt eigen."
+    },
+    {
+      "id": "challenger-calendar",
+      "label": "Abreißkalender",
+      "verdict": "competitive",
+      "lineage": "Werbe-Wandkalender mit Abreißblock",
+      "thesis": "Die Woche als Abreißblock: heute oben, erledigte Blätter reißen ab.",
+      "palette": ["#F6F2EC", "#B3202A", "#1C1C1C", "#C9A227"],
+      "materials": ["Abreißblock", "Datumsraster", "Goldlinie"],
+      "viewport": "Ein großes Tagesblatt 'heute' mit den fälligen Aufgaben, darunter das Wochenraster.",
+      "case": "Stark bei Fristen und 'heute' (Produktklarheit), schwach bei Räumen und Boards, die keine Zeitachse haben.",
+      "risk": "Nur eine Achse (Zeit); nostalgisch, wenn die Typografie zaghaft bleibt.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-calendar-pinup-pad-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-calendar-pinup-pad.webp"
+    },
+    {
+      "id": "challenger-labanotation",
+      "label": "Tanznotation",
+      "verdict": "declined",
+      "lineage": "Labanotation",
+      "thesis": "Aufgaben als Notationsblöcke auf einer Zeitachse.",
+      "palette": ["#FFFFFF", "#111111", "#D9D9D9"],
+      "materials": ["Notationspapier", "Schraffur"],
+      "viewport": "Vertikale Zeitachse, Aufgaben als Blöcke links und rechts.",
+      "case": "Schüler:innen erkennen die Form nicht wieder; zu abstrakt für Aufgaben.",
+      "kept": "Form kodiert Bedeutung: Füllung statt nur Farbe für Status.",
+      "risk": "Unlesbar ohne Einführung.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-labanotation-hero.webp"
+    },
+    {
+      "id": "challenger-deepdive",
+      "label": "Tiefenprofil",
+      "verdict": "declined",
+      "lineage": "Tauchcomputer-Profil",
+      "thesis": "Die Woche als Tauchgang mit Tiefenskala.",
+      "palette": ["#06213A", "#E8F1F5", "#22D3EE"],
+      "materials": ["Tiefenskala", "Partikel"],
+      "viewport": "Vertikale Tiefenachse, Aufgaben nach Frist gestaffelt.",
+      "case": "Metapher ohne Bezug zur Schule; verdunkelt die Aufgabe.",
+      "kept": "Ein Akzentband markiert die aktuelle Position.",
+      "risk": "Fremd für die Zielgruppe.",
+      "hero": "https://impeccable.style/worlds/cards/rivers-tides-ocean-depths-mesophotic-deep-dive-hero.webp"
+    },
+    {
+      "id": "challenger-alphabet",
+      "label": "Buchstabensturm",
+      "verdict": "declined",
+      "lineage": "surreale Typo-Landschaft",
+      "thesis": "Wörter als Wetter.",
+      "palette": ["#FFFFFF", "#0A0A0A", "#B8C0C8"],
+      "materials": ["monumentale Grotesk"],
+      "viewport": "Ein Wort füllt den Bildschirm.",
+      "case": "Spektakel statt Orientierung; verletzt 'eine primäre Aktion'.",
+      "kept": "Mut zu monumentaler Typo-Größe.",
+      "risk": "Unbrauchbar im Alltag.",
+      "hero": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-alphabet-storm-hero.webp"
+    },
+    {
+      "id": "challenger-darkroom",
+      "label": "Dunkelkammer",
+      "verdict": "declined",
+      "lineage": "Fotolabor unter Rotlicht",
+      "thesis": "Arbeit entsteht in festen Stationen.",
+      "palette": ["#3A1A05", "#F59E0B", "#D4D4D4"],
+      "materials": ["Rotlicht", "Teststreifen"],
+      "viewport": "Stationen von links nach rechts.",
+      "case": "Rotlicht-Welt ist unlesbar im Klassenraum.",
+      "kept": "Feste Stationen mit sichtbarer Reihenfolge.",
+      "risk": "Kontrastprobleme.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-darkroom-safelight-bay-hero.webp"
+    },
+    {
+      "id": "challenger-ikeda",
+      "label": "Datamatics",
+      "verdict": "declined",
+      "lineage": "Ryoji Ikeda",
+      "thesis": "Daten als Barcode-Feld.",
+      "palette": ["#000000", "#FFFFFF"],
+      "materials": ["Hairlines", "Monospace"],
+      "viewport": "Dichte Zahlenkolonnen.",
+      "case": "Kalt und einschüchternd für Sek I.",
+      "kept": "Präzise Tabellenziffern.",
+      "risk": "Stroboskop verletzt Barrierefreiheit.",
+      "hero": "https://impeccable.style/worlds/cards/ikeda-datamatics-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": false},
+  "canon": true,
+  "canonCard": {
+    "label": "Der Kategorie-Standard",
+    "thesis": "Was moderne Lernplattformen ausliefern, sauber umgesetzt.",
+    "palette": ["#FFFFFF", "#111827", "#2563EB"],
+    "materials": ["weiße Karten", "neutrales Grau", "ein Blau-Akzent"],
+    "viewport": "Die Anordnung, die man von Google Classroom & Co. erwartet, in voller Qualität.",
+    "risk": "Absichtlich nicht von der Konkurrenz zu unterscheiden."
+  },
+  "steer": true
+}

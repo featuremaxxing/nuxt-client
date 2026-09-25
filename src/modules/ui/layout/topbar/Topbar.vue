@@ -6,6 +6,7 @@
 				v-if="!sidebarExpanded"
 				:icon="mdiMenu"
 				size="default"
+				:aria-label="t('global.topbar.actions.openMenu')"
 				data-test-id="sidebar-toggle"
 				@click="() => $emit('sidebar-toggled')"
 			/>
@@ -101,13 +102,18 @@ const appBarHeight = computed(() => {
 <style scoped>
 .top-bar {
 	position: sticky;
-	background-color: #fff !important;
+	background-color: rgb(var(--v-theme-surface)) !important;
+	border-bottom: 1px solid var(--lr-line);
 	top: 0;
 	z-index: var(--z-floating);
 	transition: top 0.2s ease-in-out;
 }
 
 .school-name {
+	font-family: var(--font-accent);
+	font-stretch: var(--font-stretch-display);
+	font-weight: 600;
+	font-size: 0.9375rem;
 	max-width: 280px;
 	text-overflow: ellipsis;
 	overflow: hidden;

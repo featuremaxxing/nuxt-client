@@ -36,7 +36,9 @@ const { xs } = useDisplay();
 .custom-breadcrumb {
 	display: inline-flex;
 	height: var(--breadcrumbs-height);
-	font-size: 14px;
+	font-size: 0.875rem;
+	font-family: var(--font-accent);
+	font-weight: 600;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;

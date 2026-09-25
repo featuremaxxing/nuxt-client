@@ -11,15 +11,16 @@
 				ref="cardHost"
 				:height="isLoadingCard ? height : 'auto'"
 				class="card-host"
-				:style="{
-					backgroundColor: cardBackground,
-					borderLeft: cardBorderColor ? `3px solid ${cardBorderColor}` : undefined,
+				:class="{
+					'card-host--tinted': !!cardTint,
+					'card-host--editing': isEditMode && !isDetailView,
+					'card-host--movable': allowedOperations?.moveCard && !isEditMode,
 				}"
+				:style="cardStyle"
 				tabindex="0"
 				min-height="120px"
-				:elevation="cardElevation"
+				:elevation="0"
 				:ripple="false"
-				:hover="isHovered && allowedOperations?.moveCard && !isEditMode"
 				:data-testid="cardTestId"
 				:data-scroll-target="getShareLinkId(cardId, BoardMenuScope.CARD)"
 			>
@@ -99,7 +100,7 @@ import CardTitle from "./CardTitle.vue";
 import ContentElementList from "./ContentElementList.vue";
 import { useSafeTaskRunner } from "@/composables/async-tasks.composable";
 import { ElementMove, verticalCursorKeys } from "@/types/board/DragAndDrop";
-import { colorToHexLighten3, colorToHexLighten5 } from "@/utils/color.utils";
+import { colorToHexLighten3 } from "@/utils/color.utils";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
 import { delay } from "@/utils/helpers";
 import { Colors } from "@api-server";
@@ -171,29 +172,16 @@ const boardMenuTestId = computed(() => `card-menu-btn-${props.columnIndex}-${pro
 const cardTestId = computed(() => `board-card-${props.columnIndex}-${props.rowIndex}`);
 
 const { height: cardHostHeight } = useElementSize(cardHost);
-const cardElevation = computed(() => {
-	if (isDetailView.value) {
-		return 0;
-	}
-	if (isEditMode.value) {
-		return 6;
-	}
-	if (isHovered.value && allowedOperations.value.moveCard) {
-		return 4;
-	}
-	return 2;
-});
-
-const cardBackground = computed(() => {
-	if (isDetailView.value) {
-		return Colors.TRANSPARENT;
-	}
-	return colorToHexLighten5(card.value?.backgroundColor ?? Colors.TRANSPARENT);
-});
-const cardBorderColor = computed(() => {
+// Cards are flat chart tiles; their color is a tint mixed into the theme surface, so it works light and dark.
+const cardTint = computed(() => {
 	const color = card.value?.backgroundColor;
 	if (!color || color === Colors.TRANSPARENT || isDetailView.value) return undefined;
 	return colorToHexLighten3(color);
+});
+
+const cardStyle = computed(() => {
+	if (isDetailView.value) return { backgroundColor: Colors.TRANSPARENT };
+	return cardTint.value ? { "--card-tint": cardTint.value } : {};
 });
 
 const { askType } = useAddElementDialog(cardStore.createElementRequest, cardId.value);
@@ -316,6 +304,23 @@ const onUpdateColor = (backgroundColor: Colors) => {
 	opacity: 0;
 }
 .card-host {
-	background: white;
+	background: rgb(var(--v-theme-surface));
+	border: 1px solid var(--lr-line);
+	transition: border-color var(--lr-duration-fast) var(--lr-ease-out);
+}
+
+.card-host--tinted {
+	background: color-mix(in oklab, var(--card-tint) 34%, rgb(var(--v-theme-surface)));
+	border-color: color-mix(in oklab, var(--card-tint) 70%, var(--lr-line-strong));
+}
+
+.card-host--movable:hover,
+.card-host:focus-visible {
+	border-color: var(--lr-ink-edge);
+}
+
+.card-host--editing {
+	border-color: rgb(var(--v-theme-primary));
+	box-shadow: 0 0 0 1px rgb(var(--v-theme-primary));
 }
 </style>

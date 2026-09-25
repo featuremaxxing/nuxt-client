@@ -1,0 +1,14 @@
+:root {
+	--lr-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--lr-duration-fast: 120ms;
+	--lr-duration: 220ms;
+	--lr-duration-enter: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--lr-duration-fast: 0ms;
+		--lr-duration: 0ms;
+		--lr-duration-enter: 0ms;
+	}
+}

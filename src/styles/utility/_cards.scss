@@ -1,8 +1,23 @@
-.v-card--variant-outlined {
-	border-color: rgba(var(--v-theme-on-surface), 0.12) !important;
+/* Cards are chart tiles: flat surface, hairline edge, no resting shadow. */
+.v-card--variant-outlined,
+.v-card--variant-flat.v-card--border {
+	border-color: var(--lr-line) !important;
+}
+
+.v-card--link:hover,
+.v-card--link:focus-visible,
+a.v-card:hover,
+a.v-card:focus-visible {
+	border-color: var(--lr-ink-edge) !important;
 }
 
 .board-grid .v-card--variant-outlined,
-.elements .v-card--variant-outlined{
-	border-color: rgba(var(--v-theme-on-surface), 0.25) !important;
+.elements .v-card--variant-outlined {
+	border-color: var(--lr-line-strong) !important;
+}
+
+.v-overlay__content > .v-card,
+.v-overlay__content > .v-sheet,
+.v-menu > .v-overlay__content > .v-list {
+	box-shadow: var(--lr-shadow-float) !important;
 }

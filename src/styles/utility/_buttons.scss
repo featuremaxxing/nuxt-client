@@ -2,6 +2,7 @@
 
 .v-btn {
 	font-family: var(--font-accent);
+	font-stretch: var(--font-stretch-display);
 
 	&--size-small,
 	&--size-default,
@@ -9,4 +10,13 @@
 	&--size-x-large {
 		font-size: $button-font-size;
 	}
+
+	&--size-small {
+		font-size: 0.875rem;
+	}
+}
+
+/* flat chart buttons: outlined and text buttons read as ink on the chart, not a tinted pill */
+.v-btn--variant-outlined {
+	border-color: var(--lr-line-strong);
 }

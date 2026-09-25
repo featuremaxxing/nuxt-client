@@ -1,5 +1,7 @@
 import {
 	DueStatus,
+	getTaskStation,
+	getTaskSymbol,
 	GradeStatus,
 	isTaskOverdue,
 	toSortedByCreatedDate,
@@ -531,5 +533,52 @@ describe("toSortedByCreatedDate", () => {
 
 		expect(sorted[0].id).toBe("newer");
 		expect(sorted[1].id).toBe("older");
+	});
+});
+
+describe("getTaskSymbol", () => {
+	it("uses two letters of the course name", () => {
+		expect(getTaskSymbol(taskResponseFactory.build({ courseName: "mathematik" }))).toBe("Ma");
+	});
+
+	it("falls back to the task name and skips punctuation", () => {
+		expect(getTaskSymbol(taskResponseFactory.build({ courseName: "", name: "#bio quiz" }))).toBe("Bi");
+	});
+
+	it("returns a placeholder when nothing is usable", () => {
+		expect(getTaskSymbol(taskResponseFactory.build({ courseName: "", name: "!!" }))).toBe("·");
+	});
+});
+
+describe("getTaskStation", () => {
+	const build = (status: Partial<TaskResponse["status"]>, dueDate?: string) =>
+		taskResponseFactory.build({
+			dueDate,
+			status: {
+				submitted: 0,
+				maxSubmissions: 0,
+				graded: 0,
+				isDraft: false,
+				isSubstitutionTeacher: false,
+				isFinished: false,
+				...status,
+			},
+		});
+
+	it("puts drafts before every station", () => {
+		expect(getTaskStation(build({ isDraft: true }), "teacher")).toBe("draft");
+	});
+
+	it("walks open -> submitted -> graded for students", () => {
+		expect(getTaskStation(build({}), "student")).toBe("open");
+		expect(getTaskStation(build({ submitted: 1 }), "student")).toBe("submitted");
+		expect(getTaskStation(build({ submitted: 1, graded: 1 }), "student")).toBe("graded");
+	});
+
+	it("counts a teacher task as graded only when it is done", () => {
+		const past = dateFromToday(-2);
+		expect(getTaskStation(build({ submitted: 2, graded: 1 }, past), "teacher")).toBe("submitted");
+		expect(getTaskStation(build({ submitted: 2, graded: 2 }, past), "teacher")).toBe("graded");
+		expect(getTaskStation(build({}), "teacher")).toBe("open");
 	});
 });
