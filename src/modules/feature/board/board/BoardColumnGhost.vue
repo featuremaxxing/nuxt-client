@@ -7,11 +7,7 @@
 			@add-column="onAddColumn"
 		/>
 		<!-- flex-grow-1 is set to expand the area where cards can be dragged in. -->
-		<div
-			:style="{ 'min-width': colWidth + 'px' }"
-			class="grow-transition"
-			:class="{ 'mr-4 flex-grow-1': !isListBoard }"
-		>
+		<div :style="{ 'min-width': colWidth + 'px' }" :class="{ 'mr-4 flex-grow-1': !isListBoard }">
 			<Sortable
 				:list="[]"
 				item-key="cardId"
@@ -78,10 +74,6 @@ const title = computed(() =>
 </script>
 
 <style scoped>
-.grow-transition {
-	transition: min-width 200ms;
-}
-
 .list-container {
 	min-height: 8rem;
 	height: 100%;

@@ -1,51 +1,66 @@
+// Room identities are chart categories: bright fill, ink text (>= 7.6:1), same in light and dark.
+
 .room-color--blue-grey {
-	background-color: #455b6a;
+	background-color: var(--lr-cat-schiefer);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--pink {
-	background-color: #ec407a;
+	background-color: var(--lr-cat-rose);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--red {
-	background-color: #d50000;
+	background-color: var(--lr-cat-koralle);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--orange {
-	background-color: #ef6c00;
+	background-color: var(--lr-cat-orange);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--olive {
-	background-color: #827717;
+	background-color: var(--lr-cat-oliv);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--green {
-	background-color: #689f38;
+	background-color: var(--lr-cat-lime);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--turquoise {
-	background-color: #009688;
+	background-color: var(--lr-cat-petrol);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--light-blue {
-	background-color: #0091ea;
+	background-color: var(--lr-cat-tuerkis);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--blue {
-	background-color: #304ffe;
+	background-color: var(--lr-cat-himmel);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--magenta {
-	background-color: #d500f9;
+	background-color: var(--lr-cat-pflaume);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--purple {
-	background-color: #9c27b0;
+	background-color: var(--lr-cat-violett);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--brown {
-	background-color: #795548;
+	background-color: var(--lr-cat-sand);
+	color: var(--lr-cat-ink);
 }
 
 .room-color--yellow {
-	background-color: #ffc107;
+	background-color: var(--lr-cat-senf);
+	color: var(--lr-cat-ink);
 }

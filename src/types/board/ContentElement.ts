@@ -1,8 +1,8 @@
 import {
 	AiQuestionElementResponse,
 	AssignmentElementResponse,
-	CollaborativeTextEditorElementResponse,
 	CheckboxElementResponse,
+	CollaborativeTextEditorElementResponse,
 	ContentElementType,
 	DrawingElementResponse,
 	ExternalToolElementResponse,

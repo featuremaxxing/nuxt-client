@@ -1,0 +1,44 @@
+// Values mirror src/themes/lernraum-palette.ts. Theme-dependent tokens follow Vuetify's theme class,
+// so teleported overlays pick up the right set as well.
+
+:root {
+	--lr-cat-koralle: #ff8a70;
+	--lr-cat-senf: #f7c948;
+	--lr-cat-petrol: #3cc4a4;
+	--lr-cat-himmel: #7eb2ff;
+	--lr-cat-violett: #b79cff;
+	--lr-cat-rose: #ff94bd;
+	--lr-cat-lime: #b8dc5a;
+	--lr-cat-orange: #ffa95c;
+	--lr-cat-schiefer: #aeb9c7;
+	--lr-cat-sand: #d9c3a0;
+	--lr-cat-tuerkis: #5dd3e0;
+	--lr-cat-pflaume: #d59be6;
+	--lr-cat-oliv: #c9c66a;
+	--lr-cat-ink: #141a22;
+
+	// "heute": the one highlighter band that marks the present across every view
+	--lr-today: var(--lr-cat-senf);
+	--lr-on-today: var(--lr-cat-ink);
+}
+
+:root,
+.v-theme--light {
+	--lr-line: rgba(20, 26, 34, 0.14);
+	--lr-line-strong: rgba(20, 26, 34, 0.32);
+	--lr-ink-edge: #141a22;
+	--lr-text-muted: #4f5a67;
+	--lr-hatch: rgba(20, 26, 34, 0.18);
+	--lr-focus: #1f3f8f;
+	color-scheme: light;
+}
+
+.v-theme--dark {
+	--lr-line: rgba(231, 235, 241, 0.14);
+	--lr-line-strong: rgba(231, 235, 241, 0.34);
+	--lr-ink-edge: #e7ebf1;
+	--lr-text-muted: #a6b0bd;
+	--lr-hatch: rgba(231, 235, 241, 0.22);
+	--lr-focus: #9db6ff;
+	color-scheme: dark;
+}

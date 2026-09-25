@@ -1,3 +1,15 @@
 a {
-  color: rgba(var(--v-theme-primary));
+	color: rgba(var(--v-theme-primary));
+	text-underline-offset: 0.18em;
+	text-decoration-thickness: 1px;
+}
+
+a:hover {
+	text-decoration-thickness: 2px;
+}
+
+/* one visible focus language everywhere */
+:focus-visible {
+	outline: 2px solid var(--lr-focus);
+	outline-offset: 2px;
 }

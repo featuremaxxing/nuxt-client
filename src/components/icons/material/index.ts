@@ -177,6 +177,7 @@ import {
 	mdiSyncOff,
 	mdiTextBoxCheckOutline,
 	mdiTextBoxEditOutline,
+	mdiThemeLightDark,
 	mdiTimerSandComplete,
 	mdiTrashCanOutline,
 	mdiTrayArrowDown,
@@ -191,6 +192,8 @@ import {
 	mdiViewGridOutline,
 	mdiViewGridPlusOutline,
 	mdiViewListOutline,
+	mdiWeatherNight,
+	mdiWhiteBalanceSunny,
 } from "@mdi/js";
 
 export {
@@ -372,6 +375,7 @@ export {
 	mdiSyncOff,
 	mdiTextBoxCheckOutline,
 	mdiTextBoxEditOutline,
+	mdiThemeLightDark,
 	mdiTimerSandComplete,
 	mdiTrashCanOutline,
 	mdiTrayArrowDown,
@@ -386,4 +390,6 @@ export {
 	mdiViewGridOutline,
 	mdiViewGridPlusOutline,
 	mdiViewListOutline,
+	mdiWeatherNight,
+	mdiWhiteBalanceSunny,
 };

@@ -1,7 +1,10 @@
 <template>
 	<DefaultWireframe max-width="full" main-with-bottom-padding>
 		<template #header>
-			<h1 data-testid="dashboard-title">{{ t("pages.dashboard.title") }}</h1>
+			<div class="lr-page-title">
+				<h1 data-testid="dashboard-title">{{ t("pages.dashboard.title") }}</h1>
+				<p class="lr-page-title__date" data-testid="dashboard-date">{{ today }}</p>
+			</div>
 		</template>
 		<template #default>
 			<Announcement class="mt-6" />
@@ -37,14 +40,12 @@
 					</VBtn>
 				</div>
 
-				<VRow>
-					<VCol v-for="feature in newFeatures" :key="feature.title" cols="12" md="6">
-						<VCard height="100%" variant="outlined">
-							<VCardTitle>{{ t(feature.title) }}</VCardTitle>
-							<VCardText>{{ t(feature.description) }}</VCardText>
-						</VCard>
-					</VCol>
-				</VRow>
+				<ul class="lr-features">
+					<li v-for="feature in newFeatures" :key="feature.title" class="lr-feature">
+						<h3 class="lr-feature__title">{{ t(feature.title) }}</h3>
+						<p class="lr-feature__text">{{ t(feature.description) }}</p>
+					</li>
+				</ul>
 			</section>
 
 			<DashboardReleaseDialog />
@@ -54,6 +55,7 @@
 
 <script lang="ts" setup>
 import Announcement from "@/components/announcement/Announcement.vue";
+import { nowUtc } from "@/utils/date-time.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { Permission, SchulcloudTheme } from "@api-server";
 import { useAppStore, useAppStoreRefs, useSchoolStoreRefs } from "@data-app";
@@ -66,7 +68,7 @@ import { useStorage, useTitle } from "@vueuse/core";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { isTeacher, isStudent, isAdmin } = useAppStoreRefs();
 
 const newFeatures = [
@@ -100,6 +102,9 @@ const newFeaturesDismissed = computed({
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));
 
+// re-evaluated on locale change (dayjs follows the app locale)
+const today = computed(() => locale.value && nowUtc().local().format("dddd, LL"));
+
 const { schoolDetails } = useSchoolStoreRefs();
 
 const isSchoolInMaintenance = computed(() => schoolDetails.value.inMaintenance);
@@ -120,3 +125,50 @@ const inMaintenanceOrMigrationText = computed(() => {
 });
 const isDbc = computed(() => useEnvConfig().value.SC_THEME === SchulcloudTheme.DEFAULT);
 </script>
+
+<style lang="scss" scoped>
+.lr-page-title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 var(--lr-space-4);
+}
+
+.lr-page-title__date {
+	margin: 0 0 20px;
+	font-family: var(--font-accent);
+	font-stretch: var(--font-stretch-display);
+	font-weight: 600;
+	font-size: var(--text-lg);
+	color: var(--lr-text-muted);
+}
+
+.lr-features {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+	gap: 1px;
+	list-style: none;
+	padding: 0;
+	margin: var(--lr-space-4) 0 0;
+	background: var(--lr-line);
+	border: 1px solid var(--lr-line);
+	border-radius: var(--lr-radius);
+	overflow: hidden;
+}
+
+.lr-feature {
+	padding: var(--lr-space-4) var(--lr-space-5) var(--lr-space-5);
+	background: rgb(var(--v-theme-surface));
+}
+
+.lr-feature__title {
+	margin: 0 0 var(--lr-space-2);
+	font-size: var(--heading-5);
+}
+
+.lr-feature__text {
+	margin: 0;
+	color: var(--lr-text-muted);
+	max-width: 60ch;
+}
+</style>

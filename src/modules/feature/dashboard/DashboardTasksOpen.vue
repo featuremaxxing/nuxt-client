@@ -5,7 +5,13 @@
 		</EmptyState>
 	</template>
 	<div v-else v-bind="$attrs">
-		<DashboardTasksSection v-for="group in taskGroups" :key="group.key" :title="group.title" :tasks="group.tasks" />
+		<DashboardTasksSection
+			v-for="group in taskGroups"
+			:key="group.key"
+			:title="group.title"
+			:tasks="group.tasks"
+			:band="group.key === 'today'"
+		/>
 	</div>
 </template>
 

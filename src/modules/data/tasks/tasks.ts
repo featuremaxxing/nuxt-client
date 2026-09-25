@@ -22,6 +22,26 @@ export const isTaskDraft = (t: TaskResponse) => t.status.isDraft;
 export const isTaskDoneForTeacher = (t: TaskResponse) =>
 	isTaskOverdue(t) && isGraded(t) && hasSubmissions(t) && isFullyGraded(t);
 
+// === Stations: the fixed path every task walks (open -> submitted -> graded); drafts sit before it ===
+export type TaskStation = "draft" | "open" | "submitted" | "graded";
+
+export const getTaskStation = (t: TaskResponse, viewer: "teacher" | "student"): TaskStation => {
+	if (isTaskDraft(t)) return "draft";
+	if (viewer === "teacher") {
+		if (isTaskDoneForTeacher(t)) return "graded";
+		return hasSubmissions(t) ? "submitted" : "open";
+	}
+	if (isGraded(t)) return "graded";
+	return hasSubmissions(t) ? "submitted" : "open";
+};
+
+// The element symbol of a task: two letters of its course (or of the task without a course), e.g. "Ma", "Bi".
+export const getTaskSymbol = (t: TaskResponse): string => {
+	const source = (t.courseName || t.name || "").replace(/[^\p{L}\p{N}]/gu, "");
+	if (!source) return "·";
+	return source.charAt(0).toLocaleUpperCase() + source.charAt(1).toLocaleLowerCase();
+};
+
 // === Due-date grouping (for "what's due when" views, e.g. the dashboard) ===
 export const TASK_DUE_BUCKETS = ["overdue", "today", "thisWeek", "later", "noDueDate"] as const;
 export type TaskDueBucket = (typeof TASK_DUE_BUCKETS)[number];

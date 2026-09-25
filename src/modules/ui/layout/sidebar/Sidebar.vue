@@ -1,7 +1,7 @@
 <template>
-	<VNavigationDrawer v-model="sidebarExpanded">
-		<VList open-strategy="multiple">
-			<div class="d-flex align-center">
+	<VNavigationDrawer v-model="sidebarExpanded" class="lr-sidebar" :width="272">
+		<VList open-strategy="multiple" class="lr-sidebar__list" nav>
+			<div class="lr-sidebar__head d-flex align-center">
 				<VBtn
 					class="ml-1"
 					:icon="mdiMenuOpen"
@@ -87,28 +87,57 @@ const metaItems = computed(() => getItemsForUser(metaLinks.value) as SidebarGrou
 const pageItems = computed(() => getItemsForUser(pageLinks.value));
 </script>
 
-<style>
-@supports (scrollbar-color: auto) {
-	.v-navigation-drawer__content {
-		scrollbar-color: transparent transparent;
-	}
-
-	.v-navigation-drawer__content:hover {
-		scrollbar-color: initial;
-	}
+<style lang="scss">
+.lr-sidebar.v-navigation-drawer {
+	background: rgb(var(--v-theme-surface));
+	border-inline-end: 1px solid var(--lr-line) !important;
 }
 
-@supports selector(::-webkit-scrollbar) {
-	.v-navigation-drawer__content::-webkit-scrollbar-thumb {
-		background-color: transparent;
+.lr-sidebar__head {
+	min-height: var(--topbar-height);
+	gap: var(--lr-space-2);
+	padding-inline-end: var(--lr-space-3);
+	margin-bottom: var(--lr-space-2);
+}
+
+.lr-sidebar__list {
+	padding: var(--lr-space-2) var(--lr-space-3) var(--lr-space-4) !important;
+
+	.v-list-item {
+		min-height: 44px;
+		margin-block: 2px;
+		border-radius: var(--lr-radius) !important;
+		font-family: var(--font-accent);
+		font-stretch: var(--font-stretch-display);
+		font-weight: 600;
+		color: rgb(var(--v-theme-on-surface));
+		transition: background-color var(--lr-duration-fast) var(--lr-ease-out);
 	}
 
-	.v-navigation-drawer__content:hover::-webkit-scrollbar-thumb {
-		background-color: rgba(var(--v-theme-on-surface), 0.6);
+	.v-list-item-title {
+		font-size: 0.9375rem;
+		font-weight: inherit;
+		letter-spacing: 0;
 	}
 
-	.v-navigation-drawer__content::-webkit-scrollbar-thumb:hover {
-		background-color: rgba(var(--v-theme-on-surface), 0.8);
+	.v-list-item:hover > .v-list-item__overlay {
+		opacity: 0.06;
+	}
+
+	// selected element: a filled ink tile, readable by shape, not by a colored stripe
+	.v-list-item--active {
+		background: rgb(var(--v-theme-on-surface));
+		color: rgb(var(--v-theme-surface)) !important;
+
+		> .v-list-item__overlay {
+			opacity: 0 !important;
+		}
+	}
+
+	.v-divider {
+		margin-inline: var(--lr-space-2);
+		border-color: var(--lr-line);
+		opacity: 1;
 	}
 }
 </style>

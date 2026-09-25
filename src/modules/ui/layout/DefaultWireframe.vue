@@ -118,16 +118,21 @@ const showDivider = computed(() => !props.hideBorder && !!(props.headline || slo
 }
 
 .wireframe-container h1:first-of-type {
-	margin-bottom: 16px;
+	margin-top: 8px;
+	margin-bottom: 20px;
 }
 
 .wireframe-header {
 	position: relative;
-	padding: 0 24px;
+	padding: var(--lr-space-5) 24px 0;
 	display: flex;
 	flex-direction: column;
-	background-color: rgb(var(--v-theme-white));
+	background-color: rgb(var(--v-theme-background));
 	z-index: var(--z-header);
+
+	:deep(h1) {
+		font-size: clamp(1.75rem, 1.2rem + 1.6vw, var(--heading-1));
+	}
 }
 
 :deep(.v-application__wrap) {
@@ -157,6 +162,8 @@ const showDivider = computed(() => !props.hideBorder && !!(props.headline || slo
 }
 
 .wireframe-divider {
+	border-color: var(--lr-line);
+	opacity: 1;
 	position: sticky;
 	z-index: var(--z-pinned);
 	top: var(--topbar-height);

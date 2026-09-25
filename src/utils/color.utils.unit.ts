@@ -4,6 +4,7 @@ import {
 	colorToHexLighten5,
 	hexToColorLighten3,
 	hexToColorLighten5,
+	toCategoryColor,
 } from "./color.utils";
 import { Colors } from "@api-server";
 import colors from "vuetify/lib/util/colors";
@@ -128,5 +129,26 @@ describe("color.utils", () => {
 				expect(result).toBe(color);
 			}
 		);
+	});
+
+	describe("toCategoryColor", () => {
+		it.each([
+			["#d50000", "#FF8A70"], // red -> koralle
+			["#0091ea", "#7EB2FF"], // light blue -> himmel
+			["#009688", "#3CC4A4"], // teal -> petrol
+			["#9c27b0", "#D59BE6"], // purple -> pflaume
+			["#ffc107", "#F7C948"], // amber -> senf
+			["#795548", "#D9C3A0"], // brown -> sand
+			["#ACACAC", "#AEB9C7"], // grey -> schiefer
+			["#abc", "#AEB9C7"], // short, low saturation -> schiefer
+			["#455b6a", "#AEB9C7"], // blue grey -> schiefer
+		])("maps %s to %s", (input, expected) => {
+			expect(toCategoryColor(input)).toBe(expected);
+		});
+
+		it("falls back to schiefer for missing or invalid input", () => {
+			expect(toCategoryColor(undefined)).toBe("#AEB9C7");
+			expect(toCategoryColor("not-a-color")).toBe("#AEB9C7");
+		});
 	});
 });

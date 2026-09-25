@@ -319,7 +319,7 @@ describe("CardHost", () => {
 	describe("hover state", () => {
 		describe("when user hovers over card and user has move permission", () => {
 			describe("when card is not in edit mode", () => {
-				it("should apply hover attribute to Card", async () => {
+				it("should mark the card as movable so hovering shows the ink edge", async () => {
 					vi.mocked(useElementHover).mockReturnValue(ref(true));
 
 					vi.mocked(useCourseBoardEditMode).mockReturnValue(
@@ -331,12 +331,12 @@ describe("CardHost", () => {
 					const { wrapper } = setup({ allowedOperations: { moveCard: true } });
 					const card = wrapper.findComponent(VCard);
 
-					expect(card.props("hover")).toBe(true);
+					expect(card.classes()).toContain("card-host--movable");
 				});
 			});
 
 			describe("when card is in edit mode", () => {
-				it("should not apply hover attribute to Card", async () => {
+				it("should not mark the card as movable", async () => {
 					vi.mocked(useElementHover).mockReturnValue(ref(true));
 
 					vi.mocked(useCourseBoardEditMode).mockReturnValue(
@@ -348,7 +348,7 @@ describe("CardHost", () => {
 					const { wrapper } = setup({ allowedOperations: { moveCard: true } });
 					const card = wrapper.findComponent(VCard);
 
-					expect(card.props("hover")).toBe(false);
+					expect(card.classes()).not.toContain("card-host--movable");
 				});
 			});
 		});
