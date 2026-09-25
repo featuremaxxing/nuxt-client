@@ -19,9 +19,23 @@
 				<RenderHTML :html="inMaintenanceOrMigrationText" />
 			</WarningAlert>
 
-			<section class="my-8" aria-labelledby="new-features-title" data-testid="new-features">
-				<h2 id="new-features-title" class="mb-2">{{ t("pages.dashboard.features.title") }}</h2>
-				<p class="mb-4">{{ t("pages.dashboard.features.intro") }}</p>
+			<DashboardTasks v-if="isTeacher || isStudent" />
+
+			<section
+				v-if="!newFeaturesDismissed"
+				class="my-8"
+				aria-labelledby="new-features-title"
+				data-testid="new-features"
+			>
+				<div class="d-flex align-start justify-space-between ga-4 mb-2 flex-wrap">
+					<div>
+						<h2 id="new-features-title" class="mb-2">{{ t("pages.dashboard.features.title") }}</h2>
+						<p class="mb-0">{{ t("pages.dashboard.features.intro") }}</p>
+					</div>
+					<VBtn variant="text" size="small" data-testid="dismiss-new-features" @click="newFeaturesDismissed = true">
+						{{ t("pages.dashboard.features.dismiss") }}
+					</VBtn>
+				</div>
 
 				<VRow>
 					<VCol v-for="feature in newFeatures" :key="feature.title" cols="12" md="6">
@@ -32,8 +46,6 @@
 					</VCol>
 				</VRow>
 			</section>
-
-			<DashboardTasks v-if="isTeacher || isStudent" />
 
 			<DashboardReleaseDialog />
 		</template>
@@ -50,7 +62,7 @@ import { DashboardReleaseDialog, DashboardTasks } from "@feature-dashboard";
 import { RenderHTML } from "@feature-render-html";
 import { InfoAlert, WarningAlert } from "@ui-alert";
 import { DefaultWireframe } from "@ui-layout";
-import { useTitle } from "@vueuse/core";
+import { useStorage, useTitle } from "@vueuse/core";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -75,6 +87,16 @@ const newFeatures = [
 		description: "pages.dashboard.features.learningRoom.description",
 	},
 ] as const;
+
+// Dismissed per feature set: editing `newFeatures` (a new release) surfaces the section again.
+const dismissedFeatureSet = useStorage("dashboard.newFeatures.dismissedFor", "");
+const currentFeatureSet = newFeatures.map((feature) => feature.title).join(",");
+const newFeaturesDismissed = computed({
+	get: () => dismissedFeatureSet.value === currentFeatureSet,
+	set: (value: boolean) => {
+		dismissedFeatureSet.value = value ? currentFeatureSet : "";
+	},
+});
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));
 

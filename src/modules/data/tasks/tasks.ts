@@ -22,6 +22,43 @@ export const isTaskDraft = (t: TaskResponse) => t.status.isDraft;
 export const isTaskDoneForTeacher = (t: TaskResponse) =>
 	isTaskOverdue(t) && isGraded(t) && hasSubmissions(t) && isFullyGraded(t);
 
+// === Due-date grouping (for "what's due when" views, e.g. the dashboard) ===
+export const TASK_DUE_BUCKETS = ["overdue", "today", "thisWeek", "later", "noDueDate"] as const;
+export type TaskDueBucket = (typeof TASK_DUE_BUCKETS)[number];
+
+export const getTaskDueBucket = (t: TaskResponse): TaskDueBucket => {
+	if (!t.dueDate) return "noDueDate";
+
+	const due = parseUtc(t.dueDate).local();
+	const now = nowUtc().local();
+
+	if (due.isBefore(now, "day")) return "overdue";
+	if (due.isSame(now, "day")) return "today";
+	if (due.isBefore(now.add(7, "day"), "day")) return "thisWeek";
+	return "later";
+};
+
+/**
+ * Groups tasks by due-date bucket (overdue / today / this week / later / no due date),
+ * sorted by due date within each bucket. Used to give a "what's due when" view instead
+ * of a flat, undifferentiated list.
+ */
+export const groupTasksByDueBucket = (tasks: TaskResponse[]): Record<TaskDueBucket, TaskResponse[]> => {
+	const buckets: Record<TaskDueBucket, TaskResponse[]> = {
+		overdue: [],
+		today: [],
+		thisWeek: [],
+		later: [],
+		noDueDate: [],
+	};
+
+	toSortedByDueDate(tasks).forEach((task) => {
+		buckets[getTaskDueBucket(task)].push(task);
+	});
+
+	return buckets;
+};
+
 // === Task Status Predicates ===
 const hasNoDueDate = (t: TaskResponse) => !t.dueDate;
 const hasDueDate = (t: TaskResponse) => t.dueDate !== undefined;

@@ -54,4 +54,11 @@ describe("DashboardTasksSection", () => {
 		expect(wrapper.findComponent(TaskChipsStudent).exists()).toBe(true);
 		expect(wrapper.findComponent(TaskChipsTeacher).exists()).toBe(false);
 	});
+
+	it("renders a count badge with the number of tasks", () => {
+		const tasks = [taskResponseFactory.build({ id: "1" }), taskResponseFactory.build({ id: "2" })];
+		const { wrapper } = setup(tasks);
+
+		expect(wrapper.find("[data-testid='dashboard-tasks-count']").text()).toBe("2");
+	});
 });

@@ -7,6 +7,7 @@
 					:icon="mdiMenuOpen"
 					size="default"
 					flat
+					:aria-label="t('global.topbar.actions.closeMenu')"
 					data-testid="sidebar-toggle-close"
 					@click="sidebarExpanded = false"
 				/>
@@ -40,12 +41,14 @@ import { useAppStore } from "@data-app";
 import { useEnvConfig } from "@data-env";
 import { mdiMenuOpen } from "@icons/material";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 const sidebarExpanded = defineModel({
 	type: Boolean,
 	required: true,
 });
 
+const { t } = useI18n();
 const { pageLinks, legalLinks, metaLinks } = useSidebarItems();
 
 const isSidebarCategoryItem = (item: SidebarSingleItem | SidebarGroupItem): item is SidebarGroupItem =>
