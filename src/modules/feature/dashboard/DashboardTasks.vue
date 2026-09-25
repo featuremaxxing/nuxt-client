@@ -243,7 +243,7 @@ const legend = computed(() => {
 
 // signature interaction: the legend lights up its tiles, everything else steps back
 .lr-dash[data-highlight] :deep(.lr-tile) {
-	opacity: 0.28;
+	opacity: 0.5; // dimmed, not hidden: ink text on a fill stays >= 3:1
 }
 
 .lr-dash[data-highlight="open"] :deep(.lr-tile[data-status="open"]),

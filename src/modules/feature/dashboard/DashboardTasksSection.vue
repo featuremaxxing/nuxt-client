@@ -126,13 +126,13 @@ const dueDayFor = (task: TaskResponse) => (task.dueDate ? parseUtc(task.dueDate)
 .lr-chart {
 	display: grid;
 	gap: var(--lr-space-3);
-	grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(min(var(--lr-tile-min), 100%), 1fr));
 	list-style: none;
 	padding: 0;
 	margin: 0;
 
 	&--large {
-		grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--lr-tile-min-large), 100%), 1fr));
 	}
 }
 
@@ -229,7 +229,7 @@ const dueDayFor = (task: TaskResponse) => (task.dueDate ? parseUtc(task.dueDate)
 	width: 16px;
 	height: 16px;
 	border: 2px solid currentColor;
-	border-radius: 3px;
+	border-radius: var(--lr-radius-sm);
 }
 
 .lr-tile[data-status="submitted"] .lr-tile__station {

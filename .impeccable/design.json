@@ -1,0 +1,958 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T14:35:56+00:00",
+  "title": "Design System: Lernraum",
+  "extensions": {
+    "colorMeta": {
+      "chalk-ground": {
+        "role": "neutral",
+        "displayName": "Chalk Ground",
+        "canonical": "#F3F5F7",
+        "purpose": "App background, light theme.",
+        "tonalRamp": [
+          "#0A0B0D",
+          "#232426",
+          "#3E4041",
+          "#5C5E5F",
+          "#7F8082",
+          "#A3A5A7",
+          "#C9CBCD",
+          "#EDEFF1"
+        ]
+      },
+      "paper-surface": {
+        "role": "neutral",
+        "displayName": "Paper Surface",
+        "canonical": "#FFFFFF",
+        "purpose": "Tiles, cards, sidebar, topbar, legend buttons.",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#808080",
+          "#A4A4A4",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "slate-wash": {
+        "role": "neutral",
+        "displayName": "Slate Wash",
+        "canonical": "#EBEEF2",
+        "purpose": "Quiet secondary fill (surface-light).",
+        "tonalRamp": [
+          "#090B0E",
+          "#222427",
+          "#3E4043",
+          "#5B5E61",
+          "#7E8084",
+          "#A2A5A8",
+          "#C8CBCF",
+          "#ECEFF3"
+        ]
+      },
+      "ink": {
+        "role": "secondary",
+        "displayName": "Ink",
+        "canonical": "#141A22",
+        "purpose": "Text, active nav tile, hover edge, text on every category fill.",
+        "tonalRamp": [
+          "#060B13",
+          "#1E252D",
+          "#394049",
+          "#575E68",
+          "#79818B",
+          "#9DA5B0",
+          "#C3CBD7",
+          "#E7EFFB"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#4F5A67",
+        "purpose": "Dates, counts, secondary text (6:1+).",
+        "tonalRamp": [
+          "#040C16",
+          "#1B2530",
+          "#36414D",
+          "#545F6C",
+          "#76818F",
+          "#9AA6B4",
+          "#BFCCDB",
+          "#E4F0FE"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgba(20, 26, 34, 0.14)",
+        "purpose": "Default 1px hairline (14% ink)."
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Line Strong",
+        "canonical": "rgba(20, 26, 34, 0.32)",
+        "purpose": "Outlined buttons, board-grid cards, dashed draft, scrollbar, hatch (32% ink)."
+      },
+      "tafelblau": {
+        "role": "primary",
+        "displayName": "Tafelblau",
+        "canonical": "#1F3F8F",
+        "purpose": "The one action colour: primary buttons, links, focus, field focus, progress.",
+        "tonalRamp": [
+          "#000037",
+          "#021665",
+          "#193887",
+          "#3558AB",
+          "#567CD2",
+          "#79A2FB",
+          "#B2CBFE",
+          "#E7EFFE"
+        ]
+      },
+      "tafelblau-deep": {
+        "role": "primary",
+        "displayName": "Tafelblau Deep",
+        "canonical": "#17306E",
+        "purpose": "primary-darken-1.",
+        "tonalRamp": [
+          "#010039",
+          "#071C59",
+          "#213B7A",
+          "#3D5B9D",
+          "#5E7EC3",
+          "#81A3EB",
+          "#B3CBFC",
+          "#E7EFFF"
+        ]
+      },
+      "tafelblau-deepest": {
+        "role": "primary",
+        "displayName": "Tafelblau Deepest",
+        "canonical": "#112552",
+        "purpose": "primary-darken-2.",
+        "tonalRamp": [
+          "#00042F",
+          "#0D204D",
+          "#273E6D",
+          "#445C8E",
+          "#6580B4",
+          "#89A4DB",
+          "#B2CBFB",
+          "#E7EFFE"
+        ]
+      },
+      "tafelblau-tint": {
+        "role": "primary",
+        "displayName": "Tafelblau Tint",
+        "canonical": "#E6ECF8",
+        "purpose": "primary-lighten wash.",
+        "tonalRamp": [
+          "#080B13",
+          "#20242D",
+          "#3B4049",
+          "#595E68",
+          "#7B808B",
+          "#9FA5B0",
+          "#C5CBD6",
+          "#E9EFFB"
+        ]
+      },
+      "info-blue": {
+        "role": "semantic",
+        "displayName": "Info Blue",
+        "canonical": "#2459C4",
+        "purpose": "Info alerts.",
+        "tonalRamp": [
+          "#00003B",
+          "#001865",
+          "#00329B",
+          "#2055BF",
+          "#427AE8",
+          "#75A3FB",
+          "#B0CBFE",
+          "#E7EFFE"
+        ]
+      },
+      "success-green": {
+        "role": "semantic",
+        "displayName": "Success Green",
+        "canonical": "#0A7560",
+        "purpose": "Success states.",
+        "tonalRamp": [
+          "#00100A",
+          "#002C22",
+          "#084B3D",
+          "#136D5A",
+          "#37927C",
+          "#5FB8A0",
+          "#86DFC6",
+          "#C0FEEB"
+        ]
+      },
+      "warning-umber": {
+        "role": "semantic",
+        "displayName": "Warning Umber",
+        "canonical": "#945600",
+        "purpose": "Warnings.",
+        "tonalRamp": [
+          "#190500",
+          "#371D00",
+          "#5D3401",
+          "#864E04",
+          "#B0702A",
+          "#D79451",
+          "#FCBC7F",
+          "#FFEAD8"
+        ]
+      },
+      "error-red": {
+        "role": "semantic",
+        "displayName": "Error Red",
+        "canonical": "#C12A3A",
+        "purpose": "Errors; overdue legend swatch.",
+        "tonalRamp": [
+          "#220001",
+          "#4A010C",
+          "#7A051B",
+          "#AE0F2B",
+          "#D9434D",
+          "#FD7275",
+          "#FFB4B2",
+          "#FEE9E8"
+        ]
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "#0E1117",
+        "purpose": "App background, dark theme.",
+        "tonalRamp": [
+          "#080B11",
+          "#21242B",
+          "#3C4047",
+          "#5A5E65",
+          "#7C8088",
+          "#A0A5AD",
+          "#C6CBD4",
+          "#EAEFF8"
+        ]
+      },
+      "night-surface": {
+        "role": "neutral",
+        "displayName": "Night Surface",
+        "canonical": "#161B24",
+        "purpose": "Dark surface; also the theme colour 'white' in dark mode.",
+        "tonalRamp": [
+          "#070B13",
+          "#1F242E",
+          "#3A404A",
+          "#585E69",
+          "#7A818C",
+          "#9EA5B1",
+          "#C4CBD7",
+          "#E8EFFC"
+        ]
+      },
+      "night-surface-bright": {
+        "role": "neutral",
+        "displayName": "Night Surface Bright",
+        "canonical": "#232B37",
+        "purpose": "Raised dark surface.",
+        "tonalRamp": [
+          "#050B16",
+          "#1D2430",
+          "#38404D",
+          "#555E6C",
+          "#77818F",
+          "#9BA5B5",
+          "#C1CBDB",
+          "#E5EFFE"
+        ]
+      },
+      "night-surface-light": {
+        "role": "neutral",
+        "displayName": "Night Surface Light",
+        "canonical": "#1E2530",
+        "purpose": "Quiet secondary fill, dark.",
+        "tonalRamp": [
+          "#060B15",
+          "#1D242F",
+          "#39404C",
+          "#565E6B",
+          "#78818E",
+          "#9CA5B3",
+          "#C2CBDA",
+          "#E5EFFE"
+        ]
+      },
+      "night-ink": {
+        "role": "secondary",
+        "displayName": "Night Ink",
+        "canonical": "#E7EBF1",
+        "purpose": "Text and ink roles in dark mode.",
+        "tonalRamp": [
+          "#090B0F",
+          "#212429",
+          "#3D4045",
+          "#5A5E63",
+          "#7D8086",
+          "#A1A5AA",
+          "#C7CBD1",
+          "#EBEFF5"
+        ]
+      },
+      "night-ink-muted": {
+        "role": "neutral",
+        "displayName": "Night Ink Muted",
+        "canonical": "#A6B0BD",
+        "purpose": "Secondary text, dark.",
+        "tonalRamp": [
+          "#050C14",
+          "#1D252F",
+          "#38404B",
+          "#565E6A",
+          "#78818D",
+          "#9CA6B2",
+          "#C1CCD9",
+          "#E5F0FD"
+        ]
+      },
+      "night-line": {
+        "role": "neutral",
+        "displayName": "Night Line",
+        "canonical": "rgba(231, 235, 241, 0.14)",
+        "purpose": "Hairline, dark."
+      },
+      "night-line-strong": {
+        "role": "neutral",
+        "displayName": "Night Line Strong",
+        "canonical": "rgba(231, 235, 241, 0.34)",
+        "purpose": "Strong line, dark."
+      },
+      "night-tafelblau": {
+        "role": "primary",
+        "displayName": "Night Tafelblau",
+        "canonical": "#9DB6FF",
+        "purpose": "Primary in dark mode, with ink-dark text on top.",
+        "tonalRamp": [
+          "#030037",
+          "#111B57",
+          "#293A78",
+          "#45599A",
+          "#667CC1",
+          "#89A1E9",
+          "#B6C9FE",
+          "#E8EEFE"
+        ]
+      },
+      "night-tafelblau-deep": {
+        "role": "primary",
+        "displayName": "Night Tafelblau Deep",
+        "canonical": "#7F9CF0",
+        "purpose": "primary-darken-1, dark.",
+        "tonalRamp": [
+          "#030037",
+          "#0D1760",
+          "#243782",
+          "#4057A5",
+          "#607BCC",
+          "#83A0F5",
+          "#B5C9FE",
+          "#E8EEFE"
+        ]
+      },
+      "night-tafelblau-tint": {
+        "role": "primary",
+        "displayName": "Night Tafelblau Tint",
+        "canonical": "#1E2A48",
+        "purpose": "primary-lighten, dark.",
+        "tonalRamp": [
+          "#030823",
+          "#172240",
+          "#323F5E",
+          "#4F5D7F",
+          "#7080A3",
+          "#94A4CA",
+          "#B9CAF1",
+          "#E7EFFF"
+        ]
+      },
+      "night-info": {
+        "role": "semantic",
+        "displayName": "Night Info",
+        "canonical": "#8AAEFF",
+        "purpose": "Info, dark.",
+        "tonalRamp": [
+          "#01003A",
+          "#071A5E",
+          "#1F3980",
+          "#3B59A3",
+          "#5C7DCA",
+          "#7FA2F2",
+          "#B3CAFD",
+          "#E7EFFF"
+        ]
+      },
+      "night-success": {
+        "role": "semantic",
+        "displayName": "Night Success",
+        "canonical": "#4FD1AE",
+        "purpose": "Success, dark.",
+        "tonalRamp": [
+          "#001009",
+          "#002C21",
+          "#044B3B",
+          "#0D6E58",
+          "#079678",
+          "#36BE9B",
+          "#66E5C1",
+          "#BFFEE9"
+        ]
+      },
+      "night-warning": {
+        "role": "semantic",
+        "displayName": "Night Warning",
+        "canonical": "#F2B84B",
+        "purpose": "Warning, dark.",
+        "tonalRamp": [
+          "#140800",
+          "#322000",
+          "#553A00",
+          "#7B5600",
+          "#A57715",
+          "#D29923",
+          "#FAC054",
+          "#FEECCE"
+        ]
+      },
+      "night-error": {
+        "role": "semantic",
+        "displayName": "Night Error",
+        "canonical": "#FF8A93",
+        "purpose": "Error, dark.",
+        "tonalRamp": [
+          "#220003",
+          "#490212",
+          "#790825",
+          "#9D3241",
+          "#C65763",
+          "#F07C86",
+          "#FEB4B7",
+          "#FFE8E9"
+        ]
+      },
+      "dbc-red": {
+        "role": "primary",
+        "displayName": "DBC Red",
+        "canonical": "#8E1F2A",
+        "purpose": "Primary on the dBildungscloud default theme only.",
+        "tonalRamp": [
+          "#220001",
+          "#4B000C",
+          "#7B041B",
+          "#9F3138",
+          "#C85659",
+          "#F27C7C",
+          "#FBB6B4",
+          "#FEE9E8"
+        ]
+      },
+      "night-dbc-red": {
+        "role": "primary",
+        "displayName": "Night DBC Red",
+        "canonical": "#FF9AA2",
+        "purpose": "DBC primary, dark.",
+        "tonalRamp": [
+          "#220003",
+          "#4A0113",
+          "#721A2A",
+          "#953B47",
+          "#BD5F68",
+          "#E6838C",
+          "#FEB4B8",
+          "#FFE8E9"
+        ]
+      },
+      "cat-koralle": {
+        "role": "tertiary",
+        "displayName": "Koralle",
+        "canonical": "#FF8A70",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#220000",
+          "#480700",
+          "#771500",
+          "#A0341D",
+          "#C85941",
+          "#F27F65",
+          "#FBB8A8",
+          "#FEE9E4"
+        ]
+      },
+      "cat-senf": {
+        "role": "tertiary",
+        "displayName": "Senf",
+        "canonical": "#F7C948",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text. Also the 'heute' band and text selection.",
+        "tonalRamp": [
+          "#120900",
+          "#2F2200",
+          "#503D00",
+          "#745A00",
+          "#9D7B14",
+          "#C89F23",
+          "#F2C442",
+          "#FFEDC1"
+        ]
+      },
+      "cat-petrol": {
+        "role": "tertiary",
+        "displayName": "Petrol",
+        "canonical": "#3CC4A4",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#00100A",
+          "#002C22",
+          "#024B3D",
+          "#096E59",
+          "#00967A",
+          "#33BE9E",
+          "#64E5C4",
+          "#BEFEEA"
+        ]
+      },
+      "cat-himmel": {
+        "role": "tertiary",
+        "displayName": "Himmel",
+        "canonical": "#7EB2FF",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#00003A",
+          "#002151",
+          "#0B3D80",
+          "#2C5CA2",
+          "#4F80CA",
+          "#72A6F2",
+          "#ACCDFC",
+          "#E5EFFF"
+        ]
+      },
+      "cat-violett": {
+        "role": "tertiary",
+        "displayName": "Violett",
+        "canonical": "#B79CFF",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#11002D",
+          "#2D015F",
+          "#482880",
+          "#6548A3",
+          "#886CCA",
+          "#AC91F3",
+          "#CEC0FD",
+          "#EFEBFF"
+        ]
+      },
+      "cat-rose": {
+        "role": "tertiary",
+        "displayName": "Rose",
+        "canonical": "#FF94BD",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#20000C",
+          "#470025",
+          "#721142",
+          "#963560",
+          "#BE5982",
+          "#E77EA7",
+          "#FFB0CC",
+          "#FEE8EF"
+        ]
+      },
+      "cat-lime": {
+        "role": "tertiary",
+        "displayName": "Lime",
+        "canonical": "#B8DC5A",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#080E00",
+          "#1E2900",
+          "#374701",
+          "#526705",
+          "#718D1C",
+          "#92B42B",
+          "#B7DB59",
+          "#DCFF8A"
+        ]
+      },
+      "cat-orange": {
+        "role": "tertiary",
+        "displayName": "Orange",
+        "canonical": "#FFA95C",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#190500",
+          "#3A1B00",
+          "#5F3304",
+          "#884D0B",
+          "#BA6909",
+          "#E28E3F",
+          "#FEBA81",
+          "#FFEADA"
+        ]
+      },
+      "cat-schiefer": {
+        "role": "tertiary",
+        "displayName": "Schiefer",
+        "canonical": "#AEB9C7",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#050C15",
+          "#1C252F",
+          "#37414C",
+          "#555F6B",
+          "#77818E",
+          "#9BA6B3",
+          "#C0CCDA",
+          "#E4F0FE"
+        ]
+      },
+      "cat-sand": {
+        "role": "tertiary",
+        "displayName": "Sand",
+        "canonical": "#D9C3A0",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#150800",
+          "#312001",
+          "#4F3C1D",
+          "#6E5A3A",
+          "#917D5C",
+          "#B7A17F",
+          "#DDC7A4",
+          "#FFECCD"
+        ]
+      },
+      "cat-tuerkis": {
+        "role": "tertiary",
+        "displayName": "Türkis",
+        "canonical": "#5DD3E0",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#000F12",
+          "#002A2F",
+          "#09494F",
+          "#146A72",
+          "#17919C",
+          "#3DB8C4",
+          "#6ADFEC",
+          "#C8F9FF"
+        ]
+      },
+      "cat-pflaume": {
+        "role": "tertiary",
+        "displayName": "Pflaume",
+        "canonical": "#D59BE6",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#190022",
+          "#3B0348",
+          "#592568",
+          "#7A4489",
+          "#9E67AE",
+          "#C58BD5",
+          "#ECB1FD",
+          "#F9E8FE"
+        ]
+      },
+      "cat-oliv": {
+        "role": "tertiary",
+        "displayName": "Oliv",
+        "canonical": "#C9C66A",
+        "purpose": "Category fill (tiles, room avatars, legend, card tints). Always ink text.",
+        "tonalRamp": [
+          "#0E0C00",
+          "#272600",
+          "#454205",
+          "#64610E",
+          "#888423",
+          "#ADA94D",
+          "#D3D074",
+          "#F7F497"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "symbol": {
+        "displayName": "Element Symbol",
+        "purpose": "Two-letter course/room symbol on tiles (2.75rem; 3.5rem in the today band; 2.25rem room avatar; 1.125rem list square)."
+      },
+      "headline": {
+        "displayName": "Headline (h1)",
+        "purpose": "Page titles in the wireframe header."
+      },
+      "title": {
+        "displayName": "Title (h2)",
+        "purpose": "Major page sections, e.g. Tasks above the legend. h3 is 1.3125rem/700."
+      },
+      "section": {
+        "displayName": "Section (h4)",
+        "purpose": "Chart section heads with muted tabular counts."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text on the 17px root. Not Cyrillic-capable: Ukrainian uses the system stack."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Tile meta lines, secondary list text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, nav items, legend items; sentence case, no tracking."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Due day, counts, progress; tabular figures (lr-num)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 12px 32px -8px rgba(14, 17, 23, 0.28), 0 2px 6px rgba(14, 17, 23, 0.12)",
+        "purpose": "The only lift: overlay cards, sheets, menu lists (--lr-shadow-float)."
+      },
+      {
+        "name": "ink-edge",
+        "value": "inset 0 0 0 2px #141A22",
+        "purpose": "Hover/focus/legend-highlight edge on element tiles; not elevation."
+      },
+      {
+        "name": "editing-ring",
+        "value": "0 0 0 1px rgb(var(--v-theme-primary))",
+        "purpose": "Board card in edit mode."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Default easing for all state changes and entrances (--lr-ease-out)."
+      },
+      {
+        "name": "duration-fast",
+        "value": "120ms",
+        "purpose": "Border/edge/background state changes. 0ms under reduced motion."
+      },
+      {
+        "name": "duration",
+        "value": "220ms",
+        "purpose": "Opacity changes such as legend dimming. 0ms under reduced motion."
+      },
+      {
+        "name": "duration-enter",
+        "value": "420ms",
+        "purpose": "One-time tile entrance (6px rise, 30ms stagger, max 12 steps). Disabled under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "600px"
+      },
+      {
+        "name": "md",
+        "value": "960px"
+      },
+      {
+        "name": "lg",
+        "value": "1280px"
+      },
+      {
+        "name": "xl",
+        "value": "1920px"
+      }
+    ],
+    "layout": {
+      "topbarHeight": "50px",
+      "contentShort": "80ch",
+      "contentLimited": "1200px",
+      "chartColumnMin": "230px",
+      "chartColumnMinLarge": "300px",
+      "chartGap": "12px",
+      "tileMinHeight": "188px",
+      "tileMinHeightLarge": "220px",
+      "touchTargetMin": "44px",
+      "rootFontSize": "17px (106.25%)"
+    },
+    "themes": {
+      "modes": [
+        "system",
+        "light",
+        "dark"
+      ],
+      "default": "system",
+      "storageKey": "lernraum.theme",
+      "darkScope": "Vue client only; legacy schulcloud-client is light only",
+      "whiteInDark": "#161B24"
+    },
+    "evidence": "Recorded from source code only; no running backend, so no screenshots or computed styles."
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Flat Tafelblau action, sentence-case Archivo label, no ripple.",
+      "html": "<button class=\"ds-btn-primary\">Aufgabe abgeben</button>",
+      "css": ".ds-btn-primary{background:#1F3F8F;color:#FFFFFF;border:0;border-radius:6px;padding:0 16px;height:40px;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:112%;font-weight:650;font-size:15px;letter-spacing:0;cursor:pointer;transition:background-color 120ms cubic-bezier(0.16,1,0.3,1);}.ds-btn-primary:hover{background:#17306E;}.ds-btn-primary:focus-visible{outline:2px solid #1F3F8F;outline-offset:2px;}.ds-btn-primary:active{background:#112552;}"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "Ink on the chart: Line Strong border, no tint.",
+      "html": "<button class=\"ds-btn-outlined\">Abbrechen</button>",
+      "css": ".ds-btn-outlined{background:transparent;color:#141A22;border:1px solid rgba(20,26,34,0.32);border-radius:6px;padding:0 16px;height:40px;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:112%;font-weight:650;font-size:15px;letter-spacing:0;cursor:pointer;transition:background-color 120ms cubic-bezier(0.16,1,0.3,1);}.ds-btn-outlined:hover{background:rgba(20,26,34,0.06);}.ds-btn-outlined:focus-visible{outline:2px solid #1F3F8F;outline-offset:2px;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Outlined, comfortable density, Tafelblau on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Titel</span><input class=\"ds-field__input\" value=\"Bruchrechnung\"></label>",
+      "css": ".ds-field{display:grid;gap:4px;font-family:'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;color:#141A22;max-width:320px;}.ds-field__label{font-size:15px;}.ds-field__input{font:inherit;font-size:17px;padding:10px 12px;border:1px solid rgba(20,26,34,0.32);border-radius:6px;background:#FFFFFF;color:#141A22;}.ds-field__input:hover{border-color:#141A22;}.ds-field__input:focus-visible{outline:none;border-color:#1F3F8F;box-shadow:inset 0 0 0 1px #1F3F8F;}"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "44px Archivo items; the active item is a filled ink tile.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__item ds-nav__item--active\" href=\"#\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z\"/></svg>Übersicht</a><a class=\"ds-nav__item\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M4,4H10V10H4V4M14,4H20V10H14V4M4,14H10V20H4V14M14,14H20V20H14V14Z\"/></svg>Räume</a></nav>",
+      "css": ".ds-nav{display:grid;gap:2px;padding:8px 12px;width:240px;background:#FFFFFF;border-right:1px solid rgba(20,26,34,0.14);}.ds-nav__item{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:6px;color:#141A22;text-decoration:none;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:112%;font-weight:600;font-size:15px;transition:background-color 120ms cubic-bezier(0.16,1,0.3,1);}.ds-nav__item:hover{background:rgba(20,26,34,0.06);}.ds-nav__item:focus-visible{outline:2px solid #1F3F8F;outline-offset:2px;}.ds-nav__item--active,.ds-nav__item--active:hover{background:#141A22;color:#FFFFFF;}"
+    },
+    {
+      "name": "Chip on Tile",
+      "kind": "chip",
+      "refersTo": "chip-on-tile",
+      "description": "Label chip on a category fill: translucent white plate, ink text.",
+      "html": "<div style=\"background:#7EB2FF;padding:12px;border-radius:6px\"><span class=\"ds-chip\">Abgegeben</span></div>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:6px;background:rgba(255,255,255,0.72);color:#141A22;font-family:'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:600;font-size:13px;}"
+    },
+    {
+      "name": "Element Tile",
+      "kind": "card",
+      "refersTo": "element-tile",
+      "description": "Signature: category fill, monumental symbol, due-day numeral, station marker; ink edge on hover.",
+      "html": "<a class=\"ds-tile\" href=\"#\" data-status=\"submitted\"><span class=\"ds-tile__top\"><span class=\"ds-tile__symbol\" aria-hidden=\"true\">Ma</span><span class=\"ds-tile__num\" aria-hidden=\"true\">14</span></span><span class=\"ds-tile__station\" aria-hidden=\"true\"></span><span class=\"ds-tile__name\">Bruchrechnung, Aufgabe 3</span><span class=\"ds-tile__meta\">Mathematik 7b · fällig morgen</span></a>",
+      "css": ".ds-tile{position:relative;display:grid;grid-template-rows:auto auto 1fr auto;gap:4px;width:260px;min-height:188px;padding:12px 16px 16px;border:1px solid rgba(20,26,34,0.18);border-radius:6px;background:#FF8A70;color:#141A22;text-decoration:none;font-family:'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;transition:box-shadow 120ms cubic-bezier(0.16,1,0.3,1);}.ds-tile:hover,.ds-tile:focus-visible{box-shadow:inset 0 0 0 2px #141A22;}.ds-tile:focus-visible{outline:2px solid #1F3F8F;outline-offset:3px;}.ds-tile__top{display:flex;justify-content:space-between;align-items:flex-start;padding-right:28px;}.ds-tile__symbol{font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:118%;font-weight:800;font-size:47px;line-height:0.95;letter-spacing:-0.02em;}.ds-tile__num{font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:21px;line-height:1;padding-top:4px;}.ds-tile__station{position:absolute;top:12px;right:12px;width:16px;height:16px;border:2px solid currentColor;border-radius:3px;box-sizing:border-box;}.ds-tile[data-status=submitted] .ds-tile__station{background:repeating-linear-gradient(-45deg,currentColor 0 2px,transparent 2px 5px);}.ds-tile[data-status=graded] .ds-tile__station{background:currentColor;}.ds-tile__name{margin-top:8px;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:700;font-size:18px;line-height:1.25;}.ds-tile__meta{font-size:15px;line-height:1.35;opacity:0.88;}"
+    },
+    {
+      "name": "Legend Item",
+      "kind": "custom",
+      "refersTo": "legend-item",
+      "description": "Signature: 44px legend button with station swatch and tabular count; highlights matching tiles, click pins.",
+      "html": "<div class=\"ds-legend\"><button class=\"ds-legend__item\" aria-pressed=\"false\"><span class=\"ds-legend__swatch\"></span>Offen <b class=\"ds-legend__count\">5</b></button><button class=\"ds-legend__item ds-legend__item--submitted\" aria-pressed=\"true\"><span class=\"ds-legend__swatch\"></span>Abgegeben <b class=\"ds-legend__count\">3</b></button><button class=\"ds-legend__item ds-legend__item--overdue\" aria-pressed=\"false\"><span class=\"ds-legend__swatch\"></span>Überfällig <b class=\"ds-legend__count\">1</b></button></div>",
+      "css": ".ds-legend{display:flex;flex-wrap:wrap;gap:4px 8px;}.ds-legend__item{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid rgba(20,26,34,0.14);border-radius:6px;background:#FFFFFF;color:#141A22;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:border-color 120ms cubic-bezier(0.16,1,0.3,1);}.ds-legend__item:hover,.ds-legend__item[aria-pressed=true]{border-color:#141A22;}.ds-legend__item[aria-pressed=true]{box-shadow:inset 0 0 0 1px #141A22;}.ds-legend__item:focus-visible{outline:2px solid #1F3F8F;outline-offset:2px;}.ds-legend__count{font-weight:800;font-variant-numeric:tabular-nums;}.ds-legend__swatch{width:14px;height:14px;border:2px solid currentColor;border-radius:3px;box-sizing:border-box;}.ds-legend__item--submitted .ds-legend__swatch{background:repeating-linear-gradient(-45deg,currentColor 0 2px,transparent 2px 5px);}.ds-legend__item--overdue .ds-legend__swatch{border-color:#C12A3A;background:#C12A3A;border-radius:50%;}"
+    },
+    {
+      "name": "Today Band",
+      "kind": "custom",
+      "refersTo": "today-band",
+      "description": "Signature: the single full-width Senf band holding today's tiles at large size.",
+      "html": "<section class=\"ds-band\"><h4 class=\"ds-band__title\">Heute <span class=\"ds-band__count\">2</span></h4><div class=\"ds-band__tile\"><span class=\"ds-band__symbol\">Bi</span></div></section>",
+      "css": ".ds-band{background:#F7C948;color:#141A22;padding:16px 24px 24px;}.ds-band__title{margin:0 0 12px;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:112%;font-weight:680;font-size:19px;}.ds-band__count{font-variant-numeric:tabular-nums;font-weight:700;}.ds-band__tile{width:300px;min-height:120px;padding:12px 16px;border:1px solid #141A22;border-radius:6px;background:#5DD3E0;}.ds-band__symbol{font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:118%;font-weight:800;font-size:60px;line-height:0.95;letter-spacing:-0.02em;}"
+    },
+    {
+      "name": "Room Element",
+      "kind": "card",
+      "refersTo": "room-symbol",
+      "description": "Outlined card with an 84px category square carrying the room symbol.",
+      "html": "<a class=\"ds-room\" href=\"#\"><span class=\"ds-room__symbol\">Ch</span><span class=\"ds-room__name\">Chemie 9a</span></a>",
+      "css": ".ds-room{display:flex;gap:16px;align-items:center;width:320px;padding:16px;border:1px solid rgba(20,26,34,0.14);border-radius:6px;background:#FFFFFF;color:#141A22;text-decoration:none;transition:border-color 120ms cubic-bezier(0.16,1,0.3,1);}.ds-room:hover{border-color:#141A22;}.ds-room:focus-visible{border-color:#141A22;outline:2px solid #1F3F8F;outline-offset:2px;}.ds-room__symbol{display:grid;place-items:center;width:84px;height:84px;flex-shrink:0;border:1px solid rgba(20,26,34,0.18);border-radius:6px;background:#B79CFF;color:#141A22;font-family:Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-stretch:118%;font-weight:800;font-size:38px;letter-spacing:-0.02em;}.ds-room__name{font-family:'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:700;font-size:17px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lernposter (the classroom wall chart)",
+    "overview": "**Creative North Star: \"The Lernposter\" (the classroom wall chart)**\n\nLernraum reads like the periodic-table poster in a chemistry room. Tasks and rooms are elements in a tile grid that has a legend. Each tile shows a monumental two-letter symbol (the course, e.g. \"Ma\"), an \"atomic number\" (the day of the due date, in tabular figures), a category fill and a small station marker for status. The chart hangs on a cool chalk-grey ground. Tiles are flat panels with a hairline edge and 6px corners. Nothing rests on a shadow. A single mustard band (\"heute\") marks the present across every view, the way a highlighter marks one row of a poster.\n\nDensity is operational rather than editorial. Pages are grids, lists and boards that students (often on phones) and teachers (desktop, projector) scan in a second. Two voices do all the work: Archivo, set wide and heavy, for symbols, numerals, headings, buttons and navigation, and Atkinson Hyperlegible Next for reading text on a 17px base. Colour carries category and never carries status alone. Status is a shape, and the legend explains every shape and colour on the screen.\n\nThe world rejects the category default: white SaaS cards floating on shadows, grey noise and a single corporate blue. Dark mode keeps the chart \"backlit\" rather than re-tinted. Category fills stay the same bright values, the ground goes to near-black, and ink stays on every fill.",
+    "keyCharacteristics": [
+      "Flat tiles with a 1px hairline and 6px radius. No resting shadows. Only floating layers lift.",
+      "Category fills (13 named hues) always carry ink text (#141A22), at 7.6:1 or better in both themes.",
+      "Status is encoded by shape plus a text label: outline = open, hatched = submitted, solid = graded, dashed = draft.",
+      "One mustard \"heute\" band marks the present. Text selection uses the same mustard.",
+      "Archivo (wdth 112–118, weight 650–800) for anything scanned; Atkinson Hyperlegible Next for anything read.",
+      "Tabular numerals for dates, counts and progress.",
+      "Light, dark and system themes in the Vue client. The legacy client is light only."
+    ],
+    "rules": [
+      {
+        "name": "The Ink-On-Fill Rule",
+        "body": "Every category fill carries ink text (#141A22), in light and dark alike. A fill never gets white text and is never darkened for dark mode.",
+        "section": "colors"
+      },
+      {
+        "name": "The Legend Rule",
+        "body": "Every colour and shape on a chart surface is explained by a visible legend or text label. Colour is never the only carrier of meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Band Rule",
+        "body": "Senf as a full-width band means \"today\" and nothing else. Do not use it as a generic highlight colour for sections.",
+        "section": "colors"
+      },
+      {
+        "name": "The Backlit White Rule",
+        "body": "In dark mode the theme colour `white` resolves to Night Surface (#161B24) on purpose. Legacy components paint their surfaces with `color=\"white\"`, and this mapping keeps them in the dark world. When you need literal white, use a hex value, not the theme colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Archivo is for what you scan (symbols, numbers, headings, controls). Atkinson is for what you read. Never set a paragraph in Archivo and never set a tile symbol in Atkinson.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Any number that is compared across rows or tiles (dates, counts, points, progress) uses tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Buttons and labels are sentence case with zero letter-spacing. The build uses no uppercase tracking anywhere.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Chart Rule",
+        "body": "Nothing casts a shadow at rest. If a surface does not float over the page, it is separated by a line.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Edge-Not-Lift Rule",
+        "body": "Interactive tiles and cards respond by thickening or darkening their edge, never by rising or scaling.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** separate surfaces with a 1px Line hairline and a tonal step. Use the Float shadow only on menus, dialogs and overlay sheets.",
+      "**Do** put ink text (#141A22) on every category fill, in both themes, and map arbitrary server colours through `toCategoryColor` rather than using them raw.",
+      "**Do** encode status by station shape (outline / hatched / solid / dashed) and always pair it with a text label or chip. Overdue adds Error Red and text, and is never red alone.",
+      "**Do** set symbols, numerals, headings, buttons and navigation in Archivo (wdth 112–118) and reading text in Atkinson Hyperlegible Next at the 17px base. Use tabular figures for any compared number.",
+      "**Do** keep touch targets at least 44px and use the global focus ring (2px, Tafelblau or Night Tafelblau, 2px offset).",
+      "**Do** route every duration through the motion tokens so reduced motion sets them to 0ms. Tile entrance animations must also be switched off explicitly.",
+      "**Do** add every new colour to both `lightColors` and `darkColors` in `lernraum-palette.ts` and mirror it in `tokens/_color.scss`, checking contrast against surface, background and surface-light."
+    ],
+    "donts": [
+      "**Don't** give resting cards, tiles, toolbars or alerts a Vuetify `elevation` or a drop shadow.",
+      "**Don't** lift, scale or translate a tile on hover. Change its edge.",
+      "**Don't** use a category fill as a status colour, or a status colour as a category fill.",
+      "**Don't** use Senf as a band for anything but \"today\".",
+      "**Don't** put white text on a category fill, or darken the fills for dark mode.",
+      "**Don't** use the theme colour `white` expecting literal white. In dark mode it is Night Surface.",
+      "**Don't** add uppercase tracked labels. Controls are sentence case with zero letter-spacing.",
+      "**Don't** load fonts, icons or scripts from a third-party CDN.",
+      "**Don't** assume Archivo or Atkinson metrics for Ukrainian text. It renders in the system stack."
+    ]
+  }
+}
