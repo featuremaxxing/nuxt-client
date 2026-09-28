@@ -61,7 +61,8 @@ const props = defineProps({
 
 const { systemId } = useAppStoreRefs();
 
-const isWebDavEnabled = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED);
+// the network drive is for teachers only for now
+const isWebDavEnabled = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && useAppStore().isTeacher);
 
 const { t } = useI18n();
 
