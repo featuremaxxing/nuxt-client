@@ -161,3 +161,7 @@ hinzugefügt (Import- und Export-Liste, wie von der Projektkonvention gefordert)
   hochladen → in tieferen Unterordner navigieren → Datei zwischen Ordnern verschieben →
   Unterordner mit Inhalt löschen (Kaskade prüfen) → Reload auf tiefem Unterordner-Link
   (Breadcrumb-Platzhalter beobachten).
+
+## Status
+
+In manueller Prüfung auf Staging.
