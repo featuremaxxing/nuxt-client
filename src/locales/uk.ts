@@ -1330,6 +1330,10 @@ export default {
 	"pages.dashboard.features.learningRoom.title": "Моя навчальна кімната",
 	"pages.dashboard.features.learningRoom.description":
 		"Закріплюйте важливі картки з різних кімнат в одному особистому місці та стежте за навчальними матеріалами.",
+	"pages.dashboard.features.webdav.title": "Мережевий диск",
+	"pages.dashboard.features.webdav.description":
+		"Підключіть свої дошки як диск у Finder або Провіднику Windows. Структура: курси або кімнати › курс › дошка › розділ › картка › папка, тобто не більше шести рівнів. Файли зберігаються в картках або їхніх папках.",
+	"pages.dashboard.features.webdav.link": "Налаштувати мережевий диск",
 	"pages.dashboard.empty.news": "Немає останніх новин. Перегляньте розділ новин, щоб бути в курсі.",
 	"pages.dashboard.new.features": "В {instanceTitle} є нові функції",
 	"pages.dashboard.new.features.available": "Доступні нові функції",
@@ -1926,6 +1930,15 @@ export default {
 	"pages.webdav.title": "Мережевий диск (WebDAV)",
 	"pages.webdav.intro":
 		"Підключіть файли своїх дошок як диск у Finder, Провіднику Windows або в застосунку «Файли». Курси та кімнати відображаються як папки з дошками, розділами та картками. Нові папки стають розділами, картками або елементами-папками, а файли зберігаються безпосередньо на дошці.",
+	"pages.webdav.structure.title": "Структура",
+	"pages.webdav.structure.level.contexts": "Курси / Кімнати",
+	"pages.webdav.structure.level.context": "Курс / Кімната",
+	"pages.webdav.structure.level.board": "Дошка",
+	"pages.webdav.structure.level.column": "Розділ",
+	"pages.webdav.structure.level.card": "Картка",
+	"pages.webdav.structure.level.folder": "Папка",
+	"pages.webdav.structure.text":
+		"Не більше шести рівнів. Файли зберігаються в картці або в папці всередині неї, а папка не має вкладених папок. Нові папки стають розділом, карткою або папкою залежно від рівня. Курси, кімнати та дошки створюються у вебзастосунку.",
 	"pages.webdav.address.title": "Адреса",
 	"pages.webdav.instructions.macos.title": "macOS (Finder)",
 	"pages.webdav.instructions.macos.text":

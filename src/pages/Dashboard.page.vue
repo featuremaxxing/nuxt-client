@@ -25,9 +25,14 @@
 
 				<VRow>
 					<VCol v-for="feature in newFeatures" :key="feature.title" cols="12" md="6">
-						<VCard height="100%" variant="outlined">
+						<VCard height="100%" variant="outlined" class="d-flex flex-column">
 							<VCardTitle>{{ t(feature.title) }}</VCardTitle>
 							<VCardText>{{ t(feature.description) }}</VCardText>
+							<VCardActions v-if="feature.to && feature.linkText" class="mt-auto">
+								<VBtn :to="feature.to" variant="text" color="primary" :data-testid="`new-feature-link-${feature.to}`">
+									{{ t(feature.linkText) }}
+								</VBtn>
+							</VCardActions>
 						</VCard>
 					</VCol>
 				</VRow>
@@ -57,7 +62,9 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const { isTeacher, isStudent, isAdmin } = useAppStoreRefs();
 
-const newFeatures = [
+type NewFeature = { title: string; description: string; to?: string; linkText?: string };
+
+const baseFeatures: NewFeature[] = [
 	{
 		title: "pages.dashboard.features.assignments.title",
 		description: "pages.dashboard.features.assignments.description",
@@ -74,7 +81,24 @@ const newFeatures = [
 		title: "pages.dashboard.features.learningRoom.title",
 		description: "pages.dashboard.features.learningRoom.description",
 	},
-] as const;
+];
+
+// the network drive is for teachers only for now
+const isWebDavAvailable = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && isTeacher.value);
+
+const newFeatures = computed<NewFeature[]>(() => [
+	...baseFeatures,
+	...(isWebDavAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.webdav.title",
+					description: "pages.dashboard.features.webdav.description",
+					to: "/webdav",
+					linkText: "pages.dashboard.features.webdav.link",
+				},
+			]
+		: []),
+]);
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));
 

@@ -1342,6 +1342,10 @@ export default {
 	"pages.dashboard.features.learningRoom.title": "Mein Lernraum",
 	"pages.dashboard.features.learningRoom.description":
 		"Pinne wichtige Karten aus verschiedenen Räumen an einen persönlichen Ort und behalte deine Lerninhalte im Blick.",
+	"pages.dashboard.features.webdav.title": "Netzlaufwerk",
+	"pages.dashboard.features.webdav.description":
+		"Binde deine Boards als Laufwerk im Finder oder Windows Explorer ein. Aufbau: Kurse bzw. Räume › Kurs › Board › Abschnitt › Karte › Ordner, also höchstens sechs Ebenen. Dateien liegen in Karten oder deren Ordnern.",
+	"pages.dashboard.features.webdav.link": "Netzlaufwerk einrichten",
 	"pages.dashboard.empty.news": "Bisher gibt es keine News.",
 	"pages.dashboard.new.features": "Es gibt neue Features in der {instanceTitle}.",
 	"pages.dashboard.new.features.available": "Neue Features sind verfügbar",
@@ -1945,6 +1949,15 @@ export default {
 	"pages.webdav.title": "Netzlaufwerk (WebDAV)",
 	"pages.webdav.intro":
 		"Binde die Dateien deiner Boards als Laufwerk im Finder, im Windows Explorer oder in der Dateien-App ein. Kurse und Räume erscheinen als Ordner, darin Boards, Abschnitte und Karten. Neue Ordner werden zu Abschnitten, Karten oder Ordner-Elementen, Dateien landen direkt im Board.",
+	"pages.webdav.structure.title": "Aufbau",
+	"pages.webdav.structure.level.contexts": "Kurse / Räume",
+	"pages.webdav.structure.level.context": "Kurs / Raum",
+	"pages.webdav.structure.level.board": "Board",
+	"pages.webdav.structure.level.column": "Abschnitt",
+	"pages.webdav.structure.level.card": "Karte",
+	"pages.webdav.structure.level.folder": "Ordner",
+	"pages.webdav.structure.text":
+		"Höchstens sechs Ebenen. Dateien liegen in einer Karte oder in einem Ordner darin, ein Ordner hat keine weiteren Unterordner. Neue Ordner werden je nach Ebene zu Abschnitt, Karte oder Ordner. Kurse, Räume und Boards legst du in der Web-App an.",
 	"pages.webdav.address.title": "Adresse",
 	"pages.webdav.instructions.macos.title": "macOS (Finder)",
 	"pages.webdav.instructions.macos.text":

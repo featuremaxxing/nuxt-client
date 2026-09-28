@@ -1314,6 +1314,10 @@ export default {
 	"pages.dashboard.features.learningRoom.title": "My learning room",
 	"pages.dashboard.features.learningRoom.description":
 		"Pin important cards from different rooms in one personal place and keep track of your learning content.",
+	"pages.dashboard.features.webdav.title": "Network drive",
+	"pages.dashboard.features.webdav.description":
+		"Mount your boards as a drive in Finder or Windows Explorer. Structure: courses or rooms › course › board › section › card › folder, so at most six levels. Files live in cards or their folders.",
+	"pages.dashboard.features.webdav.link": "Set up network drive",
 	"pages.dashboard.empty.news": "So far there is no news.",
 	"pages.dashboard.new.features": "There are new features in the {instanceTitle}.",
 	"pages.dashboard.new.features.available": "New features are available",
@@ -1911,6 +1915,15 @@ export default {
 	"pages.webdav.title": "Network drive (WebDAV)",
 	"pages.webdav.intro":
 		"Mount the files of your boards as a drive in Finder, Windows Explorer or the Files app. Courses and rooms appear as folders containing boards, sections and cards. New folders become sections, cards or folder elements, and files are stored directly in the board.",
+	"pages.webdav.structure.title": "Structure",
+	"pages.webdav.structure.level.contexts": "Courses / Rooms",
+	"pages.webdav.structure.level.context": "Course / Room",
+	"pages.webdav.structure.level.board": "Board",
+	"pages.webdav.structure.level.column": "Section",
+	"pages.webdav.structure.level.card": "Card",
+	"pages.webdav.structure.level.folder": "Folder",
+	"pages.webdav.structure.text":
+		"At most six levels. Files live in a card or in a folder inside it, and a folder has no further subfolders. New folders become a section, card or folder depending on the level. Courses, rooms and boards are created in the web app.",
 	"pages.webdav.address.title": "Address",
 	"pages.webdav.instructions.macos.title": "macOS (Finder)",
 	"pages.webdav.instructions.macos.text":

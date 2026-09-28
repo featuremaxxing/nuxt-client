@@ -6,6 +6,15 @@
 
 		<p class="mb-6">{{ t("pages.webdav.intro") }}</p>
 
+		<h2 class="text-h4 mb-2">{{ t("pages.webdav.structure.title") }}</h2>
+		<div class="d-flex flex-wrap align-center ga-1 mb-2" data-testid="webdav-structure">
+			<template v-for="(level, index) in structureLevels" :key="level">
+				<VIcon v-if="index > 0" :icon="mdiChevronRight" size="small" />
+				<VChip size="small" variant="tonal" label>{{ t(`pages.webdav.structure.level.${level}`) }}</VChip>
+			</template>
+		</div>
+		<p class="mb-6">{{ t("pages.webdav.structure.text") }}</p>
+
 		<h2 class="text-h4 mb-2">{{ t("pages.webdav.address.title") }}</h2>
 		<VTextField
 			:model-value="webDavUrl"
@@ -142,7 +151,7 @@
 import { buildPageTitle } from "@/utils/pageTitle";
 import { notifySuccess } from "@data-app";
 import { AppPassword, CreatedAppPassword, useAppPasswordApi } from "@data-app-password";
-import { mdiCheckCircle, mdiClose, mdiContentCopy } from "@icons/material";
+import { mdiCheckCircle, mdiChevronRight, mdiClose, mdiContentCopy } from "@icons/material";
 import { DefaultWireframe } from "@ui-layout";
 import { useTitle } from "@vueuse/core";
 import { computed, onMounted, ref } from "vue";
@@ -154,6 +163,7 @@ const { getAppPasswords, createAppPassword, deleteAppPassword } = useAppPassword
 useTitle(buildPageTitle(t("pages.webdav.title")));
 
 const systems = ["macos", "windows", "ios", "linux"] as const;
+const structureLevels = ["contexts", "context", "board", "column", "card", "folder"] as const;
 const webDavUrl = `${window.location.origin}/api/v3/webdav/`;
 
 const appPasswords = ref<AppPassword[]>([]);

@@ -1336,6 +1336,10 @@ export default {
 	"pages.dashboard.features.learningRoom.title": "Mi espacio de aprendizaje",
 	"pages.dashboard.features.learningRoom.description":
 		"Fija tarjetas importantes de distintos espacios en un lugar personal y mantén tus contenidos de aprendizaje a la vista.",
+	"pages.dashboard.features.webdav.title": "Unidad de red",
+	"pages.dashboard.features.webdav.description":
+		"Monta tus tableros como unidad en Finder o en el Explorador de Windows. Estructura: cursos o salas › curso › tablero › sección › tarjeta › carpeta, es decir, como máximo seis niveles. Los archivos están en tarjetas o en sus carpetas.",
+	"pages.dashboard.features.webdav.link": "Configurar unidad de red",
 	"pages.dashboard.empty.news": "Hasta el momento no hay noticias.",
 	"pages.dashboard.new.features": "Hay nuevas funciones en {instanceTitle}.",
 	"pages.dashboard.new.features.available": "Nuevas funciones disponibles",
@@ -1944,6 +1948,15 @@ export default {
 	"pages.webdav.title": "Unidad de red (WebDAV)",
 	"pages.webdav.intro":
 		"Monta los archivos de tus tableros como una unidad en Finder, en el Explorador de Windows o en la app Archivos. Los cursos y salas aparecen como carpetas con tableros, secciones y tarjetas. Las carpetas nuevas se convierten en secciones, tarjetas o elementos de carpeta, y los archivos se guardan directamente en el tablero.",
+	"pages.webdav.structure.title": "Estructura",
+	"pages.webdav.structure.level.contexts": "Cursos / Salas",
+	"pages.webdav.structure.level.context": "Curso / Sala",
+	"pages.webdav.structure.level.board": "Tablero",
+	"pages.webdav.structure.level.column": "Sección",
+	"pages.webdav.structure.level.card": "Tarjeta",
+	"pages.webdav.structure.level.folder": "Carpeta",
+	"pages.webdav.structure.text":
+		"Como máximo seis niveles. Los archivos están en una tarjeta o en una carpeta dentro de ella, y una carpeta no tiene más subcarpetas. Las carpetas nuevas se convierten en sección, tarjeta o carpeta según el nivel. Los cursos, salas y tableros se crean en la aplicación web.",
 	"pages.webdav.address.title": "Dirección",
 	"pages.webdav.instructions.macos.title": "macOS (Finder)",
 	"pages.webdav.instructions.macos.text":
