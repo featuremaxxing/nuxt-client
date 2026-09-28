@@ -69,6 +69,7 @@
 						:row-index="-1"
 						:column-index="-1"
 						:focus-title-on-edit-start="true"
+						is-keyboard-move-disabled
 						@click.stop
 					/>
 				</div>

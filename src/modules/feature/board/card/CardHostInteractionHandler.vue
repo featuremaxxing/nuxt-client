@@ -15,6 +15,8 @@ import InlineEditInteractionHandler from "../shared/InlineEditInteractionHandler
 
 type Props = {
 	isEditMode: boolean;
+	// e.g. in the detail view, where the arrow keys page through the cards instead
+	isKeyboardMoveDisabled?: boolean;
 };
 const props = defineProps<Props>();
 const emit = defineEmits<{
@@ -30,7 +32,7 @@ const onEndEditMode = () => {
 	emit("end-edit-mode");
 };
 const onKeydownArrow = (event: KeyboardEvent) => {
-	if (!props.isEditMode) {
+	if (!props.isEditMode && !props.isKeyboardMoveDisabled) {
 		event.preventDefault();
 		emit("move:card-keyboard", event);
 	}

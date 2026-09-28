@@ -2,9 +2,9 @@ import CardHostInteractionHandlerVue from "./CardHostInteractionHandler.vue";
 import { shallowMount } from "@vue/test-utils";
 
 describe("CardHostInteractionHandler", () => {
-	const setup = (options: { isEditMode: boolean }) => {
+	const setup = (options: { isEditMode: boolean; isKeyboardMoveDisabled?: boolean }) => {
 		const wrapper = shallowMount(CardHostInteractionHandlerVue, {
-			propsData: { isEditMode: options?.isEditMode },
+			propsData: { isEditMode: options?.isEditMode, isKeyboardMoveDisabled: options?.isKeyboardMoveDisabled },
 		});
 
 		return { wrapper };
@@ -39,6 +39,18 @@ describe("CardHostInteractionHandler", () => {
 					await eventHandle.trigger(`keydown.${key}`);
 					const emitted: KeyboardEvent[][] = wrapper.emitted("move:card-keyboard") || [[]];
 					expect(emitted[0][0]).toBeFalsy();
+				}
+			);
+			it.each(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"])(
+				"should neither emit 'move:card-keyboard' nor swallow '%s' when keyboard move is disabled",
+				(key) => {
+					const { wrapper } = setup({ isEditMode: false, isKeyboardMoveDisabled: true });
+					const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+
+					wrapper.find("[data-testid=event-handle]").element.dispatchEvent(event);
+
+					expect(wrapper.emitted("move:card-keyboard")).toBeUndefined();
+					expect(event.defaultPrevented).toBe(false);
 				}
 			);
 		});
