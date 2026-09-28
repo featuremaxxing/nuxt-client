@@ -65,8 +65,11 @@ describe("WebDavAccessPage", () => {
 		await flushPromises();
 
 		expect(createAppPassword).toHaveBeenCalledWith("Handy");
-		expect(wrapper.find("[data-testid=webdav-created-token]").text()).toEqual("ap-2.secret");
-		expect(wrapper.find("[data-testid=webdav-created-username]").text()).toEqual("lehrer@schule.de");
+		const inputValue = (key: string) =>
+			(wrapper.find(`[data-testid=webdav-created-${key}] input`).element as HTMLInputElement).value;
+		expect(inputValue("token")).toEqual("ap-2.secret");
+		expect(inputValue("username")).toEqual("lehrer@schule.de");
+		expect(wrapper.find("[data-testid=webdav-created]").text()).toContain("pages.webdav.appPasswords.createdTitle");
 		expect(getAppPasswords).toHaveBeenCalledTimes(2);
 	});
 

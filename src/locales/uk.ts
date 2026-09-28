@@ -1942,8 +1942,8 @@ export default {
 	"pages.webdav.appPasswords.title": "Паролі застосунків",
 	"pages.webdav.appPasswords.description":
 		"Програми для дисків не можуть увійти через звичайну сторінку входу, тому створіть окремий пароль застосунку для кожного пристрою. Ви можете відкликати його тут у будь-який час.",
-	"pages.webdav.appPasswords.created":
-		"Пароль застосунку створено. Скопіюйте його зараз, він показується лише один раз.",
+	"pages.webdav.appPasswords.created": "Скопіюйте його зараз, він показується лише один раз.",
+	"pages.webdav.appPasswords.createdTitle": "Пароль застосунку «{name}» створено",
 	"pages.webdav.appPasswords.username": "Імʼя користувача",
 	"pages.webdav.appPasswords.password": "Пароль",
 	"pages.webdav.appPasswords.name": "Назва",

@@ -1961,8 +1961,8 @@ export default {
 	"pages.webdav.appPasswords.title": "App-Passwörter",
 	"pages.webdav.appPasswords.description":
 		"Laufwerks-Programme können sich nicht über die normale Anmeldeseite anmelden. Lege darum für jedes Gerät ein eigenes App-Passwort an. Du kannst es hier jederzeit widerrufen.",
-	"pages.webdav.appPasswords.created":
-		"Das App-Passwort wurde angelegt. Kopiere es jetzt, es wird nur dieses eine Mal angezeigt.",
+	"pages.webdav.appPasswords.created": "Kopiere es jetzt, es wird nur dieses eine Mal angezeigt.",
+	"pages.webdav.appPasswords.createdTitle": "App-Passwort „{name}“ angelegt",
 	"pages.webdav.appPasswords.username": "Benutzername",
 	"pages.webdav.appPasswords.password": "Passwort",
 	"pages.webdav.appPasswords.name": "Name",

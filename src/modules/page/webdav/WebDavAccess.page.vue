@@ -28,33 +28,53 @@
 		<h2 class="text-h4 mb-2">{{ t("pages.webdav.appPasswords.title") }}</h2>
 		<p class="mb-4">{{ t("pages.webdav.appPasswords.description") }}</p>
 
-		<VAlert
-			v-if="created"
-			type="success"
-			variant="tonal"
-			class="mb-4"
-			closable
-			data-testid="webdav-created"
-			@click:close="created = undefined"
-		>
-			<p class="mb-2">{{ t("pages.webdav.appPasswords.created") }}</p>
-			<div class="d-flex align-center ga-2">
-				<span class="font-weight-bold">{{ t("pages.webdav.appPasswords.username") }}:</span>
-				<code data-testid="webdav-created-username">{{ created.username }}</code>
-			</div>
-			<div class="d-flex align-center ga-2">
-				<span class="font-weight-bold">{{ t("pages.webdav.appPasswords.password") }}:</span>
-				<code class="text-break" data-testid="webdav-created-token">{{ created.token }}</code>
-				<VBtn
-					:icon="mdiContentCopy"
-					size="small"
-					variant="text"
-					:aria-label="t('common.actions.copy')"
-					data-testid="webdav-copy-token"
-					@click="copy(created.token)"
-				/>
-			</div>
-		</VAlert>
+		<VCard v-if="created" variant="tonal" color="success" class="mb-6" data-testid="webdav-created">
+			<VCardItem>
+				<template #prepend>
+					<VIcon :icon="mdiCheckCircle" size="28" />
+				</template>
+				<VCardTitle class="text-wrap">
+					{{ t("pages.webdav.appPasswords.createdTitle", { name: created.name }) }}
+				</VCardTitle>
+				<VCardSubtitle class="text-wrap opacity-100">{{ t("pages.webdav.appPasswords.created") }}</VCardSubtitle>
+				<template #append>
+					<VBtn
+						:icon="mdiClose"
+						size="small"
+						variant="text"
+						:aria-label="t('common.labels.close')"
+						data-testid="webdav-created-close"
+						@click="created = undefined"
+					/>
+				</template>
+			</VCardItem>
+			<VCardText>
+				<VSheet rounded class="pa-4 pb-0 text-high-emphasis">
+					<VTextField
+						v-for="field in createdFields"
+						:key="field.key"
+						:model-value="field.value"
+						:label="field.label"
+						readonly
+						variant="outlined"
+						density="comfortable"
+						:class="field.key === 'token' ? 'credential-token' : undefined"
+						:data-testid="`webdav-created-${field.key}`"
+					>
+						<template #append-inner>
+							<VBtn
+								:icon="mdiContentCopy"
+								size="small"
+								variant="text"
+								:aria-label="t('common.actions.copy')"
+								:data-testid="`webdav-copy-${field.key}`"
+								@click="copy(field.value)"
+							/>
+						</template>
+					</VTextField>
+				</VSheet>
+			</VCardText>
+		</VCard>
 
 		<form class="d-flex ga-2 align-start mb-4" @submit.prevent="onCreate">
 			<VTextField
@@ -122,10 +142,10 @@
 import { buildPageTitle } from "@/utils/pageTitle";
 import { notifySuccess } from "@data-app";
 import { AppPassword, CreatedAppPassword, useAppPasswordApi } from "@data-app-password";
-import { mdiContentCopy } from "@icons/material";
+import { mdiCheckCircle, mdiClose, mdiContentCopy } from "@icons/material";
 import { DefaultWireframe } from "@ui-layout";
 import { useTitle } from "@vueuse/core";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t, d } = useI18n();
@@ -142,6 +162,15 @@ const newName = ref("");
 const isCreating = ref(false);
 const created = ref<CreatedAppPassword>();
 const toRevoke = ref<AppPassword>();
+
+const createdFields = computed(() =>
+	created.value
+		? [
+				{ key: "username", label: t("pages.webdav.appPasswords.username"), value: created.value.username },
+				{ key: "token", label: t("pages.webdav.appPasswords.password"), value: created.value.token },
+			]
+		: []
+);
 
 const load = async () => {
 	appPasswords.value = (await getAppPasswords()) ?? [];
@@ -186,3 +215,10 @@ const onRevoke = async () => {
 	}
 };
 </script>
+
+<style scoped>
+.credential-token :deep(input) {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	letter-spacing: 0.02em;
+}
+</style>

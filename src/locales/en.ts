@@ -1927,7 +1927,8 @@ export default {
 	"pages.webdav.appPasswords.title": "App passwords",
 	"pages.webdav.appPasswords.description":
 		"Drive programs cannot sign in through the regular login page, so create a separate app password for each device. You can revoke it here at any time.",
-	"pages.webdav.appPasswords.created": "The app password has been created. Copy it now, it is only shown this once.",
+	"pages.webdav.appPasswords.created": "Copy it now, it is only shown this once.",
+	"pages.webdav.appPasswords.createdTitle": 'App password "{name}" created',
 	"pages.webdav.appPasswords.username": "Username",
 	"pages.webdav.appPasswords.password": "Password",
 	"pages.webdav.appPasswords.name": "Name",

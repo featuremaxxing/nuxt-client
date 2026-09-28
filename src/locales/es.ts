@@ -1960,8 +1960,8 @@ export default {
 	"pages.webdav.appPasswords.title": "Contraseñas de aplicación",
 	"pages.webdav.appPasswords.description":
 		"Los programas de unidades no pueden iniciar sesión a través de la página de inicio de sesión normal. Crea una contraseña de aplicación para cada dispositivo. Puedes revocarla aquí en cualquier momento.",
-	"pages.webdav.appPasswords.created":
-		"Se ha creado la contraseña de aplicación. Cópiala ahora, solo se muestra esta vez.",
+	"pages.webdav.appPasswords.created": "Cópiala ahora, solo se muestra esta vez.",
+	"pages.webdav.appPasswords.createdTitle": 'Contraseña de aplicación "{name}" creada',
 	"pages.webdav.appPasswords.username": "Nombre de usuario",
 	"pages.webdav.appPasswords.password": "Contraseña",
 	"pages.webdav.appPasswords.name": "Nombre",
