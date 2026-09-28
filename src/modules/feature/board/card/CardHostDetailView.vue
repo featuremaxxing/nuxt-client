@@ -6,6 +6,7 @@
 		scrim="transparent"
 		:transition="false"
 		@keydown.escape="onDialogClose"
+		@keydown="onArrowKeyNavigation"
 	>
 		<VToolbar id="card-detail-view-toolbar" class="toolbar border-b-thin">
 			<VBtn
@@ -19,6 +20,7 @@
 				:icon="mdiChevronLeft"
 				data-testid="prev-detail-view-button"
 				:aria-label="t('components.board.action.prev-detail-view')"
+				aria-keyshortcuts="ArrowLeft"
 				:to="previousCardRoute"
 				:disabled="!previousCardRoute"
 			/>
@@ -26,6 +28,7 @@
 				:icon="mdiChevronRight"
 				data-testid="next-detail-view-button"
 				:aria-label="t('components.board.action.next-detail-view')"
+				aria-keyshortcuts="ArrowRight"
 				:to="nextCardRoute"
 				:disabled="!nextCardRoute"
 			/>
@@ -82,7 +85,7 @@ import { useBoardAllowedOperations, useBoardFocusHandler, useCardStore, useCours
 import { mdiChevronLeft, mdiChevronRight, mdiClose } from "@icons/material";
 import { computed, ref, toRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
-import type { RouteLocationRaw } from "vue-router";
+import { type RouteLocationRaw, useRouter } from "vue-router";
 
 const props = defineProps<{
 	cardId: string;
@@ -135,6 +138,45 @@ const cardBorderColor = computed(() => {
 const onDialogClose = () => {
 	isOpen.value = false;
 	emit("close:detail-view");
+};
+
+const router = useRouter();
+
+// widgets that handle the arrow keys themselves (typing, radio buttons, sliders, tabs, media players)
+const ARROW_KEY_WIDGET_SELECTOR = [
+	"input",
+	"textarea",
+	"select",
+	"video",
+	"audio",
+	'[contenteditable]:not([contenteditable="false"])',
+	'[role="slider"]',
+	'[role="tablist"]',
+	'[role="radiogroup"]',
+	'[role="listbox"]',
+	'[role="menu"]',
+	'[role="grid"]',
+].join(",");
+
+const usesArrowKeysItself = (target: EventTarget | null): boolean => {
+	if (!(target instanceof HTMLElement)) return false;
+	return target.isContentEditable || target.closest(ARROW_KEY_WIDGET_SELECTOR) !== null;
+};
+
+// arrow-key paging through the cards, mirroring the prev/next toolbar buttons.
+// Bound on the dialog rather than the window: menus, light boxes and other
+// overlays opened from inside the card are teleported outside the dialog, so
+// their own arrow-key handling never reaches this listener.
+const onArrowKeyNavigation = (event: KeyboardEvent) => {
+	if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+	if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+	if (usesArrowKeysItself(event.target)) return;
+
+	const targetRoute = event.key === "ArrowLeft" ? props.previousCardRoute : props.nextCardRoute;
+	if (!targetRoute) return;
+
+	event.preventDefault();
+	router.push(targetRoute);
 };
 </script>
 
