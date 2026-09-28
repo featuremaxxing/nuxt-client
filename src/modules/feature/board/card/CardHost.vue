@@ -2,6 +2,7 @@
 	<div>
 		<CardHostInteractionHandler
 			:is-edit-mode="isEditMode"
+			:is-keyboard-move-disabled="isKeyboardMoveDisabled"
 			@start-edit-mode="onStartEditMode"
 			@end-edit-mode="onEndEditMode"
 			@move:card-keyboard="onMoveCardKeyboard"
@@ -134,6 +135,7 @@ type Props = {
 	rowIndex: number;
 	columnIndex: number;
 	focusTitleOnEditStart?: boolean;
+	isKeyboardMoveDisabled?: boolean;
 };
 
 const props = defineProps<Props>();

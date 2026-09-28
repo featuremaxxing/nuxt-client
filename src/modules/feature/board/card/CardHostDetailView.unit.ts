@@ -274,6 +274,15 @@ describe("CardHostDetailView", () => {
 		});
 	});
 
+	describe("card inside the detail view", () => {
+		it("should disable moving the card with the arrow keys, so they page through the cards", () => {
+			const { wrapper } = setup({ cardId: CARD_WITH_ELEMENTS.id });
+
+			const cardHost = wrapper.findComponent({ name: "CardHost" });
+			expect(cardHost.props("isKeyboardMoveDisabled")).toBe(true);
+		});
+	});
+
 	describe("when detail view is open", () => {
 		it("should display the dialog", () => {
 			const { wrapper } = setup({
