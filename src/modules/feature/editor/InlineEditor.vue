@@ -14,12 +14,14 @@
 <script setup lang="ts">
 import { advancedFormattingToolbar, advancedPlugins, compactHeadings } from "./config";
 import { useEditorConfig } from "./EditorConfig.composable";
+import { createReadMorePlugin, READ_MORE_TOOLBAR_ITEM } from "./read-more.plugin";
 import { Editor } from "@ckeditor/ckeditor5-core";
 import CKEditor from "@ckeditor/ckeditor5-vue";
 import { InlineEditor } from "@hpi-schul-cloud/ckeditor";
 import { useVModel } from "@vueuse/core";
 import katex from "katex";
 import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 (window as Window).katex = katex;
 
 const props = defineProps({
@@ -44,6 +46,16 @@ const emit = defineEmits(["ready", "focus", "update:value", "blur", "keyboard:de
 
 const CKEditorVue = CKEditor.component;
 const { generalConfig, registerDeletionHandler } = useEditorConfig();
+const { t } = useI18n();
+
+const ReadMorePlugin = createReadMorePlugin({
+	tooltip: t("components.editor.readMore.insert"),
+	marker: t("components.editor.readMore.marker"),
+});
+
+const toolbarItems = advancedFormattingToolbar.flatMap((item) =>
+	item === "horizontalLine" ? [item, READ_MORE_TOOLBAR_ITEM] : [item]
+);
 
 const modelValue = useVModel(props, "value", emit);
 let editorInstance: Editor | null = null;
@@ -51,9 +63,10 @@ let editorInstance: Editor | null = null;
 const config = computed(() => ({
 	...generalConfig,
 	toolbar: {
-		items: advancedFormattingToolbar,
+		items: toolbarItems,
 	},
 	plugins: advancedPlugins,
+	extraPlugins: [ReadMorePlugin],
 	heading: compactHeadings,
 	placeholder: props.placeholder,
 	ui: {
@@ -142,5 +155,22 @@ watch(
 
 .ck-math-tex {
 	font-size: large;
+}
+
+.ck-content .ck-read-more {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 16px 0;
+	color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+	font-size: var(--text-sm);
+	cursor: default;
+
+	&::before,
+	&::after {
+		content: "";
+		flex: 1;
+		border-top: 1px dashed currentColor;
+	}
 }
 </style>

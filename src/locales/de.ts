@@ -609,6 +609,8 @@ export default {
 	"components.cardElement.notification.visibleAndEditable":
 		"Dieses Whiteboard ist für alle Kursteilnehmenden sichtbar und bearbeitbar.",
 	"components.cardElement.richTextElement.placeholder": "Text hinzufügen",
+	"components.cardElement.richTextElement.showLess": "Weniger",
+	"components.cardElement.richTextElement.showMore": "Mehr",
 	"components.cardElement.richTextElement": "Textelement",
 	"components.cardElement.titleElement.placeholder": "Titel hinzufügen",
 	"components.cardElement.titleElement.validation.maxLength": "Der Titel darf nur {maxLength} Zeichen lang sein.",
@@ -897,6 +899,8 @@ export default {
 	"components.editor.fonts.colors.indigo": "Indigo",
 	"components.editor.fonts.colors.darkPurple": "Dunkelviolett",
 	"components.editor.fonts.colors.pink": "Rosa",
+	"components.editor.readMore.insert": "„Mehr“ einfügen: Text danach einklappen",
+	"components.editor.readMore.marker": "Mehr – der folgende Text ist eingeklappt",
 	"components.elementTypeSelection.messageError": "Element Nachricht ist nicht valide.",
 	"components.elementTypeSelection.dialog.title": "Element hinzufügen",
 	"components.elementTypeSelection.elements.externalToolElement.subtitle": "Externe Tools",
