@@ -4,6 +4,7 @@ import { createI18n } from "./plugins/i18n";
 import { createVuetifyPlugin } from "./plugins/vuetify";
 import router from "./router";
 import { initializeAxios } from "./utils/api";
+import { playStartupSoundOnFreshLogin } from "./utils/startup-sound";
 import { createDayJs } from "@/utils/date-time.utils";
 import { useAppStore } from "@data-app";
 import { useEnvStore } from "@data-env";
@@ -45,6 +46,7 @@ app.use(VueDOMPurifyHTML, {
 
 	try {
 		await useAppStore().login();
+		playStartupSoundOnFreshLogin();
 	} catch (error) {
 		logger.info("Unhandled error during login", error);
 	}
