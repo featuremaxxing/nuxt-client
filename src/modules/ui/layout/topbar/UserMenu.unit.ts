@@ -24,11 +24,13 @@ describe("@ui-layout/UserMenu", () => {
 		mockedSystem,
 		mockedTokenExpiration,
 		isSessionTokenExpired = false,
+		isWebDavEnabled = false,
 	}: {
 		isExternalFeatureEnabled?: boolean;
 		mockedSystem?: PublicSystemResponse;
 		mockedTokenExpiration?: Date;
 		isSessionTokenExpired?: boolean;
+		isWebDavEnabled?: boolean;
 	} = {}) => {
 		setActivePinia(createTestingPinia());
 		const { appStore } = createTestAppStore({
@@ -37,6 +39,7 @@ describe("@ui-layout/UserMenu", () => {
 
 		createTestEnvStore({
 			FEATURE_EXTERNAL_SYSTEM_LOGOUT_ENABLED: isExternalFeatureEnabled,
+			FEATURE_WEBDAV_ENABLED: isWebDavEnabled,
 			I18N__AVAILABLE_LANGUAGES: [LanguageType.DE, LanguageType.EN],
 		});
 
@@ -105,6 +108,19 @@ describe("@ui-layout/UserMenu", () => {
 		await logoutBtn.trigger("click");
 
 		expect(appStore.logout).toHaveBeenCalled();
+	});
+
+	describe("network drive link", () => {
+		it.each([
+			[true, true],
+			[false, false],
+		])("when FEATURE_WEBDAV_ENABLED is %s it should show the link: %s", async (isWebDavEnabled, expected) => {
+			const { wrapper } = setupWrapper({ isWebDavEnabled });
+
+			await wrapper.findComponent(VBtn).trigger("click");
+
+			expect(wrapper.findComponent("[data-testid=webdav-link]").exists()).toBe(expected);
+		});
 	});
 
 	describe("external logout", () => {

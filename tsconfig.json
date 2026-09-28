@@ -21,6 +21,7 @@
 		"paths": {
 			"@data-access": ["./src/modules/data/data-access"],
 			"@data-app": ["./src/modules/data/application"],
+			"@data-app-password": ["./src/modules/data/app-password"],
 			"@data-ai-question": ["./src/modules/data/ai-question"],
 			"@data-assignment": ["./src/modules/data/assignment"],
 			"@data-board": ["./src/modules/data/board"],
@@ -118,6 +119,7 @@
 			"@page-news": ["./src/modules/page/news"],
 			"@page-fwu-media": ["./src/modules/page/fwu-media"],
 			"@page-room": ["./src/modules/page/room"],
+			"@page-webdav": ["./src/modules/page/webdav"],
 			"@page-folder": ["./src/modules/page/folder"],
 			"@page-collabora": ["./src/modules/page/collabora"],
 			"@api-server": ["./src/generated/serverApi/v3"],

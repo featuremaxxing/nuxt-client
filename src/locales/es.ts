@@ -1941,6 +1941,40 @@ export default {
 	"pages.room.boardCard.label.openItem": "Abrir",
 	"pages.room.boardCard.menu.ariaLabel": "Menú del tablero",
 	"pages.room.progress.title": "Progreso",
+	"pages.webdav.title": "Unidad de red (WebDAV)",
+	"pages.webdav.intro":
+		"Monta los archivos de tus tableros como una unidad en Finder, en el Explorador de Windows o en la app Archivos. Los cursos y salas aparecen como carpetas con tableros, secciones y tarjetas. Las carpetas nuevas se convierten en secciones, tarjetas o elementos de carpeta, y los archivos se guardan directamente en el tablero.",
+	"pages.webdav.address.title": "Dirección",
+	"pages.webdav.instructions.macos.title": "macOS (Finder)",
+	"pages.webdav.instructions.macos.text":
+		'En Finder elige "Ir" → "Conectarse al servidor…" (⌘K), introduce {url} e inicia sesión con tu correo electrónico y una contraseña de aplicación.',
+	"pages.webdav.instructions.windows.title": "Windows (Explorador)",
+	"pages.webdav.instructions.windows.text":
+		'En el Explorador haz clic derecho en "Este equipo", elige "Conectar unidad de red…", introduce {url} como carpeta, activa "Conectar con otras credenciales" e inicia sesión con tu correo electrónico y una contraseña de aplicación.',
+	"pages.webdav.instructions.ios.title": "iPhone y iPad (Archivos)",
+	"pages.webdav.instructions.ios.text":
+		'En la app Archivos toca "…" arriba a la derecha, elige "Conectarse al servidor", introduce {url} e inicia sesión como "Usuario registrado" con tu correo electrónico y una contraseña de aplicación.',
+	"pages.webdav.instructions.linux.title": "Linux y otros programas",
+	"pages.webdav.instructions.linux.text":
+		"Funciona cualquier programa compatible con WebDAV, por ejemplo tu gestor de archivos (davs://…), rclone o Cyberduck. Dirección: {url}",
+	"pages.webdav.appPasswords.title": "Contraseñas de aplicación",
+	"pages.webdav.appPasswords.description":
+		"Los programas de unidades no pueden iniciar sesión a través de la página de inicio de sesión normal. Crea una contraseña de aplicación para cada dispositivo. Puedes revocarla aquí en cualquier momento.",
+	"pages.webdav.appPasswords.created":
+		"Se ha creado la contraseña de aplicación. Cópiala ahora, solo se muestra esta vez.",
+	"pages.webdav.appPasswords.username": "Nombre de usuario",
+	"pages.webdav.appPasswords.password": "Contraseña",
+	"pages.webdav.appPasswords.name": "Nombre",
+	"pages.webdav.appPasswords.namePlaceholder": "p. ej. Portátil Finder",
+	"pages.webdav.appPasswords.create": "Crear contraseña de aplicación",
+	"pages.webdav.appPasswords.empty": "Todavía no has creado contraseñas de aplicación.",
+	"pages.webdav.appPasswords.revoke": "Revocar",
+	"pages.webdav.appPasswords.revokeConfirm.title": "¿Revocar la contraseña de aplicación?",
+	"pages.webdav.appPasswords.revokeConfirm.text": 'Los dispositivos que usan "{name}" perderán el acceso a la unidad.',
+	"pages.webdav.appPasswords.createdAt": "creada el {date}",
+	"pages.webdav.appPasswords.lastUsedAt": "usada por última vez el {date}",
+	"pages.webdav.appPasswords.neverUsed": "nunca usada",
+	"pages.webdav.copied": "Copiado al portapapeles",
 	"pages.room.progress.empty": "Todavía no hay tareas, casillas o encuestas en esta sala.",
 	"pages.room.progress.doneOf": "{done}/{total} completado",
 	"pages.room.progress.tab.students": "Estudiantes",

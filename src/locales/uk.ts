@@ -1923,6 +1923,40 @@ export default {
 	"pages.room.boardCard.label.openItem": "Відкрити",
 	"pages.room.boardCard.menu.ariaLabel": "Меню форуму",
 	"pages.room.progress.title": "Прогрес",
+	"pages.webdav.title": "Мережевий диск (WebDAV)",
+	"pages.webdav.intro":
+		"Підключіть файли своїх дошок як диск у Finder, Провіднику Windows або в застосунку «Файли». Курси та кімнати відображаються як папки з дошками, розділами та картками. Нові папки стають розділами, картками або елементами-папками, а файли зберігаються безпосередньо на дошці.",
+	"pages.webdav.address.title": "Адреса",
+	"pages.webdav.instructions.macos.title": "macOS (Finder)",
+	"pages.webdav.instructions.macos.text":
+		"У Finder виберіть «Перейти» → «Підʼєднатися до сервера…» (⌘K), введіть {url} і увійдіть за допомогою своєї електронної адреси та пароля застосунку.",
+	"pages.webdav.instructions.windows.title": "Windows (Провідник)",
+	"pages.webdav.instructions.windows.text":
+		"У Провіднику клацніть правою кнопкою миші «Цей ПК», виберіть «Підключити мережевий диск…», введіть {url} як папку, увімкніть «Підключатися з іншими обліковими даними» та увійдіть за допомогою своєї електронної адреси та пароля застосунку.",
+	"pages.webdav.instructions.ios.title": "iPhone та iPad (Файли)",
+	"pages.webdav.instructions.ios.text":
+		"У застосунку «Файли» торкніться «…» угорі праворуч, виберіть «Підʼєднатися до сервера», введіть {url} і увійдіть як «Зареєстрований користувач» за допомогою своєї електронної адреси та пароля застосунку.",
+	"pages.webdav.instructions.linux.title": "Linux та інші програми",
+	"pages.webdav.instructions.linux.text":
+		"Підійде будь-яка програма з підтримкою WebDAV, наприклад файловий менеджер (davs://…), rclone або Cyberduck. Адреса: {url}",
+	"pages.webdav.appPasswords.title": "Паролі застосунків",
+	"pages.webdav.appPasswords.description":
+		"Програми для дисків не можуть увійти через звичайну сторінку входу, тому створіть окремий пароль застосунку для кожного пристрою. Ви можете відкликати його тут у будь-який час.",
+	"pages.webdav.appPasswords.created":
+		"Пароль застосунку створено. Скопіюйте його зараз, він показується лише один раз.",
+	"pages.webdav.appPasswords.username": "Імʼя користувача",
+	"pages.webdav.appPasswords.password": "Пароль",
+	"pages.webdav.appPasswords.name": "Назва",
+	"pages.webdav.appPasswords.namePlaceholder": "напр. Ноутбук Finder",
+	"pages.webdav.appPasswords.create": "Створити пароль застосунку",
+	"pages.webdav.appPasswords.empty": "Ви ще не створили жодного пароля застосунку.",
+	"pages.webdav.appPasswords.revoke": "Відкликати",
+	"pages.webdav.appPasswords.revokeConfirm.title": "Відкликати пароль застосунку?",
+	"pages.webdav.appPasswords.revokeConfirm.text": "Пристрої, що використовують «{name}», втратять доступ до диска.",
+	"pages.webdav.appPasswords.createdAt": "створено {date}",
+	"pages.webdav.appPasswords.lastUsedAt": "востаннє використано {date}",
+	"pages.webdav.appPasswords.neverUsed": "ще не використовувався",
+	"pages.webdav.copied": "Скопійовано в буфер обміну",
 	"pages.room.progress.empty": "У цьому просторі ще немає завдань, чекбоксів або опитувань.",
 	"pages.room.progress.doneOf": "{done}/{total} виконано",
 	"pages.room.progress.tab.students": "Учні",

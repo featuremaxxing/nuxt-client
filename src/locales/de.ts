@@ -1942,6 +1942,41 @@ export default {
 	"pages.room.boardCard.label.openItem": "Öffnen",
 	"pages.room.boardCard.menu.ariaLabel": "Bereich-Menü",
 	"pages.room.progress.title": "Fortschritt",
+	"pages.webdav.title": "Netzlaufwerk (WebDAV)",
+	"pages.webdav.intro":
+		"Binde die Dateien deiner Boards als Laufwerk im Finder, im Windows Explorer oder in der Dateien-App ein. Kurse und Räume erscheinen als Ordner, darin Boards, Abschnitte und Karten. Neue Ordner werden zu Abschnitten, Karten oder Ordner-Elementen, Dateien landen direkt im Board.",
+	"pages.webdav.address.title": "Adresse",
+	"pages.webdav.instructions.macos.title": "macOS (Finder)",
+	"pages.webdav.instructions.macos.text":
+		"Im Finder „Gehe zu“ → „Mit Server verbinden …“ (⌘K) wählen, {url} eingeben und mit deiner E-Mail-Adresse und einem App-Passwort anmelden.",
+	"pages.webdav.instructions.windows.title": "Windows (Explorer)",
+	"pages.webdav.instructions.windows.text":
+		"Im Explorer mit der rechten Maustaste auf „Dieser PC“ klicken, „Netzlaufwerk verbinden …“ wählen, {url} als Ordner eintragen, „Verbindung mit anderen Anmeldeinformationen herstellen“ aktivieren und mit deiner E-Mail-Adresse und einem App-Passwort anmelden.",
+	"pages.webdav.instructions.ios.title": "iPhone und iPad (Dateien)",
+	"pages.webdav.instructions.ios.text":
+		"In der Dateien-App oben rechts auf „…“ tippen, „Mit Server verbinden“ wählen, {url} eingeben und als „Registrierter Benutzer“ mit deiner E-Mail-Adresse und einem App-Passwort anmelden.",
+	"pages.webdav.instructions.linux.title": "Linux und andere Programme",
+	"pages.webdav.instructions.linux.text":
+		"Jedes WebDAV-fähige Programm funktioniert, zum Beispiel der Dateimanager (davs://…), rclone oder Cyberduck. Adresse: {url}",
+	"pages.webdav.appPasswords.title": "App-Passwörter",
+	"pages.webdav.appPasswords.description":
+		"Laufwerks-Programme können sich nicht über die normale Anmeldeseite anmelden. Lege darum für jedes Gerät ein eigenes App-Passwort an. Du kannst es hier jederzeit widerrufen.",
+	"pages.webdav.appPasswords.created":
+		"Das App-Passwort wurde angelegt. Kopiere es jetzt, es wird nur dieses eine Mal angezeigt.",
+	"pages.webdav.appPasswords.username": "Benutzername",
+	"pages.webdav.appPasswords.password": "Passwort",
+	"pages.webdav.appPasswords.name": "Name",
+	"pages.webdav.appPasswords.namePlaceholder": "z. B. Laptop Finder",
+	"pages.webdav.appPasswords.create": "App-Passwort anlegen",
+	"pages.webdav.appPasswords.empty": "Du hast noch keine App-Passwörter angelegt.",
+	"pages.webdav.appPasswords.revoke": "Widerrufen",
+	"pages.webdav.appPasswords.revokeConfirm.title": "App-Passwort widerrufen?",
+	"pages.webdav.appPasswords.revokeConfirm.text":
+		"Geräte, die „{name}“ verwenden, verlieren den Zugriff auf das Laufwerk.",
+	"pages.webdav.appPasswords.createdAt": "angelegt am {date}",
+	"pages.webdav.appPasswords.lastUsedAt": "zuletzt verwendet am {date}",
+	"pages.webdav.appPasswords.neverUsed": "noch nie verwendet",
+	"pages.webdav.copied": "In die Zwischenablage kopiert",
 	"pages.room.progress.empty": "Für diesen Raum gibt es noch keine Aufgaben, Checkboxen oder Umfragen.",
 	"pages.room.progress.doneOf": "{done}/{total} abgeschlossen",
 	"pages.room.progress.tab.students": "Schüler:innen",

@@ -450,6 +450,12 @@ export interface ConfigResponse {
      * @type {boolean}
      * @memberof ConfigResponse
      */
+    FEATURE_WEBDAV_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
     FEATURE_BOARD_READERS_CAN_EDIT_TOGGLE: boolean;
     /**
      * 
