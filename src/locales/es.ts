@@ -601,6 +601,8 @@ export default {
 	"components.cardElement.notification.visibleAndEditable":
 		"Esta pizarra es visible y editable para todos los participantes en el curso.",
 	"components.cardElement.richTextElement.placeholder": "Añadir texto",
+	"components.cardElement.richTextElement.showLess": "Menos",
+	"components.cardElement.richTextElement.showMore": "Más",
 	"components.cardElement.richTextElement": "Elemento texto",
 	"components.cardElement.titleElement.placeholder": "Añadir título",
 	"components.cardElement.titleElement.validation.maxLength": "El título solo puede tener {maxLength} caracteres.",
@@ -888,6 +890,8 @@ export default {
 	"components.editor.fonts.colors.indigo": "Índigo",
 	"components.editor.fonts.colors.darkPurple": "Púrpura Oscuro",
 	"components.editor.fonts.colors.pink": "Rosa",
+	"components.editor.readMore.insert": "Insertar «Más»: contraer el texto siguiente",
+	"components.editor.readMore.marker": "Más – el texto siguiente está contraído",
 	"components.elementTypeSelection.messageError": "El mensaje del elemento no es válido.",
 	"components.elementTypeSelection.dialog.title": "Añadir elemento",
 	"components.elementTypeSelection.elements.externalToolElement.subtitle": "Herramientas externas",

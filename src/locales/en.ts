@@ -588,6 +588,8 @@ export default {
 	"components.cardElement.notification.visibleAndEditable":
 		"This whiteboard is visible and editable for all course participants.",
 	"components.cardElement.richTextElement.placeholder": "Add text",
+	"components.cardElement.richTextElement.showLess": "Less",
+	"components.cardElement.richTextElement.showMore": "More",
 	"components.cardElement.richTextElement": "Text element",
 	"components.cardElement.titleElement.placeholder": "Add title",
 	"components.cardElement.titleElement.validation.maxLength": "The title can only be {maxLength} characters long.",
@@ -874,6 +876,8 @@ export default {
 	"components.editor.fonts.colors.indigo": "Indigo",
 	"components.editor.fonts.colors.darkPurple": "Dark Purple",
 	"components.editor.fonts.colors.pink": "Pink",
+	"components.editor.readMore.insert": "Insert “More”: collapse the text below",
+	"components.editor.readMore.marker": "More – the text below is collapsed",
 	"components.elementTypeSelection.messageError": "Element message is not valid.",
 	"components.elementTypeSelection.dialog.title": "Add element",
 	"components.elementTypeSelection.elements.externalToolElement.subtitle": "External tools",

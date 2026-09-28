@@ -599,6 +599,8 @@ export default {
 	"components.cardElement.notification.visibleAndEditable":
 		"Ця дошка є видимою і доступною для редагування для всіх учасників курсу.",
 	"components.cardElement.richTextElement.placeholder": "додати текст",
+	"components.cardElement.richTextElement.showLess": "Менше",
+	"components.cardElement.richTextElement.showMore": "Більше",
 	"components.cardElement.richTextElement": "Текстовий елемент",
 	"components.cardElement.titleElement.placeholder": "Додати назву",
 	"components.cardElement.titleElement.validation.maxLength": "Назва може містити лише {maxLength} символів.",
@@ -884,6 +886,8 @@ export default {
 	"components.editor.fonts.colors.indigo": "Індиго",
 	"components.editor.fonts.colors.darkPurple": "Темно-фіолетовий",
 	"components.editor.fonts.colors.pink": "Рожевий",
+	"components.editor.readMore.insert": "Вставити «Більше»: згорнути текст нижче",
+	"components.editor.readMore.marker": "Більше – текст нижче згорнуто",
 	"components.elementTypeSelection.messageError": "Повідомлення елемента недійсне.",
 	"components.elementTypeSelection.dialog.title": "Додати елемент",
 	"components.elementTypeSelection.elements.externalToolElement.subtitle": "Зовнішні інструменти",
