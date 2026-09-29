@@ -313,6 +313,8 @@ export const useBoardApi = () => {
 		};
 	};
 
+	const deleteBoardCall = async (boardId: string) => boardApi.boardControllerDeleteBoard(boardId);
+
 	const updateBoardVisibilityCall = async (boardId: string, isVisible: boolean) =>
 		boardApi.boardControllerUpdateVisibility(boardId, { isVisible });
 
@@ -331,6 +333,7 @@ export const useBoardApi = () => {
 
 	return {
 		fetchBoardCall,
+		deleteBoardCall,
 		createColumnCall,
 		createElementCall,
 		deleteElementCall,

@@ -17,14 +17,20 @@
 /**
  * 
  * @export
- * @enum {string}
+ * @interface CreateFileAreaFolderBodyParams
  */
-export enum BoardLayout {
-    COLUMNS = 'columns',
-    LIST = 'list',
-    GRID = 'grid',
-    FILES = 'files'
+export interface CreateFileAreaFolderBodyParams {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateFileAreaFolderBodyParams
+     */
+    parentId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateFileAreaFolderBodyParams
+     */
+    title: string;
 }
-
-
 

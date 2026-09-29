@@ -19,10 +19,11 @@
 <script setup lang="ts">
 import { PickerOption } from "./types";
 import { BoardLayout } from "@api-server";
-import { mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
+import { useEnvConfig } from "@data-env";
+import { mdiFolderMultipleOutline, mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
 import { SvsDialog } from "@ui-dialog";
 import { ExtendedIconBtn } from "@ui-extended-icon-btn";
-import { PropType } from "vue";
+import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
 const isOpen = defineModel({
@@ -30,10 +31,15 @@ const isOpen = defineModel({
 	required: true,
 });
 
-defineProps({
+const props = defineProps({
 	currentLayout: {
 		type: String as PropType<BoardLayout>,
 		default: "",
+	},
+	// a file area can only be created (in a room), an existing board never turns into one
+	allowFileArea: {
+		type: Boolean,
+		default: false,
 	},
 });
 
@@ -43,7 +49,7 @@ defineEmits<{
 
 const { t } = useI18n();
 
-const boardLayouts: PickerOption[] = [
+const baseLayouts: PickerOption[] = [
 	{
 		label: t("pages.room.dialog.boardLayout.multiColumn"),
 		icon: mdiViewDashboardOutline,
@@ -59,6 +65,20 @@ const boardLayouts: PickerOption[] = [
 		ariaLabel: t("pages.room.dialog.boardLayout.singleColumn"),
 	},
 ];
+
+const fileAreaLayout: PickerOption = {
+	label: t("pages.room.dialog.boardLayout.fileArea"),
+	icon: mdiFolderMultipleOutline,
+	type: BoardLayout.FILES,
+	dataTestId: "dialog-add-file-area-board",
+	ariaLabel: t("pages.room.dialog.boardLayout.fileArea"),
+};
+
+const boardLayouts = computed<PickerOption[]>(() =>
+	props.allowFileArea && useEnvConfig().value.FEATURE_BOARD_FILE_AREA_ENABLED
+		? [...baseLayouts, fileAreaLayout]
+		: baseLayouts
+);
 </script>
 
 <style scoped>

@@ -43,6 +43,7 @@
 		<SelectBoardLayoutDialog
 			v-if="allowedOperations.editContent"
 			v-model="boardLayoutDialogIsOpen"
+			allow-file-area
 			@select="onCreateBoard"
 		/>
 		<LeaveRoomProhibitedDialog v-model="isLeaveRoomProhibitedDialogOpen" />
@@ -216,7 +217,11 @@ const onLeaveRoom = async () => {
 };
 
 const onCreateBoard = async (layout: BoardLayout) => {
-	const boardId = await createBoard(room.value.id, layout, t("pages.roomDetails.board.defaultName"));
+	const defaultName =
+		layout === BoardLayout.FILES
+			? t("pages.roomDetails.board.defaultFileAreaName")
+			: t("pages.roomDetails.board.defaultName");
+	const boardId = await createBoard(room.value.id, layout, defaultName);
 	router.push(`/boards/${boardId}`);
 };
 

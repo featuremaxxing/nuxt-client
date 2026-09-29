@@ -67,7 +67,7 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
 import { ProgressSummary } from "@data-board-progress";
 import { ProgressBar } from "@feature-board-progress";
-import { mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
+import { mdiFolderMultipleOutline, mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
 import {
 	KebabMenu,
 	KebabMenuActionDelete,
@@ -102,12 +102,18 @@ const isListBoard = computed(() => props.board.layout === BoardLayout.LIST);
 
 const isDraft = computed(() => props.board.isVisible === false);
 
-const subtitleIcon = computed(() => (isListBoard.value ? mdiViewAgendaOutline : mdiViewDashboardOutline));
+const isFileArea = computed(() => props.board.layout === BoardLayout.FILES);
+
+const subtitleIcon = computed(() => {
+	if (isFileArea.value) return mdiFolderMultipleOutline;
+	return isListBoard.value ? mdiViewAgendaOutline : mdiViewDashboardOutline;
+});
 
 const subtitleText = computed(() => {
-	const text = isListBoard.value
+	let text = isListBoard.value
 		? t("pages.room.boardCard.label.listBoard")
 		: t("pages.room.boardCard.label.columnBoard");
+	if (isFileArea.value) text = t("pages.room.boardCard.label.fileArea");
 
 	if (isDraft.value) {
 		const suffix = ` - ${t("common.words.draft")}`;
