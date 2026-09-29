@@ -54,6 +54,16 @@ vier hier bearbeiteten Repos und konnte nicht geprüft werden.
 
 - `fetchFiles`, `upload` und `uploadCollaboraFile` haben einen neuen optionalen `folderId`-
   Parameter, der als Query-Parameter an die entsprechenden Endpunkte durchgereicht wird.
+- **Auf Staging gefundener Bug (behoben):** Der generierte API-Client mischt `options.query`
+  per `URLSearchParams` in die Anfrage-URL ein. Ein Objekt wie `{ folderId: undefined }` wird
+  dabei nicht weggelassen, sondern zum buchstäblichen String `"undefined"` in der URL
+  (`?folderId=undefined`) — das Backend hat das als ungültige Mongo-ID abgelehnt und **jeden**
+  Datei-Upload/-Abruf im Dateibereich fehlschlagen lassen, nicht nur bei Unterordnern. Betraf
+  `fetchFiles`, `upload` und `uploadCollaboraFile`. Behoben durch die Hilfsfunktion
+  `buildFolderQuery(folderId?)`, die bei fehlendem `folderId` ein leeres Objekt statt
+  `{ folderId: undefined }` liefert. Die beiden neuen Endpunkte `createFolder`/`moveFile`
+  waren davon nicht betroffen, da sie `folderId` im JSON-Body senden (`JSON.stringify`
+  lässt `undefined`-Werte korrekt weg).
 - **Wichtiger Hinweis zum generierten API-Client:** Die neuen Backend-Endpunkte
   `POST /file/folder/...` (Ordner anlegen) und `PATCH /file/move/:fileRecordId` (Verschieben)
   sind **nicht** Teil des generierten OpenAPI-Clients (`src/generated/fileStorageApi/v3/`), da
@@ -164,4 +174,5 @@ hinzugefügt (Import- und Export-Liste, wie von der Projektkonvention gefordert)
 
 ## Status
 
-In manueller Prüfung auf Staging.
+In manueller Prüfung auf Staging. Dabei wurde der oben beschriebene `folderId=undefined`-Bug
+gefunden und behoben.

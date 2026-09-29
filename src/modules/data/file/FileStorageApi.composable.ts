@@ -40,6 +40,15 @@ export enum CollaboraFileType {
 	Presentation = "PRESENTATION",
 }
 
+/**
+ * The generated API client merges `options.query` verbatim into the request's query string
+ * via URLSearchParams, which stringifies an explicit `undefined` value into the literal text
+ * "undefined" instead of omitting the key. Since folderId is optional (undefined = root level),
+ * building the query object this way keeps the key out entirely when there is no folderId.
+ */
+const buildFolderQuery = (folderId?: string): { folderId: string } | Record<string, never> =>
+	folderId ? { folderId } : {};
+
 export const useFileStorageApi = () => {
 	const { t, n } = useI18n();
 	const fileApi: FileApiInterface = FileApiFactory(undefined, "/v3", $axios);
@@ -72,7 +81,7 @@ export const useFileStorageApi = () => {
 				undefined,
 				undefined,
 				{
-					query: { folderId },
+					query: buildFolderQuery(folderId),
 				}
 			);
 
@@ -92,7 +101,7 @@ export const useFileStorageApi = () => {
 	): Promise<void> => {
 		try {
 			const schoolId = useAppStore().school?.id as string;
-			const options = { ...buildUploadOptions(onUploadProgress), query: { folderId } };
+			const options = { ...buildUploadOptions(onUploadProgress), query: buildFolderQuery(folderId) };
 			const response = await fileApi.upload(schoolId, StorageLocation.SCHOOL, parentId, parentType, file, options);
 			upsertFileRecords([response.data]);
 		} catch (error) {
@@ -186,7 +195,7 @@ export const useFileStorageApi = () => {
 				parentId,
 				parentType,
 				addDocumentToParentParams,
-				{ query: { folderId } }
+				{ query: buildFolderQuery(folderId) }
 			);
 
 			upsertFileRecords([response.data]);
