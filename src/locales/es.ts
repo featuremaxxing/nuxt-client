@@ -597,6 +597,7 @@ export default {
 		"Este archivo está en un área de archivos que no es visible para ti.",
 	"components.cardElement.fileAreaLinkElement.missing": '"{name}" ya no existe.',
 	"components.cardElement.fileAreaLinkElement.noTarget": "Todavía no hay ningún archivo ni carpeta vinculados.",
+	"components.cardElement.fileAreaLinkElement.openFile": 'Abrir "{name}"',
 	"components.cardElement.fileAreaLinkElement.openInFileArea": "Abrir en el área de archivos",
 	"components.cardElement.fileAreaLinkElement.pick": "Elegir archivo o carpeta",
 	"components.cardElement.fileAreaLinkElement.picker.fileArea": "Área de archivos",

@@ -583,6 +583,7 @@ export default {
 	"components.cardElement.fileAreaLinkElement.forbidden": "This file is in a file area that is not visible to you.",
 	"components.cardElement.fileAreaLinkElement.missing": '"{name}" no longer exists.',
 	"components.cardElement.fileAreaLinkElement.noTarget": "No file or folder linked yet.",
+	"components.cardElement.fileAreaLinkElement.openFile": 'Open "{name}"',
 	"components.cardElement.fileAreaLinkElement.openInFileArea": "Open in file area",
 	"components.cardElement.fileAreaLinkElement.pick": "Choose a file or folder",
 	"components.cardElement.fileAreaLinkElement.picker.fileArea": "File area",

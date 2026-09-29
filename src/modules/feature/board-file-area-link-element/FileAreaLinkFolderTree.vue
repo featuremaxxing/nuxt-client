@@ -23,11 +23,10 @@
 				type="button"
 				class="folder-tree__row"
 				:data-testid="`link-tree-file-${file.name}`"
-				@click="downloadFile(file.url, file.name)"
+				@click="openFilePreview(file)"
 			>
 				<VIcon size="18" :icon="mdiFileDocumentOutline" />
 				<span>{{ file.name }}</span>
-				<VIcon size="16" class="ml-auto" :icon="mdiTrayArrowDown" />
 			</button>
 		</li>
 		<li v-if="level === 0 && subfolders.length === 0 && files.length === 0" class="folder-tree__empty text-body-2">
@@ -37,12 +36,12 @@
 </template>
 
 <script setup lang="ts">
+import { openFilePreview } from "./file-preview";
 import { childrenOf } from "./folder-tree";
 import { FileRecordParent } from "@/types/file/File";
-import { downloadFile } from "@/utils/fileHelper";
 import type { FileAreaFolder } from "@data-board-file-area";
 import { useFileStorageApi } from "@data-file";
-import { mdiFileDocumentOutline, mdiFolderOpenOutline, mdiFolderOutline, mdiTrayArrowDown } from "@icons/material";
+import { mdiFileDocumentOutline, mdiFolderOpenOutline, mdiFolderOutline } from "@icons/material";
 import { computed, onMounted, PropType, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 

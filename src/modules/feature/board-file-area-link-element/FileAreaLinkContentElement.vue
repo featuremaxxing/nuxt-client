@@ -8,7 +8,18 @@
 	>
 		<ContentElementBar :icon="barIcon">
 			<template #title>
-				<span class="location" :title="locationTitle" data-testid="file-area-link-location">{{ locationTitle }}</span>
+				<RouterLink
+					v-if="canOpenFileArea"
+					class="location"
+					:title="locationTitle"
+					:to="fileAreaRoute"
+					data-testid="file-area-link-location"
+				>
+					{{ locationTitle }}
+				</RouterLink>
+				<span v-else class="location" :title="locationTitle" data-testid="file-area-link-location">
+					{{ locationTitle }}
+				</span>
 			</template>
 			<template v-if="isEditMode" #menu>
 				<BoardMenu :scope="BoardMenuScope.FILE_AREA_LINK_ELEMENT" has-background>
@@ -65,21 +76,29 @@
 
 			<!-- a single file -->
 			<div v-else-if="file" class="d-flex align-center ga-3" data-testid="file-area-link-file">
-				<VImg
-					v-if="isPreviewPossible(file.previewStatus)"
-					:src="convertDownloadToPreviewUrl(file.url, PreviewWidth._150)"
-					:alt="file.name"
-					max-width="96"
-					max-height="96"
-					cover
-				/>
-				<VIcon v-else :icon="mdiFileDocumentOutline" size="40" aria-hidden="true" />
-				<div class="flex-1-1 overflow-hidden">
-					<div class="text-subtitle-2 file-name" :title="file.name" data-testid="file-area-link-file-name">
-						{{ file.name }}
+				<button
+					type="button"
+					class="file-open d-flex align-center ga-3 flex-1-1 overflow-hidden"
+					:aria-label="t('components.cardElement.fileAreaLinkElement.openFile', { name: file.name })"
+					data-testid="file-area-link-open-file"
+					@click="openFilePreview(file)"
+				>
+					<VImg
+						v-if="isPreviewPossible(file.previewStatus)"
+						:src="convertDownloadToPreviewUrl(file.url, PreviewWidth._150)"
+						:alt="file.name"
+						max-width="96"
+						max-height="96"
+						cover
+					/>
+					<VIcon v-else :icon="mdiFileDocumentOutline" size="40" aria-hidden="true" />
+					<div class="flex-1-1 overflow-hidden">
+						<div class="text-subtitle-2 file-name" :title="file.name" data-testid="file-area-link-file-name">
+							{{ file.name }}
+						</div>
+						<div class="text-caption">{{ formattedSize }}</div>
 					</div>
-					<div class="text-caption">{{ formattedSize }}</div>
-				</div>
+				</button>
 				<VBtn
 					:icon="mdiTrayArrowDown"
 					variant="text"
@@ -120,6 +139,7 @@
 
 <script setup lang="ts">
 import { useFileAreaLinkApi } from "./file-area-link-api";
+import { openFilePreview } from "./file-preview";
 import FileAreaLinkFolderTree from "./FileAreaLinkFolderTree.vue";
 import FileAreaLinkPickerDialog, { type FileAreaLinkTarget } from "./FileAreaLinkPickerDialog.vue";
 import { checkFolderTree, pathTo } from "./folder-tree";
@@ -206,9 +226,13 @@ const treeCheck = computed(() =>
 		: ({ fits: true } as const)
 );
 
+const canOpenFileArea = computed(() => !!fileArea.value && loadState.value === "ok");
+
+// opens the file area at the linked folder, or at the folder the linked file is in
 const fileAreaRoute = computed(() => {
 	const { fileAreaId, targetId } = element.value.content;
-	const path = folders.value && targetId ? pathTo(folders.value, targetId) : [];
+	const folderId = isFolder.value ? targetId : file.value?.parentId;
+	const path = folders.value && folderId ? pathTo(folders.value, folderId) : [];
 
 	return { path: `/boards/${fileAreaId}`, query: path.length ? { path: path.join(",") } : {} };
 });
@@ -292,6 +316,17 @@ const onDelete = async () => {
 }
 
 /* long names without spaces (e.g. generated ones) must wrap instead of pushing the card wider */
+.file-open {
+	text-align: left;
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.file-open:hover .file-name {
+	text-decoration: underline;
+}
+
 .file-name {
 	overflow-wrap: anywhere;
 	display: -webkit-box;

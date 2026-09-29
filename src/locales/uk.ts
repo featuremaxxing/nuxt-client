@@ -594,6 +594,7 @@ export default {
 	"components.cardElement.fileAreaLinkElement.forbidden": "Цей файл лежить у файловому розділі, який вам не видно.",
 	"components.cardElement.fileAreaLinkElement.missing": "«{name}» більше не існує.",
 	"components.cardElement.fileAreaLinkElement.noTarget": "Ще не пов’язано жодного файлу чи папки.",
+	"components.cardElement.fileAreaLinkElement.openFile": "Відкрити «{name}»",
 	"components.cardElement.fileAreaLinkElement.openInFileArea": "Відкрити у файловому розділі",
 	"components.cardElement.fileAreaLinkElement.pick": "Вибрати файл або папку",
 	"components.cardElement.fileAreaLinkElement.picker.fileArea": "Файловий розділ",

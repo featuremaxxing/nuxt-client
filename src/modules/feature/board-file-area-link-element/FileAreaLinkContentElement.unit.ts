@@ -18,6 +18,9 @@ vi.mock("@data-board", () => ({
 	useContentElementState: (props: { element: { content: object } }) => ({ modelValue: ref(props.element.content) }),
 	useSharedBoardPageInformation: () => ({ roomId: ref("room") }),
 }));
+const openFilePreview = vi.fn();
+vi.mock("./file-preview", () => ({ openFilePreview: (...args: unknown[]) => openFilePreview(...args) }));
+
 vi.mock("@data-file", () => ({
 	useFileStorageApi: () => ({ fetchFiles: vi.fn(), getFileRecordsByParentId: () => [] }),
 }));
@@ -36,7 +39,10 @@ describe("FileAreaLinkContentElement", () => {
 		mount(FileAreaLinkContentElement, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
-				stubs: { FileAreaLinkPickerDialog: true, RouterLink: true },
+				stubs: {
+					FileAreaLinkPickerDialog: true,
+					RouterLink: { props: ["to"], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' },
+				},
 			},
 			props: {
 				element: {
@@ -167,5 +173,27 @@ describe("FileAreaLinkContentElement", () => {
 		await flushPromises();
 
 		expect(wrapper.find("[data-testid=file-area-link-location]").text()).toEqual("Dateien › Material › Woche 1");
+	});
+
+	it("should open a linked file in the preview and link the location into the file area", async () => {
+		const file = {
+			id: "file",
+			name: "bild.png",
+			parentId: "f",
+			size: 10,
+			url: "/file",
+			previewStatus: "preview_possible",
+		};
+		loadFile.mockResolvedValue({ status: "ok", value: file });
+		loadFolders.mockResolvedValue({ status: "ok", value: [folder("f", "area", "Material")] });
+
+		const wrapper = setup({ fileAreaId: "area", targetType: FileAreaLinkTargetType.FILE, targetId: "file" });
+		await flushPromises();
+		await wrapper.find("[data-testid=file-area-link-open-file]").trigger("click");
+
+		expect(openFilePreview).toHaveBeenCalledWith(file);
+		expect(wrapper.find("[data-testid=file-area-link-location]").attributes("data-to")).toEqual(
+			JSON.stringify({ path: "/boards/area", query: { path: "f" } })
+		);
 	});
 });

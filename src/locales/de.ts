@@ -605,6 +605,7 @@ export default {
 		"Diese Datei liegt in einem Datei-Bereich, der für dich nicht sichtbar ist.",
 	"components.cardElement.fileAreaLinkElement.missing": "„{name}“ ist nicht mehr vorhanden.",
 	"components.cardElement.fileAreaLinkElement.noTarget": "Noch keine Datei und kein Ordner verlinkt.",
+	"components.cardElement.fileAreaLinkElement.openFile": "„{name}“ öffnen",
 	"components.cardElement.fileAreaLinkElement.openInFileArea": "Im Datei-Bereich öffnen",
 	"components.cardElement.fileAreaLinkElement.pick": "Datei oder Ordner auswählen",
 	"components.cardElement.fileAreaLinkElement.picker.fileArea": "Datei-Bereich",
