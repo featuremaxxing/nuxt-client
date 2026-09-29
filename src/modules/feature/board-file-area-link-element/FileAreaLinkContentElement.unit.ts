@@ -8,9 +8,10 @@ import { ref } from "vue";
 
 const loadFile = vi.fn();
 const loadFolders = vi.fn();
+const listFileAreasOfRoom = vi.fn();
 
 vi.mock("./file-area-link-api", () => ({
-	useFileAreaLinkApi: () => ({ loadFile, loadFolders, listFileAreasOfRoom: vi.fn().mockResolvedValue([]) }),
+	useFileAreaLinkApi: () => ({ loadFile, loadFolders, listFileAreasOfRoom }),
 }));
 vi.mock("@data-board", () => ({
 	useBoardFocusHandler: vi.fn(),
@@ -27,6 +28,8 @@ describe("FileAreaLinkContentElement", () => {
 	beforeEach(() => {
 		setActivePinia(createTestingPinia());
 		vi.clearAllMocks();
+		listFileAreasOfRoom.mockResolvedValue([{ id: "area", title: "Dateien", isVisible: true }]);
+		loadFolders.mockResolvedValue({ status: "ok", value: [] });
 	});
 
 	const setup = (content: object, isEditMode = false) =>
@@ -125,5 +128,44 @@ describe("FileAreaLinkContentElement", () => {
 		await flushPromises();
 
 		expect(wrapper.find("[data-testid=file-area-link-missing]").exists()).toBe(true);
+	});
+
+	it("should show where a linked file lives and its full name", async () => {
+		const longName = "0219CA48-6FE7-4E24-8B50-9D456A2373AB.pdf";
+		loadFile.mockResolvedValue({
+			status: "ok",
+			value: {
+				id: "file",
+				name: longName,
+				parentId: "f",
+				size: 10,
+				url: "/file",
+				previewStatus: "preview_not_possible",
+			},
+		});
+		loadFolders.mockResolvedValue({ status: "ok", value: [folder("f", "area", "Material")] });
+
+		const wrapper = setup({
+			fileAreaId: "area",
+			targetType: FileAreaLinkTargetType.FILE,
+			targetId: "file",
+			title: longName,
+		});
+		await flushPromises();
+
+		expect(wrapper.find("[data-testid=file-area-link-location]").text()).toEqual("Dateien › Material");
+		expect(wrapper.find("[data-testid=file-area-link-file-name]").text()).toEqual(longName);
+	});
+
+	it("should show the path of a linked folder", async () => {
+		loadFolders.mockResolvedValue({
+			status: "ok",
+			value: [folder("f", "area", "Material"), folder("sub", "f", "Woche 1")],
+		});
+
+		const wrapper = setup({ fileAreaId: "area", targetType: FileAreaLinkTargetType.FOLDER, targetId: "sub" });
+		await flushPromises();
+
+		expect(wrapper.find("[data-testid=file-area-link-location]").text()).toEqual("Dateien › Material › Woche 1");
 	});
 });

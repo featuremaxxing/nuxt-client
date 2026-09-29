@@ -7,7 +7,9 @@
 		data-testid="board-file-area-link-element"
 	>
 		<ContentElementBar :icon="barIcon">
-			<template #title>{{ element.content.title || t("components.cardElement.fileAreaLinkElement") }}</template>
+			<template #title>
+				<span class="location" :title="locationTitle" data-testid="file-area-link-location">{{ locationTitle }}</span>
+			</template>
 			<template v-if="isEditMode" #menu>
 				<BoardMenu :scope="BoardMenuScope.FILE_AREA_LINK_ELEMENT" has-background>
 					<KebabMenuActionMoveUp v-if="isNotFirstElement" @click="emit('move-up:edit')" />
@@ -73,7 +75,9 @@
 				/>
 				<VIcon v-else :icon="mdiFileDocumentOutline" size="40" aria-hidden="true" />
 				<div class="flex-1-1 overflow-hidden">
-					<div class="text-subtitle-2 text-truncate">{{ file.name }}</div>
+					<div class="text-subtitle-2 file-name" :title="file.name" data-testid="file-area-link-file-name">
+						{{ file.name }}
+					</div>
 					<div class="text-caption">{{ formattedSize }}</div>
 				</div>
 				<VBtn
@@ -86,7 +90,7 @@
 			</div>
 
 			<!-- a folder -->
-			<template v-else-if="folders && element.content.targetId">
+			<template v-else-if="isFolder && folders && element.content.targetId">
 				<VAlert
 					v-if="!treeCheck.fits"
 					type="error"
@@ -127,6 +131,7 @@ import { PreviewWidth } from "@api-file-storage";
 import { FileAreaLinkTargetType } from "@api-server";
 import { useBoardFocusHandler, useContentElementState, useSharedBoardPageInformation } from "@data-board";
 import type { FileAreaFolder } from "@data-board-file-area";
+import { type FileArea } from "@data-board-file-area";
 import {
 	mdiFileDocumentOutline,
 	mdiFolderMultipleOutline,
@@ -172,6 +177,25 @@ const loadState = ref<"ok" | "missing" | "forbidden">("ok");
 const file = ref<FileRecord>();
 const folders = ref<FileAreaFolder[]>();
 
+const fileArea = ref<FileArea>();
+
+// The header says where the target lives: file area › folder › subfolder. For a folder that is
+// the folder itself, for a file the folder it is in. The file name itself is shown below.
+const locationTitle = computed(() => {
+	const fallback = element.value.content.title || t("components.cardElement.fileAreaLinkElement");
+	// a missing or hidden target keeps the name it had when it was linked
+	if (!fileArea.value || loadState.value !== "ok") return fallback;
+
+	const { targetId } = element.value.content;
+	const folderId = isFolder.value ? targetId : file.value?.parentId;
+	const folderNames =
+		folders.value && folderId
+			? pathTo(folders.value, folderId).map((id) => folders.value?.find((folder) => folder.id === id)?.title ?? "")
+			: [];
+
+	return [fileArea.value.title, ...folderNames].join(" › ");
+});
+
 const hasTarget = computed(() => !!element.value.content.fileAreaId && !!element.value.content.targetId);
 const isFolder = computed(() => element.value.content.targetType === FileAreaLinkTargetType.FOLDER);
 const barIcon = computed(() => (isFolder.value ? mdiFolderOutline : mdiFolderMultipleOutline));
@@ -199,12 +223,17 @@ const formattedSize = computed(() => {
 const loadTarget = async () => {
 	file.value = undefined;
 	folders.value = undefined;
+	fileArea.value = undefined;
 	loadState.value = "ok";
 	const { fileAreaId, targetId } = element.value.content;
 	if (!fileAreaId || !targetId) return;
 
 	isLoading.value = true;
 	try {
+		if (roomId.value) {
+			const areas = await api.listFileAreasOfRoom(roomId.value).catch(() => []);
+			fileArea.value = areas.find((area) => area.id === fileAreaId);
+		}
 		if (isFolder.value) {
 			const result = await api.loadFolders(fileAreaId);
 			if (result.status !== "ok") {
@@ -216,8 +245,13 @@ const loadTarget = async () => {
 			}
 		} else {
 			const result = await api.loadFile(targetId);
-			if (result.status === "ok") file.value = result.value;
-			else loadState.value = result.status;
+			if (result.status === "ok") {
+				file.value = result.value;
+				const folderResult = await api.loadFolders(fileAreaId);
+				if (folderResult.status === "ok") folders.value = folderResult.value;
+			} else {
+				loadState.value = result.status;
+			}
 		}
 	} finally {
 		isLoading.value = false;
@@ -225,7 +259,13 @@ const loadTarget = async () => {
 };
 
 watch(
-	() => [element.value.content.fileAreaId, element.value.content.targetType, element.value.content.targetId],
+	// the room is known once the board page information is loaded
+	() => [
+		element.value.content.fileAreaId,
+		element.value.content.targetType,
+		element.value.content.targetId,
+		roomId.value,
+	],
 	loadTarget,
 	{ immediate: true }
 );
@@ -242,3 +282,21 @@ const onDelete = async () => {
 	if (shouldDelete) emit("delete:element", element.value.id);
 };
 </script>
+
+<style scoped>
+.location {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* long names without spaces (e.g. generated ones) must wrap instead of pushing the card wider */
+.file-name {
+	overflow-wrap: anywhere;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+</style>
