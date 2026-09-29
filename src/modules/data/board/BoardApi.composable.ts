@@ -28,6 +28,8 @@ import {
 	ExternalToolContentBody,
 	ExternalToolElementContentBody,
 	ExternalToolElementResponse,
+	FileAreaLinkContentBody,
+	FileAreaLinkElementContentBody,
 	FileElementContentBody,
 	FileElementResponse,
 	H5pContentBody,
@@ -220,6 +222,15 @@ export const useBoardApi = () => {
 				// accepted by AiQuestionContentBody.
 				content: element.content as AiQuestionContentBody,
 				type: ContentElementType.AI_QUESTION,
+			};
+
+			return body;
+		}
+
+		if (element.type === ContentElementType.FILE_AREA_LINK) {
+			const body: FileAreaLinkElementContentBody = {
+				content: element.content as FileAreaLinkContentBody,
+				type: ContentElementType.FILE_AREA_LINK,
 			};
 
 			return body;

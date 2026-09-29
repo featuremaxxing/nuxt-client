@@ -16,4 +16,5 @@ export enum BoardMenuScope {
 	CHECKBOX_ELEMENT = "checkboxElement",
 	ASSIGNMENT_ELEMENT = "assignmentElement",
 	AI_QUESTION_ELEMENT = "aiQuestionElement",
+	FILE_AREA_LINK_ELEMENT = "fileAreaLinkElement",
 }

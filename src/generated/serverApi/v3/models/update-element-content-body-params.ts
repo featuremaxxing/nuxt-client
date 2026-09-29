@@ -17,6 +17,7 @@ import { AiQuestionElementContentBody } from './ai-question-element-content-body
 import { AssignmentElementContentBody } from './assignment-element-content-body';
 import { DrawingElementContentBody } from './drawing-element-content-body';
 import { ExternalToolElementContentBody } from './external-tool-element-content-body';
+import { FileAreaLinkElementContentBody } from './file-area-link-element-content-body';
 import { FileElementContentBody } from './file-element-content-body';
 import { FileFolderElementContentBody } from './file-folder-element-content-body';
 import { H5pElementContentBody } from './h5p-element-content-body';
@@ -33,10 +34,10 @@ import { VideoConferenceElementContentBody } from './video-conference-element-co
 export interface UpdateElementContentBodyParams {
     /**
      * 
-     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody | AiQuestionElementContentBody}
+     * @type {FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody | AiQuestionElementContentBody | FileAreaLinkElementContentBody}
      * @memberof UpdateElementContentBodyParams
      */
-    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody | AiQuestionElementContentBody;
+    data: FileElementContentBody | LinkElementContentBody | RichTextElementContentBody | ExternalToolElementContentBody | DrawingElementContentBody | VideoConferenceElementContentBody | FileFolderElementContentBody | H5pElementContentBody | PollElementContentBody | AssignmentElementContentBody | AiQuestionElementContentBody | FileAreaLinkElementContentBody;
 }
 
 

@@ -1,6 +1,7 @@
 import { setupSharedElementTypeSelectionMock } from "../test-utils/sharedElementTypeSelectionMock";
 import { useAddElementDialog } from "./AddElementDialog.composable";
 import { ElementTypeSelectionOptions } from "./SharedElementTypeSelection.composable";
+import { BoardContextType } from "@/types/board/BoardContext";
 import { injectStrict } from "@/utils/inject";
 import { createTestEnvStore, expectNotification, mockedPiniaStoreTyping, ObjectIdMock } from "@@/tests/test-utils";
 import { ContentElementType, MeResponse, RoleName } from "@api-server";
@@ -39,6 +40,11 @@ vi.mocked(useSharedLastCreatedElement).mockImplementation(() => ({
 	lastCreatedElementId: ref(undefined),
 	resetLastCreatedElementId: vi.fn(),
 }));
+
+vi.mock("@data-board/BoardPageInformation.composable", () => ({
+	useSharedBoardPageInformation: () => ({ contextType: boardContextType }),
+}));
+const boardContextType = ref<BoardContextType | undefined>(BoardContextType.ROOM);
 
 vi.mock("@data-board/BoardFeatures.composable");
 vi.mocked(useBoardFeatures).mockImplementation(() => ({
@@ -686,6 +692,41 @@ describe("ElementTypeSelection Composable", () => {
 				const option = elementTypeOptions.value.find((opt) => opt.testId === "create-element-poll");
 
 				expect(option).toBeUndefined();
+			});
+		});
+
+		describe("file area link element", () => {
+			const findOption = (env: Partial<ConfigResponse>) => {
+				const { elementTypeOptions, addElementMock, cardId } = setup({ env });
+				useAddElementDialog(addElementMock, cardId).askType();
+
+				return {
+					option: elementTypeOptions.value.find((item) => item.testId === "create-element-file-area-link"),
+					addElementMock,
+					cardId,
+				};
+			};
+
+			afterEach(() => {
+				boardContextType.value = BoardContextType.ROOM;
+			});
+
+			it("offers creation on room boards when file areas are enabled", () => {
+				const { option, addElementMock, cardId } = findOption({ FEATURE_BOARD_FILE_AREA_ENABLED: true });
+
+				option?.action();
+
+				expect(addElementMock).toHaveBeenCalledWith({ type: ContentElementType.FILE_AREA_LINK, cardId });
+			});
+
+			it("does not offer creation when file areas are disabled", () => {
+				expect(findOption({ FEATURE_BOARD_FILE_AREA_ENABLED: false }).option).toBeUndefined();
+			});
+
+			it("does not offer creation on course boards", () => {
+				boardContextType.value = BoardContextType.COURSE;
+
+				expect(findOption({ FEATURE_BOARD_FILE_AREA_ENABLED: true }).option).toBeUndefined();
 			});
 		});
 

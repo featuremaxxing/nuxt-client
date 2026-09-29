@@ -1,10 +1,16 @@
 import { $axios, mapAxiosErrorToResponseError } from "@/utils/api";
-import { BoardFileAreaApiFactory, type FileAreaFolderResponse, type FileAreaFoldersResponse } from "@api-server";
+import {
+	BoardFileAreaApiFactory,
+	type FileAreaFolderResponse,
+	type FileAreaFoldersResponse,
+	type FileAreaResponse,
+} from "@api-server";
 import { notifyError } from "@data-app";
 import { useI18n } from "vue-i18n";
 
 export type FileAreaFolder = FileAreaFolderResponse;
 export type FileAreaFolders = FileAreaFoldersResponse;
+export type FileArea = FileAreaResponse;
 
 export const useFileAreaApi = () => {
 	const { t } = useI18n();
@@ -13,6 +19,12 @@ export const useFileAreaApi = () => {
 	const showError = (error: unknown): void => {
 		const responseError = mapAxiosErrorToResponseError(error);
 		notifyError(responseError.code === 403 ? t("error.403") : t("pages.boardFileArea.error.generic"));
+	};
+
+	const listFileAreasOfRoom = async (roomId: string): Promise<FileArea[]> => {
+		const response = await api.fileAreaControllerListFileAreasOfRoom(roomId);
+
+		return response.data.data;
 	};
 
 	const listFolders = async (boardId: string): Promise<FileAreaFolders> => {
@@ -72,5 +84,5 @@ export const useFileAreaApi = () => {
 		}
 	};
 
-	return { listFolders, createFolder, renameFolder, moveFolder, deleteFolder, notifyFilesChanged };
+	return { listFileAreasOfRoom, listFolders, createFolder, renameFolder, moveFolder, deleteFolder, notifyFilesChanged };
 };

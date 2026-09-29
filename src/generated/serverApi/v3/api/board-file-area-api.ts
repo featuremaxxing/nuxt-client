@@ -32,6 +32,8 @@ import { FileAreaFolderResponse } from '../models';
 // @ts-ignore
 import { FileAreaFoldersResponse } from '../models';
 // @ts-ignore
+import { FileAreaListResponse } from '../models';
+// @ts-ignore
 import { MoveFileAreaFolderBodyParams } from '../models';
 // @ts-ignore
 import { RenameFileAreaFolderBodyParams } from '../models';
@@ -157,6 +159,44 @@ export const BoardFileAreaApiAxiosParamCreator = function (configuration?: Confi
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(fileAreaFilesChangedBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List the file areas of a room the user can read.
+         * @param {string} roomId The id of the room.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fileAreaControllerListFileAreasOfRoom: async (roomId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomId' is not null or undefined
+            assertParamExists('fileAreaControllerListFileAreasOfRoom', 'roomId', roomId)
+            const localVarPath = `/rooms/{roomId}/file-areas`
+                .replace(`{${"roomId"}}`, encodeURIComponent(String(roomId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -335,6 +375,17 @@ export const BoardFileAreaApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary List the file areas of a room the user can read.
+         * @param {string} roomId The id of the room.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async fileAreaControllerListFileAreasOfRoom(roomId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FileAreaListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.fileAreaControllerListFileAreasOfRoom(roomId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary List all folders of a file area as a flat list.
          * @param {string} boardId The id of the file area board.
          * @param {*} [options] Override http request option.
@@ -411,6 +462,16 @@ export const BoardFileAreaApiFactory = function (configuration?: Configuration, 
         },
         /**
          * 
+         * @summary List the file areas of a room the user can read.
+         * @param {string} roomId The id of the room.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fileAreaControllerListFileAreasOfRoom(roomId: string, options?: any): AxiosPromise<FileAreaListResponse> {
+            return localVarFp.fileAreaControllerListFileAreasOfRoom(roomId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List all folders of a file area as a flat list.
          * @param {string} boardId The id of the file area board.
          * @param {*} [options] Override http request option.
@@ -480,6 +541,16 @@ export interface BoardFileAreaApiInterface {
      * @memberof BoardFileAreaApiInterface
      */
     fileAreaControllerFilesChanged(boardId: string, fileAreaFilesChangedBodyParams: FileAreaFilesChangedBodyParams, options?: any): AxiosPromise<void>;
+
+    /**
+     * 
+     * @summary List the file areas of a room the user can read.
+     * @param {string} roomId The id of the room.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BoardFileAreaApiInterface
+     */
+    fileAreaControllerListFileAreasOfRoom(roomId: string, options?: any): AxiosPromise<FileAreaListResponse>;
 
     /**
      * 
@@ -557,6 +628,18 @@ export class BoardFileAreaApi extends BaseAPI implements BoardFileAreaApiInterfa
      */
     public fileAreaControllerFilesChanged(boardId: string, fileAreaFilesChangedBodyParams: FileAreaFilesChangedBodyParams, options?: any) {
         return BoardFileAreaApiFp(this.configuration).fileAreaControllerFilesChanged(boardId, fileAreaFilesChangedBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List the file areas of a room the user can read.
+     * @param {string} roomId The id of the room.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BoardFileAreaApi
+     */
+    public fileAreaControllerListFileAreasOfRoom(roomId: string, options?: any) {
+        return BoardFileAreaApiFp(this.configuration).fileAreaControllerListFileAreasOfRoom(roomId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

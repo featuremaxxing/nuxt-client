@@ -1,11 +1,12 @@
 import {
 	AiQuestionElementResponse,
 	AssignmentElementResponse,
-	CollaborativeTextEditorElementResponse,
 	CheckboxElementResponse,
+	CollaborativeTextEditorElementResponse,
 	ContentElementType,
 	DrawingElementResponse,
 	ExternalToolElementResponse,
+	FileAreaLinkElementResponse,
 	FileElementResponse,
 	FileFolderElementResponse,
 	H5pElementResponse,
@@ -22,6 +23,7 @@ export type PollElement = PollElementResponse;
 export type CheckboxElement = CheckboxElementResponse;
 export type AssignmentElement = AssignmentElementResponse;
 export type AiQuestionElement = AiQuestionElementResponse;
+export type FileAreaLinkElement = FileAreaLinkElementResponse;
 
 export type AnyContentElement =
 	| LinkElementResponse
@@ -36,7 +38,8 @@ export type AnyContentElement =
 	| PollElementResponse
 	| CheckboxElementResponse
 	| AssignmentElementResponse
-	| AiQuestionElementResponse;
+	| AiQuestionElementResponse
+	| FileAreaLinkElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;
 
