@@ -2,6 +2,7 @@ import AudioDisplay from "./audio-display/AudioDisplay.vue";
 import CollaboraDisplay from "./collabora-display/CollaboraDisplay.vue";
 import FileDisplay from "./FileDisplay.vue";
 import ImageDisplay from "./image-display/ImageDisplay.vue";
+import Model3dDisplay from "./model-3d-display/Model3dDisplay.vue";
 import PdfDisplay from "./pdf-display/PdfDisplay.vue";
 import VideoDisplay from "./video-display/VideoDisplay.vue";
 import { createTestEnvStore, fileElementResponseFactory } from "@@/tests/test-utils";
@@ -507,6 +508,62 @@ describe("FileDisplay", () => {
 				const collaboraDisplay = wrapper.findComponent(CollaboraDisplay);
 
 				expect(collaboraDisplay.exists()).toBe(false);
+			});
+
+			it("should not render 3d display component", () => {
+				const { wrapper } = setup();
+
+				expect(wrapper.findComponent(Model3dDisplay).exists()).toBe(false);
+			});
+		});
+
+		describe("when the file is a 3D model", () => {
+			const setup = (options: { name: string; mimeType?: string; isDownloadAllowed?: boolean }) => {
+				const element = fileElementResponseFactory.build();
+				const props = {
+					fileProperties: {
+						name: options.name,
+						size: 2048,
+						url: "file-url",
+						previewUrl: undefined,
+						previewStatus: PreviewStatus.PREVIEW_NOT_POSSIBLE_WRONG_MIME_TYPE,
+						isDownloadAllowed: options.isDownloadAllowed ?? true,
+						element,
+						mimeType: options.mimeType ?? "application/octet-stream",
+						isCollaboraEditable: false,
+					},
+					isEditMode: false,
+					showMenu: true,
+				};
+
+				const wrapper = shallowMount(FileDisplay, {
+					props,
+					global: {
+						plugins: [createTestingVuetify(), createTestingI18n()],
+					},
+				});
+
+				return { wrapper };
+			};
+
+			it.each([
+				["model.stl", "stl"],
+				["scene.gltf", "gltf"],
+				["scene.glb", "glb"],
+			])("should render the 3d display for '%s'", (name, format) => {
+				const { wrapper } = setup({ name });
+
+				const model3dDisplay = wrapper.findComponent(Model3dDisplay);
+				expect(model3dDisplay.exists()).toBe(true);
+				expect(model3dDisplay.props()).toEqual(
+					expect.objectContaining({ src: "file-url", name, format, size: 2048, showMenu: true })
+				);
+			});
+
+			it("should not render the 3d display when the download is blocked", () => {
+				const { wrapper } = setup({ name: "model.stl", isDownloadAllowed: false });
+
+				expect(wrapper.findComponent(Model3dDisplay).exists()).toBe(false);
 			});
 		});
 	});

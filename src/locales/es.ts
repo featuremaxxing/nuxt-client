@@ -581,6 +581,13 @@ export default {
 		"El formato de audio no es compatible con este navegador / sistema operativo.",
 	"components.cardElement.fileElement.caption": "Descripción",
 	"components.cardElement.fileElement.emptyAlt": "Aquí tenéis una imagen con el siguiente nombre",
+	"components.cardElement.fileElement.model3d.dragToRotate": "Arrastrar para girar",
+	"components.cardElement.fileElement.model3d.label": "Vista 3D de {name}",
+	"components.cardElement.fileElement.model3d.error.tooLarge":
+		"El archivo es demasiado grande para la vista previa 3D.",
+	"components.cardElement.fileElement.model3d.error.externalResources":
+		"No es posible la vista previa 3D: el archivo glTF hace referencia a otros archivos. Súbalo como .glb o como glTF con datos incrustados.",
+	"components.cardElement.fileElement.model3d.error.failed": "No se pudo cargar la vista previa 3D.",
 	"components.cardElement.fileElement.noElement": "No hay archivo",
 	"components.cardElement.fileElement.pdfAlt": "Imagen de vista previa para ",
 	"components.cardElement.fileElement.collaboraFile": "Archivo",

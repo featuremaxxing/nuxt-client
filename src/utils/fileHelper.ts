@@ -226,6 +226,29 @@ export function isAudioMimeType(mimeType: string): boolean {
 	return mimeType.startsWith("audio/");
 }
 
+export type Model3dFormat = "stl" | "gltf" | "glb";
+
+const MODEL_3D_MIME_TYPES: Record<string, Model3dFormat> = {
+	"model/stl": "stl",
+	"model/x.stl-ascii": "stl",
+	"model/x.stl-binary": "stl",
+	"application/sla": "stl",
+	"application/vnd.ms-pki.stl": "stl",
+	"model/gltf+json": "gltf",
+	"model/gltf-binary": "glb",
+};
+
+// The file storage only detects .glb by its content; STL and glTF keep whatever
+// type the uploading browser guessed (often application/octet-stream), so the
+// file extension is checked first.
+export function getModel3dFormat(fileName: string, mimeType: string): Model3dFormat | undefined {
+	const extension = getFileExtension(fileName).toLowerCase();
+	if (extension === "stl" || extension === "gltf" || extension === "glb") {
+		return extension;
+	}
+	return MODEL_3D_MIME_TYPES[mimeType];
+}
+
 export function isTextMimeType(mimeType: string): boolean {
 	return (
 		mimeType.startsWith("text/") ||

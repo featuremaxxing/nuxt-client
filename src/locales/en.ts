@@ -568,6 +568,12 @@ export default {
 		"The audio format is not supported by this browser/operating system.",
 	"components.cardElement.fileElement.caption": "Caption",
 	"components.cardElement.fileElement.emptyAlt": "Here is an image with the following name",
+	"components.cardElement.fileElement.model3d.dragToRotate": "Drag to rotate",
+	"components.cardElement.fileElement.model3d.label": "3D view of {name}",
+	"components.cardElement.fileElement.model3d.error.tooLarge": "The file is too large for the 3D preview.",
+	"components.cardElement.fileElement.model3d.error.externalResources":
+		"No 3D preview possible: the glTF file refers to other files. Please upload it as .glb or as glTF with embedded data.",
+	"components.cardElement.fileElement.model3d.error.failed": "The 3D preview could not be loaded.",
 	"components.cardElement.fileElement.noElement": "No file available",
 	"components.cardElement.fileElement.pdfAlt": "Preview image for ",
 	"components.cardElement.fileElement.collaboraFile": "Document",

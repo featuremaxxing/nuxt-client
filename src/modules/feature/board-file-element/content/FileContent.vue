@@ -52,7 +52,7 @@ import { FileAlert } from "../shared/types/FileAlert.enum";
 import FileInputs from "././inputs/FileInputs.vue";
 import FileDescription from "./display/file-description/FileDescription.vue";
 import ContentElementFooter from "./footer/ContentElementFooter.vue";
-import { isAudioMimeType, isPdfMimeType, isVideoMimeType } from "@/utils/fileHelper";
+import { getModel3dFormat, isAudioMimeType, isPdfMimeType, isVideoMimeType } from "@/utils/fileHelper";
 import { injectStrict } from "@/utils/inject";
 import { useEnvConfig } from "@data-env";
 import { BOARD_IS_LIST_LAYOUT } from "@util-board";
@@ -106,6 +106,12 @@ const hasPdfMimeType = computed(() => isPdfMimeType(props.fileProperties.mimeTyp
 
 const hasAudioMimeType = computed(() => isAudioMimeType(props.fileProperties.mimeType));
 
+const hasModel3dPreview = computed(
+	() =>
+		props.fileProperties.isDownloadAllowed &&
+		getModel3dFormat(props.fileProperties.name, props.fileProperties.mimeType) !== undefined
+);
+
 const showTitle = computed(
 	() => hasPdfMimeType.value || (!props.fileProperties.previewUrl && !hasVideoMimeType.value && !hasAudioMimeType.value)
 );
@@ -151,6 +157,7 @@ const isMenuShownOnFileDisplay = computed(() => {
 		!!props.fileProperties.previewUrl ||
 		hasVideoMimeType.value ||
 		hasAudioMimeType.value ||
+		hasModel3dPreview.value ||
 		(hasCollaboraType.value && isCollaboraEnabled.value);
 
 	return isFileDisplayRendered && !hasRowStyle.value;

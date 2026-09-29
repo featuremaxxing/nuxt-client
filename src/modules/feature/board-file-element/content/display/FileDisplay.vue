@@ -35,6 +35,16 @@
 	<AudioDisplay v-else-if="hasAudioMimeType" :src="fileProperties.url" :show-menu="showMenu" @error="onAddAlert">
 		<slot />
 	</AudioDisplay>
+	<Model3dDisplay
+		v-else-if="model3dFormat"
+		:src="fileProperties.url"
+		:name="fileProperties.name"
+		:format="model3dFormat"
+		:size="fileProperties.size"
+		:show-menu="showMenu"
+	>
+		<slot />
+	</Model3dDisplay>
 	<CollaboraDisplay
 		v-else-if="hasCollaboraMimeType && isCollaboraEnabled"
 		:is-edit-mode="isEditMode"
@@ -51,9 +61,10 @@ import { FileAlert } from "../../shared/types/FileAlert.enum";
 import AudioDisplay from "./audio-display/AudioDisplay.vue";
 import CollaboraDisplay from "./collabora-display/CollaboraDisplay.vue";
 import ImageDisplay from "./image-display/ImageDisplay.vue";
+import Model3dDisplay from "./model-3d-display/Model3dDisplay.vue";
 import PdfDisplay from "./pdf-display/PdfDisplay.vue";
 import VideoDisplay from "./video-display/VideoDisplay.vue";
-import { isAudioMimeType, isPdfMimeType, isVideoMimeType } from "@/utils/fileHelper";
+import { getModel3dFormat, isAudioMimeType, isPdfMimeType, isVideoMimeType } from "@/utils/fileHelper";
 import { useEnvConfig } from "@data-env";
 import { computed, PropType } from "vue";
 
@@ -76,6 +87,12 @@ const hasVideoMimeType = computed(() => isVideoMimeType(props.fileProperties.mim
 const hasPdfMimeType = computed(() => isPdfMimeType(props.fileProperties.mimeType));
 const hasAudioMimeType = computed(() => isAudioMimeType(props.fileProperties.mimeType));
 const hasCollaboraMimeType = computed(() => props.fileProperties.isCollaboraEditable);
+// blocked by the virus scan -> no download, so no 3D preview either
+const model3dFormat = computed(() =>
+	props.fileProperties.isDownloadAllowed
+		? getModel3dFormat(props.fileProperties.name, props.fileProperties.mimeType)
+		: undefined
+);
 
 const isCollaboraEnabled = computed(() => useEnvConfig().value.FEATURE_COLUMN_BOARD_COLLABORA_ENABLED);
 
