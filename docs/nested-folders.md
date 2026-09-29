@@ -102,6 +102,15 @@ vier hier bearbeiteten Repos und konnte nicht geprüft werden.
   Icon-/Namens-Zellen begrenzt, nicht die ganze Tabellenzeile, da die zugrunde liegende
   `DataTable`-Komponente keinen eigenen Row-Wrapper-Slot exponiert und ein Umbau darauf den
   Eingriff deutlich vergrößert hätte.
+  **Auf Staging gefundener Bug (behoben):** Die Seite hat bereits eine eigene, auf natives
+  HTML5-Drag&Drop basierende Dropzone (`Folder.vue`, `useDropZone` aus VueUse) für den
+  klassischen "Datei vom Rechner hier ablegen"-Upload. Da beide Mechanismen dieselben
+  Browser-Drag-Events nutzen und über denselben Container bubbeln, hat das Ziehen einer
+  Zeile die große "Dateien hier ablegen zum Hochladen"-Overlay über der ganzen Tabelle
+  angezeigt und damit die eigentlichen Ordner-Drop-Ziele verdeckt. Behoben, indem
+  `useDropZone` per `dataTypes`-Option nur noch auf echte Datei-Drags vom Betriebssystem
+  reagiert (die den MIME-Typ `Files` mitbringen; interne Zeilen-Drags setzen nur
+  `text/plain`), zusätzlich stoppen die Zeilen-Handler die Event-Propagation.
 - **`MoveFileDialog.vue`** (neu): Einfache Ziel-Auswahl aus den Ordner-Geschwistern der
   aktuellen Ebene plus optional "Oberste Ebene" (falls man sich gerade in einem Unterordner
   befindet). Bewusst **kein** vollständiger Ordner-Baum-Browser — Verschieben in einen Ordner,
@@ -180,6 +189,11 @@ hinzugefügt (Import- und Export-Liste, wie von der Projektkonvention gefordert)
 
 ## Status
 
-In manueller Prüfung auf Staging. Dabei gefunden und behoben: der `folderId=undefined`-Bug
-(siehe oben). Auf expliziten Wunsch nachträglich ergänzt: Drag & Drop zum Verschieben (siehe
+In manueller Prüfung auf Staging. Dabei gefunden und behoben:
+- der `folderId=undefined`-Bug (siehe oben),
+- die Dropzone-Kollision zwischen Datei-Upload und Zeilen-Drag&Drop (siehe oben),
+- der Verschieben-zur-Wurzelebene-Bug im Backend (`file-storage/docs/nested-folders.md`,
+  Abschnitt "Verschieben").
+
+Auf expliziten Wunsch nachträglich ergänzt: Drag & Drop zum Verschieben (siehe
 UI-Komponenten-Abschnitt).

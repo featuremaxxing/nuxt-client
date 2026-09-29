@@ -362,7 +362,16 @@ const onCreateCollaboraFile = async (payload: CreateCollaboraFilePayload) => {
 	window.open(url, "_blank");
 };
 
-const { isOverDropZone } = useDropZone(dropZoneRef);
+/**
+ * Without the dataTypes filter, useDropZone also reacts to the internal row-to-row drag&drop
+ * used for moving files/folders (FileTable.vue), since both use the native HTML5 DnD APIs and
+ * bubble through this same container. That made the full-page "Dateien hier ablegen"
+ * upload overlay cover the table while dragging a row, hiding the actual folder drop targets.
+ * OS file drags always include the "Files" type; our own row drags only set "text/plain".
+ */
+const { isOverDropZone } = useDropZone(dropZoneRef, {
+	dataTypes: (types) => types.includes("Files"),
+});
 
 useEventListener(dropZoneRef, "drop", async (event: DragEvent) => {
 	event.preventDefault();

@@ -17,7 +17,9 @@ const toClampedPercent = (loaded: number, total: number): number =>
  * root level of the folder element.
  */
 export const filterByFolderId = (fileRecords: FileRecord[], folderId?: string): FileRecord[] =>
-	fileRecords.filter((fileRecord) => fileRecord.folderId === folderId);
+	// The backend may report the root level as an absent field or as an explicit null
+	// (see file-storage's moveRecord doc); treat both the same as "no folder" here.
+	fileRecords.filter((fileRecord) => (fileRecord.folderId ?? null) === (folderId ?? null));
 
 export const buildUploadOptions = (onUploadProgress?: (progress: number) => void) => {
 	if (!onUploadProgress) return undefined;

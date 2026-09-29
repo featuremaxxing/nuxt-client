@@ -138,11 +138,11 @@ export interface FileRecordResponse {
      */
     isFolder?: boolean;
     /**
-     * Id of the containing folder. Omitted/undefined for the root level.
+     * Id of the containing folder. Omitted/null for the root level.
      * @type {string}
      * @memberof FileRecordResponse
      */
-    folderId?: string;
+    folderId?: string | null;
 }
 
 

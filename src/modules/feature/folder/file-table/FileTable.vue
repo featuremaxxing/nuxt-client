@@ -56,9 +56,9 @@
 						@click="onNavigateIntoFolder(item)"
 						@dragstart="onDragStart($event, item)"
 						@dragend="onDragEnd"
-						@dragover.prevent
-						@dragenter.prevent="onDragEnterFolder(item)"
-						@dragleave="onDragLeaveFolder(item)"
+						@dragover.stop.prevent
+						@dragenter.stop.prevent="onDragEnterFolder(item)"
+						@dragleave.stop="onDragLeaveFolder(item)"
 						@drop="onDropOnFolder($event, item)"
 					>
 						<VIcon :icon="mdiFolderOpenOutline" :data-testid="`folder-preview-${item.name}`" />
@@ -88,9 +88,9 @@
 						@click="onNavigateIntoFolder(item)"
 						@dragstart="onDragStart($event, item)"
 						@dragend="onDragEnd"
-						@dragover.prevent
-						@dragenter.prevent="onDragEnterFolder(item)"
-						@dragleave="onDragLeaveFolder(item)"
+						@dragover.stop.prevent
+						@dragenter.stop.prevent="onDragEnterFolder(item)"
+						@dragleave.stop="onDragLeaveFolder(item)"
 						@drop="onDropOnFolder($event, item)"
 					>
 						{{ item.name }}
@@ -422,6 +422,9 @@ const onDragLeaveFolder = (item: FileRecord) => {
 };
 
 const onDropOnFolder = (event: DragEvent, item: FileRecord) => {
+	// Stop the outer page-level upload dropzone (Folder.vue) from also handling this drop -
+	// it only cares about OS file drags, but events still bubble through it either way.
+	event.stopPropagation();
 	dragOverFolderId.value = null;
 
 	const draggedId = draggedRecordId.value ?? event.dataTransfer?.getData("text/plain");
