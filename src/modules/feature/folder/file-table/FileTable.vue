@@ -50,17 +50,31 @@
 						v-if="item.isFolder"
 						type="button"
 						class="folder-interactive-area bg-transparent pa-0 cursor-pointer"
+						:class="{ 'folder-interactive-area--drop-target': dragOverFolderId === item.id }"
 						:aria-label="t('pages.folder.ariaLabels.openFolder', { name: item.name })"
+						:draggable="item.isSelectable && props.hasEditPermission"
 						@click="onNavigateIntoFolder(item)"
+						@dragstart="onDragStart($event, item)"
+						@dragend="onDragEnd"
+						@dragover.prevent
+						@dragenter.prevent="onDragEnterFolder(item)"
+						@dragleave="onDragLeaveFolder(item)"
+						@drop="onDropOnFolder($event, item)"
 					>
 						<VIcon :icon="mdiFolderOpenOutline" :data-testid="`folder-preview-${item.name}`" />
 					</button>
 					<FileInteractionHandler v-else :file-record-item="item" :has-edit-permission="props.hasEditPermission">
-						<FilePreview
-							:file-record="item"
-							:data-testid="`file-preview-${item.name}`"
-							:class="{ 'text-disabled': !item.isSelectable }"
-						/>
+						<span
+							:draggable="item.isSelectable && props.hasEditPermission"
+							@dragstart="onDragStart($event, item)"
+							@dragend="onDragEnd"
+						>
+							<FilePreview
+								:file-record="item"
+								:data-testid="`file-preview-${item.name}`"
+								:class="{ 'text-disabled': !item.isSelectable }"
+							/>
+						</span>
 					</FileInteractionHandler>
 				</template>
 				<template #[`item.name`]="{ item }">
@@ -68,13 +82,27 @@
 						v-if="item.isFolder"
 						type="button"
 						class="folder-interactive-area bg-transparent pa-0 cursor-pointer text-left"
+						:class="{ 'folder-interactive-area--drop-target': dragOverFolderId === item.id }"
 						:data-testid="`name-${item.name}`"
+						:draggable="item.isSelectable && props.hasEditPermission"
 						@click="onNavigateIntoFolder(item)"
+						@dragstart="onDragStart($event, item)"
+						@dragend="onDragEnd"
+						@dragover.prevent
+						@dragenter.prevent="onDragEnterFolder(item)"
+						@dragleave="onDragLeaveFolder(item)"
+						@drop="onDropOnFolder($event, item)"
 					>
 						{{ item.name }}
 					</button>
 					<FileInteractionHandler v-else :file-record-item="item" :has-edit-permission="props.hasEditPermission">
-						<span :data-testid="`name-${item.name}`" :class="{ 'text-disabled': !item.isSelectable }">
+						<span
+							:data-testid="`name-${item.name}`"
+							:class="{ 'text-disabled': !item.isSelectable }"
+							:draggable="item.isSelectable && props.hasEditPermission"
+							@dragstart="onDragStart($event, item)"
+							@dragend="onDragEnd"
+						>
 							{{ item.name }}
 							<FileStatus :file-record="item" />
 						</span>
@@ -175,6 +203,7 @@
 
 <script setup lang="ts">
 import MoveFileDialog from "../MoveFileDialog.vue";
+import { FileRecordItem } from "../types/filerecord-item";
 import DeleteFileDialog from "./DeleteFileDialog.vue";
 import EmptyFolderSvg from "./EmptyFolderSvg.vue";
 import FileInteractionHandler from "./FileInteractionHandler.vue";
@@ -268,6 +297,8 @@ const isDeleteFilesDialogOpen = ref(false);
 const fileRecordsToDelete = ref<FileRecord[]>([]);
 const fileRecordToMove = ref<FileRecord | undefined>(undefined);
 const isMoveDialogOpen = ref(false);
+const draggedRecordId = ref<string | null>(null);
+const dragOverFolderId = ref<string | null>(null);
 
 const availableMoveTargets = computed(() =>
 	props.fileRecords.filter((record) => record.isFolder && record.id !== fileRecordToMove.value?.id)
@@ -359,6 +390,51 @@ const onMoveDialogCancel = () => {
 	fileRecordToMove.value = undefined;
 };
 
+const onDragStart = (event: DragEvent, item: FileRecordItem) => {
+	if (!item.isSelectable || !props.hasEditPermission) {
+		event.preventDefault();
+
+		return;
+	}
+
+	draggedRecordId.value = item.id;
+	if (event.dataTransfer) {
+		event.dataTransfer.effectAllowed = "move";
+		event.dataTransfer.setData("text/plain", item.id);
+	}
+};
+
+const onDragEnd = () => {
+	draggedRecordId.value = null;
+	dragOverFolderId.value = null;
+};
+
+const onDragEnterFolder = (item: FileRecord) => {
+	if (draggedRecordId.value && draggedRecordId.value !== item.id) {
+		dragOverFolderId.value = item.id;
+	}
+};
+
+const onDragLeaveFolder = (item: FileRecord) => {
+	if (dragOverFolderId.value === item.id) {
+		dragOverFolderId.value = null;
+	}
+};
+
+const onDropOnFolder = (event: DragEvent, item: FileRecord) => {
+	dragOverFolderId.value = null;
+
+	const draggedId = draggedRecordId.value ?? event.dataTransfer?.getData("text/plain");
+	draggedRecordId.value = null;
+
+	if (!draggedId || draggedId === item.id) return;
+
+	const draggedRecord = props.fileRecords.find((record) => record.id === draggedId);
+	if (!draggedRecord) return;
+
+	emit("move-record", draggedRecord, item.id);
+};
+
 const buildActionMenuAriaLabel = (item: FileRecord): string =>
 	t("pages.folder.ariaLabels.actionMenu", {
 		name: item.name,
@@ -369,6 +445,13 @@ const buildActionMenuAriaLabel = (item: FileRecord): string =>
 .folder-interactive-area {
 	border: none;
 	width: 100%;
+}
+
+.folder-interactive-area--drop-target {
+	outline: 2px dashed rgb(var(--v-theme-primary));
+	outline-offset: -2px;
+	background-color: rgba(var(--v-theme-primary), 0.08);
+	border-radius: 4px;
 }
 
 .drop-zone-empty {

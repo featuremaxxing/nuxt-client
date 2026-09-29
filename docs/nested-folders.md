@@ -94,6 +94,14 @@ vier hier bearbeiteten Repos und konnte nicht geprüft werden.
   rekursive Ordnergröße wurde bewusst nicht umgesetzt (siehe Backend-Doku). Der Download-Eintrag
   im Kebab-Menü ist für Ordner-Zeilen ausgeblendet. Ein neuer "Verschieben"-Eintrag (Icon
   `mdiFolderMoveOutline`) öffnet `MoveFileDialog.vue`.
+- **Drag & Drop** (nachträglich ergänzt): Ordner- und Datei-Zeilen sind per natives HTML5-
+  Drag&Drop (`draggable`, `@dragstart`/`@drop`) aufeinander ziehbar; Ziel muss eine Ordner-Zeile
+  sein (Drop-Highlight via CSS-Klasse `folder-interactive-area--drop-target`). Löst am Ende
+  dasselbe `move-record`-Event wie der Menü-Eintrag "Verschieben" aus — beide Wege nutzen dieselbe
+  Backend-Validierung (Zyklus-Schutz, Namenskollision, Scope-Prüfung). Bewusst auf die
+  Icon-/Namens-Zellen begrenzt, nicht die ganze Tabellenzeile, da die zugrunde liegende
+  `DataTable`-Komponente keinen eigenen Row-Wrapper-Slot exponiert und ein Umbau darauf den
+  Eingriff deutlich vergrößert hätte.
 - **`MoveFileDialog.vue`** (neu): Einfache Ziel-Auswahl aus den Ordner-Geschwistern der
   aktuellen Ebene plus optional "Oberste Ebene" (falls man sich gerade in einem Unterordner
   befindet). Bewusst **kein** vollständiger Ordner-Baum-Browser — Verschieben in einen Ordner,
@@ -148,8 +156,6 @@ hinzugefügt (Import- und Export-Liste, wie von der Projektkonvention gefordert)
 
 ## Bewusst nicht umgesetzt (Scope-Entscheidungen)
 
-- **Drag & Drop** zum Verschieben von Dateien zwischen Ordnern — stattdessen eine einfache
-  Menü-Aktion ("Verschieben" im Kebab-Menü), um den Umfang klein zu halten.
 - **Rekursive Ordnergröße** in der Tabelle (siehe oben).
 - **Vollständiger Ordnerbaum-Browser** im Verschieben-Dialog (siehe oben).
 - **Korrekte Breadcrumb-Namen nach Reload** ohne zusätzlichen Server-Endpoint (siehe oben).
@@ -168,11 +174,12 @@ hinzugefügt (Import- und Export-Liste, wie von der Projektkonvention gefordert)
 - **Manuell/E2E (empfohlen vor Merge):** Feature-Flag `FEATURE_COLUMN_BOARD_FILE_FOLDER_ENABLED`
   aktivieren, dann auf Staging (`staging.kibox.online`, Branch-Label auf PRs in beiden Repos
   setzen) durchspielen: Ordner-Element anlegen → Unterordner erstellen → Datei in Unterordner
-  hochladen → in tieferen Unterordner navigieren → Datei zwischen Ordnern verschieben →
-  Unterordner mit Inhalt löschen (Kaskade prüfen) → Reload auf tiefem Unterordner-Link
-  (Breadcrumb-Platzhalter beobachten).
+  hochladen → in tieferen Unterordner navigieren → Datei zwischen Ordnern verschieben (Menü und
+  Drag & Drop) → Unterordner mit Inhalt löschen (Kaskade prüfen) → Reload auf tiefem
+  Unterordner-Link (Breadcrumb-Platzhalter beobachten).
 
 ## Status
 
-In manueller Prüfung auf Staging. Dabei wurde der oben beschriebene `folderId=undefined`-Bug
-gefunden und behoben.
+In manueller Prüfung auf Staging. Dabei gefunden und behoben: der `folderId=undefined`-Bug
+(siehe oben). Auf expliziten Wunsch nachträglich ergänzt: Drag & Drop zum Verschieben (siehe
+UI-Komponenten-Abschnitt).
