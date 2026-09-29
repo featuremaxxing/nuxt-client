@@ -718,6 +718,17 @@ describe("FileContent", () => {
 				expect(props.isdownloadlink).toBe("false");
 			});
 
+			it("should pass false when file is a 3D model, so a click does not download it", () => {
+				const { wrapper } = setup({
+					mimeType: "model/stl",
+					previewUrl: undefined,
+				});
+				const props = wrapper.findComponent(FileDescription).attributes();
+
+				expect(props.isdownloadlink).toBe("false");
+				expect(props.href).toBeUndefined();
+			});
+
 			it("should pass false when file is collabora", () => {
 				const { wrapper } = setup({
 					mimeType: "text/plain",

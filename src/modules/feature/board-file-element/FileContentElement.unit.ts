@@ -245,6 +245,7 @@ describe("FileContentElement", () => {
 				mimeType?: string;
 				isCollaboraEditable?: boolean;
 				alternativeText?: string;
+				name?: string;
 			}) => {
 				const element = fileElementResponseFactory.build();
 				element.content.alternativeText = props?.alternativeText ?? "alternativeText";
@@ -254,6 +255,7 @@ describe("FileContentElement", () => {
 					isUploading: props?.isUploading,
 					mimeType: props?.mimeType ?? "application/pdf",
 					isCollaboraEditable: props?.isCollaboraEditable ?? false,
+					...(props?.name ? { name: props.name } : {}),
 				});
 
 				const fileStorageApiMock = mockComposable(FileStorageApi.useFileStorageApi);
@@ -660,6 +662,24 @@ describe("FileContentElement", () => {
 					await card.trigger("keydown.enter");
 
 					expect(vi.mocked(downloadFile)).toHaveBeenCalledWith(fileRecordResponse.url, fileRecordResponse.name);
+				});
+			});
+
+			describe("when the file is a 3D model", () => {
+				it("should not download the file when the card is clicked, e.g. after rotating the model", async () => {
+					const { wrapper } = setup({
+						previewStatus: PreviewStatus.PREVIEW_NOT_POSSIBLE_WRONG_MIME_TYPE,
+						isCollaboraEnabled: false,
+						mimeType: "application/octet-stream",
+						name: "model.stl",
+						isCollaboraEditable: false,
+					});
+
+					const card = wrapper.findComponent(VCard);
+					await card.trigger("click");
+
+					expect(vi.mocked(downloadFile)).not.toHaveBeenCalled();
+					expect(openLightBoxMock).not.toHaveBeenCalled();
 				});
 			});
 

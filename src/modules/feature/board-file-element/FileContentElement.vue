@@ -292,6 +292,7 @@ const fileInteractionType = computed(() =>
 		isCollaboraEnabled: isCollaboraEnabled.value,
 		isCollaboraEditable: isCollaboraEditable.value,
 		mimeType: fileRecord.value?.mimeType,
+		fileName: fileRecord.value?.name,
 		hasPreviewUrl: !!fileProperties.value?.previewUrl,
 		isDownloadAllowed: !!fileProperties.value?.isDownloadAllowed,
 	})

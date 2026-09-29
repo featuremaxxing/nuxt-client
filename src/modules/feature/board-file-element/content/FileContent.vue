@@ -123,6 +123,7 @@ const isDescriptionDownloadLink = computed(
 		!props.fileProperties.previewUrl &&
 		!hasVideoMimeType.value &&
 		!hasAudioMimeType.value &&
+		!hasModel3dPreview.value &&
 		props.fileProperties.isDownloadAllowed
 );
 
