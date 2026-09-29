@@ -1,5 +1,10 @@
 import { Layouts } from "@/layouts/types";
-import { checkFolderFeature, checkRegisterExternalPersonsFeature, validateQueryParameters } from "@/router/guards";
+import {
+	checkFolderFeature,
+	checkRegisterExternalPersonsFeature,
+	checkWebDavFeature,
+	validateQueryParameters,
+} from "@/router/guards";
 import { boardCardLinkRedirect } from "@/router/guards/board-card-link-redirect";
 import { createPermissionGuard } from "@/router/guards/permission.guard";
 import { HttpStatusCode } from "@/types/enum/http-status-code.enum";
@@ -352,6 +357,12 @@ export const routes: Readonly<RouteRecordRaw>[] = [
 		path: `/rooms/:id(${REGEX_ID})/edit`,
 		component: async () => (await import("@page-room")).RoomEditPage,
 		name: "room-edit",
+	},
+	{
+		path: "/webdav",
+		component: async () => (await import("@page-webdav")).WebDavAccessPage,
+		beforeEnter: [checkWebDavFeature],
+		name: "webdav",
 	},
 	{
 		path: `/rooms/:id(${REGEX_ID})/progress`,

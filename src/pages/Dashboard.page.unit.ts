@@ -1,6 +1,12 @@
 import DashboardPage from "./Dashboard.page.vue";
 import { initializeAxios } from "@/utils/api";
-import { createTestAppStore, mockApi, mockApiResponse, mockAxiosInstance } from "@@/tests/test-utils";
+import {
+	createTestAppStore,
+	createTestEnvStore,
+	mockApi,
+	mockApiResponse,
+	mockAxiosInstance,
+} from "@@/tests/test-utils";
 import { createTestSchoolStore } from "@@/tests/test-utils/factory/school-test.utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import * as serverApi from "@api-server";
@@ -84,6 +90,21 @@ describe("DashboardPage", () => {
 		expect(featureSection.text()).toContain("pages.dashboard.features.polls.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.aiQuestions.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
+	});
+
+	describe("network drive feature", () => {
+		it.each([
+			[RoleName.TEACHER, true, true],
+			[RoleName.STUDENT, true, false],
+			[RoleName.TEACHER, false, false],
+		])("for %s with FEATURE_WEBDAV_ENABLED=%s it should be listed: %s", async (roleName, enabled, expected) => {
+			createTestEnvStore({ FEATURE_WEBDAV_ENABLED: enabled });
+			const { wrapper } = setup({ roleName });
+			await flushPromises();
+
+			const featureSection = wrapper.get("[data-testid='new-features']");
+			expect(featureSection.text().includes("pages.dashboard.features.webdav.title")).toBe(expected);
+		});
 	});
 
 	it("does not show the news section or teams migration warning", async () => {

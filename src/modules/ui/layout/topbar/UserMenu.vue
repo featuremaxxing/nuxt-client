@@ -20,6 +20,9 @@
 			<VListItem href="/account" data-testid="account-link">
 				{{ $t("global.topbar.settings") }}
 			</VListItem>
+			<VListItem v-if="isWebDavEnabled" to="/webdav" data-testid="webdav-link">
+				{{ $t("pages.webdav.title") }}
+			</VListItem>
 			<VListItem
 				v-if="isExternalLogoutAllowed"
 				data-testid="external-logout"
@@ -40,6 +43,7 @@ import LanguageMenu from "./LanguageMenu.vue";
 import { MeUserResponse } from "@api-server";
 import { useSystem } from "@data-access";
 import { useAppStore, useAppStoreRefs } from "@data-app";
+import { useEnvConfig } from "@data-env";
 import { safariAriaOwnsWorkaround } from "@util-device-detection";
 import { computed, PropType, toRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -56,6 +60,9 @@ const props = defineProps({
 });
 
 const { systemId } = useAppStoreRefs();
+
+// the network drive is for teachers only for now
+const isWebDavEnabled = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && useAppStore().isTeacher);
 
 const { t } = useI18n();
 

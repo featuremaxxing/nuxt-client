@@ -1,5 +1,6 @@
 export { checkFolderFeature } from "./check-folder-feature.guard";
 export * from "./check-register-external-persons-feature";
+export { checkWebDavFeature } from "./check-webdav-feature.guard";
 export * from "./clear-application-error.guard";
 export * from "./is-authenticated.guard";
 export * from "./legacy-route-compatibility.guard";

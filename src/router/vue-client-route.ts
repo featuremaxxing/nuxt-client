@@ -46,6 +46,7 @@ const vueRoutes = [
 	`^/migration/error/?$`,
 	`^/media-shelf/?$`,
 	`^/media-shelf/fwu-media/?$`,
+	`^/webdav/?$`,
 	`^/news/?$`,
 	`^/news/new/?$`,
 	`^/news/${mongoId}/?$`,

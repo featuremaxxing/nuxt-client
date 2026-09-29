@@ -2,7 +2,7 @@ import UserMenu from "./UserMenu.vue";
 import { createTestAppStore, createTestEnvStore, mockComposable } from "@@/tests/test-utils";
 import { publicSystemResponseFactory } from "@@/tests/test-utils/factory/publicSystemResponseFactory";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { LanguageType, PublicSystemResponse } from "@api-server";
+import { LanguageType, PublicSystemResponse, RoleName } from "@api-server";
 import { useSystem } from "@data-access";
 import { useOAuthApi } from "@data-oauth";
 import { createTestingPinia } from "@pinia/testing";
@@ -24,19 +24,24 @@ describe("@ui-layout/UserMenu", () => {
 		mockedSystem,
 		mockedTokenExpiration,
 		isSessionTokenExpired = false,
+		isWebDavEnabled = false,
+		isTeacher = false,
 	}: {
 		isExternalFeatureEnabled?: boolean;
 		mockedSystem?: PublicSystemResponse;
 		mockedTokenExpiration?: Date;
 		isSessionTokenExpired?: boolean;
+		isWebDavEnabled?: boolean;
+		isTeacher?: boolean;
 	} = {}) => {
 		setActivePinia(createTestingPinia());
 		const { appStore } = createTestAppStore({
-			me: { systemId: mockedSystem?.id },
+			me: { systemId: mockedSystem?.id, ...(isTeacher ? { roles: [{ id: "role", name: RoleName.TEACHER }] } : {}) },
 		});
 
 		createTestEnvStore({
 			FEATURE_EXTERNAL_SYSTEM_LOGOUT_ENABLED: isExternalFeatureEnabled,
+			FEATURE_WEBDAV_ENABLED: isWebDavEnabled,
 			I18N__AVAILABLE_LANGUAGES: [LanguageType.DE, LanguageType.EN],
 		});
 
@@ -105,6 +110,23 @@ describe("@ui-layout/UserMenu", () => {
 		await logoutBtn.trigger("click");
 
 		expect(appStore.logout).toHaveBeenCalled();
+	});
+
+	describe("network drive link", () => {
+		it.each([
+			[true, true, true],
+			[false, true, false],
+			[true, false, false],
+		])(
+			"with FEATURE_WEBDAV_ENABLED=%s and teacher=%s it should show the link: %s",
+			async (isWebDavEnabled, isTeacher, expected) => {
+				const { wrapper } = setupWrapper({ isWebDavEnabled, isTeacher });
+
+				await wrapper.findComponent(VBtn).trigger("click");
+
+				expect(wrapper.findComponent("[data-testid=webdav-link]").exists()).toBe(expected);
+			}
+		);
 	});
 
 	describe("external logout", () => {
