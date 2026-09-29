@@ -17,6 +17,7 @@ import { useSharedFileSelect, useSharedLastCreatedElement } from "@util-board";
 import { type VueWrapper } from "@vue/test-utils";
 import { computed, ref } from "vue";
 import type { ComponentProps } from "vue-component-type-helpers";
+import { createRouterMock, injectRouterMock } from "vue-router-mock";
 import { VBtn, VDialog } from "vuetify/components";
 
 const backgroundColor = Colors.BLUE;
@@ -75,6 +76,9 @@ describe("CardHostDetailView", () => {
 		});
 		mockedUseSharedEditMode.mockReturnValue(mockedSharedEditMode);
 
+		const router = createRouterMock();
+		injectRouterMock(router);
+
 		const wrapper = shallowMount(CardHostDetailView, {
 			global: {
 				plugins: [
@@ -101,6 +105,7 @@ describe("CardHostDetailView", () => {
 
 		return {
 			wrapper,
+			router,
 		};
 	};
 
@@ -185,6 +190,96 @@ describe("CardHostDetailView", () => {
 				>;
 				expect(nextButton.props("disabled")).toBe(true);
 			});
+		});
+	});
+
+	describe("arrow key navigation", () => {
+		const previousCardRoute = {
+			name: "boards-card-detail",
+			params: { boardId: "any-board-id", cardId: "previous-card-id" },
+		};
+		const nextCardRoute = {
+			name: "boards-card-detail",
+			params: { boardId: "any-board-id", cardId: "next-card-id" },
+		};
+
+		const pressKey = (target: Element, key: string, init: KeyboardEventInit = {}) => {
+			const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...init });
+			target.dispatchEvent(event);
+			return event;
+		};
+
+		it("should navigate to the previous card on ArrowLeft", () => {
+			const { wrapper, router } = setup({ cardId: CARD_WITH_ELEMENTS.id, previousCardRoute, nextCardRoute });
+
+			const event = pressKey(wrapper.findComponent(VDialog).element, "ArrowLeft");
+
+			expect(router.push).toHaveBeenCalledWith(previousCardRoute);
+			expect(event.defaultPrevented).toBe(true);
+		});
+
+		it("should navigate to the next card on ArrowRight", () => {
+			const { wrapper, router } = setup({ cardId: CARD_WITH_ELEMENTS.id, previousCardRoute, nextCardRoute });
+
+			pressKey(wrapper.findComponent(VDialog).element, "ArrowRight");
+
+			expect(router.push).toHaveBeenCalledWith(nextCardRoute);
+		});
+
+		it("should do nothing when there is no card in that direction", () => {
+			const { wrapper, router } = setup({ cardId: CARD_WITH_ELEMENTS.id });
+
+			const event = pressKey(wrapper.findComponent(VDialog).element, "ArrowRight");
+
+			expect(router.push).not.toHaveBeenCalled();
+			expect(event.defaultPrevented).toBe(false);
+		});
+
+		it("should ignore arrow keys combined with a modifier key", () => {
+			const { wrapper, router } = setup({ cardId: CARD_WITH_ELEMENTS.id, previousCardRoute, nextCardRoute });
+
+			pressKey(wrapper.findComponent(VDialog).element, "ArrowLeft", { altKey: true });
+			pressKey(wrapper.findComponent(VDialog).element, "ArrowRight", { shiftKey: true });
+
+			expect(router.push).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			["a text input", () => document.createElement("input")],
+			["a textarea", () => document.createElement("textarea")],
+			[
+				"a rich text editor",
+				() => {
+					const editor = document.createElement("div");
+					editor.setAttribute("contenteditable", "true");
+					return editor;
+				},
+			],
+			[
+				"a radio group",
+				() => {
+					const group = document.createElement("div");
+					group.setAttribute("role", "radiogroup");
+					return group;
+				},
+			],
+		])("should ignore arrow keys while focus is inside %s", (_, createWidget) => {
+			const { wrapper, router } = setup({ cardId: CARD_WITH_ELEMENTS.id, previousCardRoute, nextCardRoute });
+			const widget = createWidget();
+			wrapper.findComponent(VDialog).element.appendChild(widget);
+
+			pressKey(widget, "ArrowRight");
+
+			expect(router.push).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("card inside the detail view", () => {
+		it("should disable moving the card with the arrow keys, so they page through the cards", () => {
+			const { wrapper } = setup({ cardId: CARD_WITH_ELEMENTS.id });
+
+			const cardHost = wrapper.findComponent({ name: "CardHost" });
+			expect(cardHost.props("isKeyboardMoveDisabled")).toBe(true);
 		});
 	});
 

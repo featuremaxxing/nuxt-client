@@ -4,6 +4,7 @@ import { createTestEnvStore } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { ContentElementType } from "@api-server";
 import { AssignmentContentElement } from "@feature-board-assignment-element";
+import { CheckboxContentElement } from "@feature-board-checkbox-element";
 import { CollaborativeTextEditorElement } from "@feature-board-collaborative-text-editor-element";
 import { DeletedElement } from "@feature-board-deleted-element";
 import { DrawingContentElement } from "@feature-board-drawing-element";
@@ -29,6 +30,7 @@ describe("ContentElementList", () => {
 				FEATURE_COLUMN_BOARD_FILE_FOLDER_ENABLED: true,
 				FEATURE_COLUMN_BOARD_H5P_ENABLED: true,
 				FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: true,
+				FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true,
 				FEATURE_TEAMS_ENABLED: true,
 				FEATURE_COLUMN_BOARD_COLLABORATIVE_TEXT_EDITOR_ENABLED: true,
 				FEATURE_TLDRAW_ENABLED: true,
@@ -101,6 +103,10 @@ describe("ContentElementList", () => {
 				{
 					elementType: ContentElementType.ASSIGNMENT,
 					component: AssignmentContentElement,
+				},
+				{
+					elementType: ContentElementType.CHECKBOX,
+					component: CheckboxContentElement,
 				},
 			];
 

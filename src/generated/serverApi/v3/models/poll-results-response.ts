@@ -48,7 +48,7 @@ export interface PollResultsResponse {
      */
     results?: Array<PollQuestionResultResponse>;
     /**
-     *
+     * 
      * @type {Array<PollVoterResponse>}
      * @memberof PollResultsResponse
      */

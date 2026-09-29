@@ -37,6 +37,20 @@ import { BatchReturnSubmissionsResponse } from '../models';
 // @ts-ignore
 import { GradeSubmissionBodyParams } from '../models';
 // @ts-ignore
+import { PeerReviewAssignBodyParams } from '../models';
+// @ts-ignore
+import { PeerReviewAssignResultResponse } from '../models';
+// @ts-ignore
+import { PeerReviewAssignmentResponse } from '../models';
+// @ts-ignore
+import { PeerReviewSettingsBodyParams } from '../models';
+// @ts-ignore
+import { PeerReviewSettingsResponse } from '../models';
+// @ts-ignore
+import { PeerReviewSubmitBodyParams } from '../models';
+// @ts-ignore
+import { PeerReviewTaskResponse } from '../models';
+// @ts-ignore
 import { SubmitSubmissionBodyParams } from '../models';
 /**
  * AssignmentApi - axios parameter creator
@@ -121,7 +135,7 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         *
+         * 
          * @summary Get (or, if none exists yet, create) the container a teacher uploads feedback files (audio, annotated corrections) for a submission to.
          * @param {string} submissionId The id of the submission.
          * @param {*} [options] Override http request option.
@@ -148,7 +162,7 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-
+    
             setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -159,10 +173,10 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         *
+         * 
          * @summary Save a draft grade (points/comment) for a submission, without returning it to the student.
          * @param {string} submissionId The id of the submission.
-         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams
+         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -324,9 +338,9 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         *
+         * 
          * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
-         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -350,7 +364,7 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
-
+    
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -364,10 +378,10 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         *
+         * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -399,6 +413,332 @@ export const AssignmentApiAxiosParamCreator = function (configuration?: Configur
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(submitSubmissionBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Auto-assign peer reviewers: a cycle-free rotation so nobody reviews their own submission. Replaces every previous assignment for this element.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerAutoAssign: async (elementId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'elementId' is not null or undefined
+            assertParamExists('peerReviewControllerAutoAssign', 'elementId', elementId)
+            const localVarPath = `/assignments/{elementId}/peer-review/auto-assign`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerEnsureReviewFeedbackContainer: async (reviewId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'reviewId' is not null or undefined
+            assertParamExists('peerReviewControllerEnsureReviewFeedbackContainer', 'reviewId', reviewId)
+            const localVarPath = `/assignments/peer-review/{reviewId}/feedback-container`
+                .replace(`{${"reviewId"}}`, encodeURIComponent(String(reviewId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerListAssignments: async (elementId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'elementId' is not null or undefined
+            assertParamExists('peerReviewControllerListAssignments', 'elementId', elementId)
+            const localVarPath = `/assignments/{elementId}/peer-review/assignments`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Manually assign specific reviewers to specific submissions.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewAssignBodyParams} peerReviewAssignBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerManualAssign: async (elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'elementId' is not null or undefined
+            assertParamExists('peerReviewControllerManualAssign', 'elementId', elementId)
+            // verify required parameter 'peerReviewAssignBodyParams' is not null or undefined
+            assertParamExists('peerReviewControllerManualAssign', 'peerReviewAssignBodyParams', peerReviewAssignBodyParams)
+            const localVarPath = `/assignments/{elementId}/peer-review/assign`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(peerReviewAssignBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List the caller’s own peer review tasks. Anonymized: never reveals who submitted the work being reviewed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerMyTasks: async (options: any = {}): Promise<RequestArgs> => {
+            const localVarPath = `/assignments/peer-review/my-tasks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Submit (or update) the caller’s own review for an assigned peer review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerSubmitReview: async (reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'reviewId' is not null or undefined
+            assertParamExists('peerReviewControllerSubmitReview', 'reviewId', reviewId)
+            // verify required parameter 'peerReviewSubmitBodyParams' is not null or undefined
+            assertParamExists('peerReviewControllerSubmitReview', 'peerReviewSubmitBodyParams', peerReviewSubmitBodyParams)
+            const localVarPath = `/assignments/peer-review/{reviewId}/submit`
+                .replace(`{${"reviewId"}}`, encodeURIComponent(String(reviewId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(peerReviewSubmitBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+         * @param {string} elementId The id of the assignment element.
+         * @param {string} submissionId The id of the submission.
+         * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerUnassign: async (elementId: string, submissionId: string, reviewerUserId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'elementId' is not null or undefined
+            assertParamExists('peerReviewControllerUnassign', 'elementId', elementId)
+            // verify required parameter 'submissionId' is not null or undefined
+            assertParamExists('peerReviewControllerUnassign', 'submissionId', submissionId)
+            // verify required parameter 'reviewerUserId' is not null or undefined
+            assertParamExists('peerReviewControllerUnassign', 'reviewerUserId', reviewerUserId)
+            const localVarPath = `/assignments/{elementId}/peer-review/assignments/{submissionId}/{reviewerUserId}`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)))
+                .replace(`{${"submissionId"}}`, encodeURIComponent(String(submissionId)))
+                .replace(`{${"reviewerUserId"}}`, encodeURIComponent(String(reviewerUserId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Enable/disable peer review for an assignment and configure its mode/reviewer count.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewSettingsBodyParams} peerReviewSettingsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerUpdateSettings: async (elementId: string, peerReviewSettingsBodyParams: PeerReviewSettingsBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'elementId' is not null or undefined
+            assertParamExists('peerReviewControllerUpdateSettings', 'elementId', elementId)
+            // verify required parameter 'peerReviewSettingsBodyParams' is not null or undefined
+            assertParamExists('peerReviewControllerUpdateSettings', 'peerReviewSettingsBodyParams', peerReviewSettingsBodyParams)
+            const localVarPath = `/assignments/{elementId}/peer-review-settings`
+                .replace(`{${"elementId"}}`, encodeURIComponent(String(elementId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(peerReviewSettingsBodyParams, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -438,7 +778,7 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         *
+         * 
          * @summary Get (or, if none exists yet, create) the container a teacher uploads feedback files (audio, annotated corrections) for a submission to.
          * @param {string} submissionId The id of the submission.
          * @param {*} [options] Override http request option.
@@ -449,10 +789,10 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         *
+         * 
          * @summary Save a draft grade (points/comment) for a submission, without returning it to the student.
          * @param {string} submissionId The id of the submission.
-         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams
+         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -495,9 +835,9 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         *
+         * 
          * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
-         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -506,15 +846,107 @@ export const AssignmentApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         *
+         * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentSubmissionResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Auto-assign peer reviewers: a cycle-free rotation so nobody reviews their own submission. Replaces every previous assignment for this element.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerAutoAssign(elementId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PeerReviewAssignResultResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerAutoAssign(elementId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssignmentFeedbackContainerResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerListAssignments(elementId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PeerReviewAssignmentResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerListAssignments(elementId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Manually assign specific reviewers to specific submissions.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewAssignBodyParams} peerReviewAssignBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PeerReviewAssignResultResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary List the caller’s own peer review tasks. Anonymized: never reveals who submitted the work being reviewed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerMyTasks(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PeerReviewTaskResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerMyTasks(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Submit (or update) the caller’s own review for an assigned peer review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PeerReviewTaskResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+         * @param {string} elementId The id of the assignment element.
+         * @param {string} submissionId The id of the submission.
+         * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Enable/disable peer review for an assignment and configure its mode/reviewer count.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewSettingsBodyParams} peerReviewSettingsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async peerReviewControllerUpdateSettings(elementId: string, peerReviewSettingsBodyParams: PeerReviewSettingsBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PeerReviewSettingsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.peerReviewControllerUpdateSettings(elementId, peerReviewSettingsBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -548,7 +980,7 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
             return localVarFp.assignmentControllerDeleteOwnSubmission(submissionId, options).then((request) => request(axios, basePath));
         },
         /**
-         *
+         * 
          * @summary Get (or, if none exists yet, create) the container a teacher uploads feedback files (audio, annotated corrections) for a submission to.
          * @param {string} submissionId The id of the submission.
          * @param {*} [options] Override http request option.
@@ -558,10 +990,10 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
             return localVarFp.assignmentControllerEnsureFeedbackContainer(submissionId, options).then((request) => request(axios, basePath));
         },
         /**
-         *
+         * 
          * @summary Save a draft grade (points/comment) for a submission, without returning it to the student.
          * @param {string} submissionId The id of the submission.
-         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams
+         * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -600,9 +1032,9 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
             return localVarFp.assignmentControllerReturnSubmission(submissionId, gradeSubmissionBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
-         *
+         * 
          * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
-         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+         * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -610,15 +1042,99 @@ export const AssignmentApiFactory = function (configuration?: Configuration, bas
             return localVarFp.assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
-         *
+         * 
          * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
          * @param {string} submissionId The id of the submission.
-         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
+         * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse> {
             return localVarFp.assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Auto-assign peer reviewers: a cycle-free rotation so nobody reviews their own submission. Replaces every previous assignment for this element.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerAutoAssign(elementId: string, options?: any): AxiosPromise<PeerReviewAssignResultResponse> {
+            return localVarFp.peerReviewControllerAutoAssign(elementId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any): AxiosPromise<AssignmentFeedbackContainerResponse> {
+            return localVarFp.peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+         * @param {string} elementId The id of the assignment element.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerListAssignments(elementId: string, options?: any): AxiosPromise<Array<PeerReviewAssignmentResponse>> {
+            return localVarFp.peerReviewControllerListAssignments(elementId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Manually assign specific reviewers to specific submissions.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewAssignBodyParams} peerReviewAssignBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any): AxiosPromise<PeerReviewAssignResultResponse> {
+            return localVarFp.peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List the caller’s own peer review tasks. Anonymized: never reveals who submitted the work being reviewed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerMyTasks(options?: any): AxiosPromise<Array<PeerReviewTaskResponse>> {
+            return localVarFp.peerReviewControllerMyTasks(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Submit (or update) the caller’s own review for an assigned peer review task.
+         * @param {string} reviewId The id of the peer review task.
+         * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any): AxiosPromise<PeerReviewTaskResponse> {
+            return localVarFp.peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+         * @param {string} elementId The id of the assignment element.
+         * @param {string} submissionId The id of the submission.
+         * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Enable/disable peer review for an assignment and configure its mode/reviewer count.
+         * @param {string} elementId The id of the assignment element.
+         * @param {PeerReviewSettingsBodyParams} peerReviewSettingsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        peerReviewControllerUpdateSettings(elementId: string, peerReviewSettingsBodyParams: PeerReviewSettingsBodyParams, options?: any): AxiosPromise<PeerReviewSettingsResponse> {
+            return localVarFp.peerReviewControllerUpdateSettings(elementId, peerReviewSettingsBodyParams, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -650,7 +1166,7 @@ export interface AssignmentApiInterface {
     assignmentControllerDeleteOwnSubmission(submissionId: string, options?: any): AxiosPromise<void>;
 
     /**
-     *
+     * 
      * @summary Get (or, if none exists yet, create) the container a teacher uploads feedback files (audio, annotated corrections) for a submission to.
      * @param {string} submissionId The id of the submission.
      * @param {*} [options] Override http request option.
@@ -660,10 +1176,10 @@ export interface AssignmentApiInterface {
     assignmentControllerEnsureFeedbackContainer(submissionId: string, options?: any): AxiosPromise<AssignmentFeedbackContainerResponse>;
 
     /**
-     *
+     * 
      * @summary Save a draft grade (points/comment) for a submission, without returning it to the student.
      * @param {string} submissionId The id of the submission.
-     * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams
+     * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
@@ -702,9 +1218,9 @@ export interface AssignmentApiInterface {
     assignmentControllerReturnSubmission(submissionId: string, gradeSubmissionBodyParams: GradeSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
 
     /**
-     *
+     * 
      * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
-     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
@@ -712,15 +1228,99 @@ export interface AssignmentApiInterface {
     assignmentControllerReturnSubmissionsBatch(batchReturnSubmissionsBodyParams: BatchReturnSubmissionsBodyParams, options?: any): AxiosPromise<BatchReturnSubmissionsResponse>;
 
     /**
-     *
+     * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApiInterface
      */
     assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any): AxiosPromise<AssignmentSubmissionResponse>;
+
+    /**
+     * 
+     * @summary Auto-assign peer reviewers: a cycle-free rotation so nobody reviews their own submission. Replaces every previous assignment for this element.
+     * @param {string} elementId The id of the assignment element.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerAutoAssign(elementId: string, options?: any): AxiosPromise<PeerReviewAssignResultResponse>;
+
+    /**
+     * 
+     * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+     * @param {string} reviewId The id of the peer review task.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any): AxiosPromise<AssignmentFeedbackContainerResponse>;
+
+    /**
+     * 
+     * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+     * @param {string} elementId The id of the assignment element.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerListAssignments(elementId: string, options?: any): AxiosPromise<Array<PeerReviewAssignmentResponse>>;
+
+    /**
+     * 
+     * @summary Manually assign specific reviewers to specific submissions.
+     * @param {string} elementId The id of the assignment element.
+     * @param {PeerReviewAssignBodyParams} peerReviewAssignBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any): AxiosPromise<PeerReviewAssignResultResponse>;
+
+    /**
+     * 
+     * @summary List the caller’s own peer review tasks. Anonymized: never reveals who submitted the work being reviewed.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerMyTasks(options?: any): AxiosPromise<Array<PeerReviewTaskResponse>>;
+
+    /**
+     * 
+     * @summary Submit (or update) the caller’s own review for an assigned peer review task.
+     * @param {string} reviewId The id of the peer review task.
+     * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any): AxiosPromise<PeerReviewTaskResponse>;
+
+    /**
+     * 
+     * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+     * @param {string} elementId The id of the assignment element.
+     * @param {string} submissionId The id of the submission.
+     * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any): AxiosPromise<void>;
+
+    /**
+     * 
+     * @summary Enable/disable peer review for an assignment and configure its mode/reviewer count.
+     * @param {string} elementId The id of the assignment element.
+     * @param {PeerReviewSettingsBodyParams} peerReviewSettingsBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApiInterface
+     */
+    peerReviewControllerUpdateSettings(elementId: string, peerReviewSettingsBodyParams: PeerReviewSettingsBodyParams, options?: any): AxiosPromise<PeerReviewSettingsResponse>;
 
 }
 
@@ -756,7 +1356,7 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
     }
 
     /**
-     *
+     * 
      * @summary Get (or, if none exists yet, create) the container a teacher uploads feedback files (audio, annotated corrections) for a submission to.
      * @param {string} submissionId The id of the submission.
      * @param {*} [options] Override http request option.
@@ -768,10 +1368,10 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
     }
 
     /**
-     *
+     * 
      * @summary Save a draft grade (points/comment) for a submission, without returning it to the student.
      * @param {string} submissionId The id of the submission.
-     * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams
+     * @param {GradeSubmissionBodyParams} gradeSubmissionBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi
@@ -818,9 +1418,9 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
     }
 
     /**
-     *
+     * 
      * @summary Return several already-graded submissions in one step. Submissions that are not graded yet (or cannot be returned) are reported in `failed` instead of aborting the whole request.
-     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams
+     * @param {BatchReturnSubmissionsBodyParams} batchReturnSubmissionsBodyParams 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi
@@ -830,15 +1430,115 @@ export class AssignmentApi extends BaseAPI implements AssignmentApiInterface {
     }
 
     /**
-     *
+     * 
      * @summary Submit (or resubmit) the caller’s own submission. Requires a file to already be uploaded.
      * @param {string} submissionId The id of the submission.
-     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams]
+     * @param {SubmitSubmissionBodyParams} [submitSubmissionBodyParams] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AssignmentApi
      */
     public assignmentControllerSubmit(submissionId: string, submitSubmissionBodyParams?: SubmitSubmissionBodyParams, options?: any) {
         return AssignmentApiFp(this.configuration).assignmentControllerSubmit(submissionId, submitSubmissionBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Auto-assign peer reviewers: a cycle-free rotation so nobody reviews their own submission. Replaces every previous assignment for this element.
+     * @param {string} elementId The id of the assignment element.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerAutoAssign(elementId: string, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerAutoAssign(elementId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get (or, if none exists yet, create) the container this reviewer uploads their own correction files to for a review task.
+     * @param {string} reviewId The id of the peer review task.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerEnsureReviewFeedbackContainer(reviewId: string, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerEnsureReviewFeedbackContainer(reviewId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List every current reviewer<->submission pairing for an assignment, with reviewer identities.
+     * @param {string} elementId The id of the assignment element.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerListAssignments(elementId: string, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerListAssignments(elementId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Manually assign specific reviewers to specific submissions.
+     * @param {string} elementId The id of the assignment element.
+     * @param {PeerReviewAssignBodyParams} peerReviewAssignBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerManualAssign(elementId: string, peerReviewAssignBodyParams: PeerReviewAssignBodyParams, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerManualAssign(elementId, peerReviewAssignBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List the caller’s own peer review tasks. Anonymized: never reveals who submitted the work being reviewed.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerMyTasks(options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerMyTasks(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Submit (or update) the caller’s own review for an assigned peer review task.
+     * @param {string} reviewId The id of the peer review task.
+     * @param {PeerReviewSubmitBodyParams} peerReviewSubmitBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerSubmitReview(reviewId: string, peerReviewSubmitBodyParams: PeerReviewSubmitBodyParams, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerSubmitReview(reviewId, peerReviewSubmitBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Remove one reviewer<->submission pairing, as long as it has not been submitted yet.
+     * @param {string} elementId The id of the assignment element.
+     * @param {string} submissionId The id of the submission.
+     * @param {string} reviewerUserId The id of the reviewer whose assignment to this submission should be removed.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerUnassign(elementId: string, submissionId: string, reviewerUserId: string, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerUnassign(elementId, submissionId, reviewerUserId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Enable/disable peer review for an assignment and configure its mode/reviewer count.
+     * @param {string} elementId The id of the assignment element.
+     * @param {PeerReviewSettingsBodyParams} peerReviewSettingsBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssignmentApi
+     */
+    public peerReviewControllerUpdateSettings(elementId: string, peerReviewSettingsBodyParams: PeerReviewSettingsBodyParams, options?: any) {
+        return AssignmentApiFp(this.configuration).peerReviewControllerUpdateSettings(elementId, peerReviewSettingsBodyParams, options).then((request) => request(this.axios, this.basePath));
     }
 }

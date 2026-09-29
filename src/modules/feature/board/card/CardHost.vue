@@ -2,6 +2,7 @@
 	<div>
 		<CardHostInteractionHandler
 			:is-edit-mode="isEditMode"
+			:is-keyboard-move-disabled="isKeyboardMoveDisabled"
 			@start-edit-mode="onStartEditMode"
 			@end-edit-mode="onEndEditMode"
 			@move:card-keyboard="onMoveCardKeyboard"
@@ -181,6 +182,7 @@ type Props = {
 	originTitle?: string;
 	/** board a pinned card comes from, for the link back to the original */
 	originBoardId?: string;
+	isKeyboardMoveDisabled?: boolean;
 };
 
 const props = defineProps<Props>();

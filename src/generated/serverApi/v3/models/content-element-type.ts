@@ -31,7 +31,9 @@ export enum ContentElementType {
     DELETED = 'deleted',
     H5P = 'h5p',
     POLL = 'poll',
-    ASSIGNMENT = 'assignment'
+    CHECKBOX = 'checkbox',
+    ASSIGNMENT = 'assignment',
+    AI_QUESTION = 'aiQuestion'
 }
 
 

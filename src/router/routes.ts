@@ -365,6 +365,11 @@ export const routes: Readonly<RouteRecordRaw>[] = [
 		name: "room-edit",
 	},
 	{
+		path: `/rooms/:id(${REGEX_ID})/progress`,
+		component: async () => (await import("@page-room")).RoomProgressPage,
+		name: "room-progress",
+	},
+	{
 		path: `/rooms/:id(${REGEX_ID})/members`,
 		component: async () => (await import("@page-room")).RoomMembersPage,
 		name: "room-members",

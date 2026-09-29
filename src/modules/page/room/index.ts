@@ -7,6 +7,7 @@ import RoomEditPage from "./RoomEdit.page.vue";
 import RoomInvitationLinkStatusPage from "./RoomInvitationLinkStatus.page.vue";
 import RoomLockedPage from "./RoomLocked.page.vue";
 import RoomMembersPage from "./RoomMembers.page.vue";
+import RoomProgressPage from "./RoomProgress.page.vue";
 import RoomsPage from "./Rooms.page.vue";
 
 export {
@@ -19,5 +20,6 @@ export {
 	RoomInvitationLinkStatusPage,
 	RoomLockedPage,
 	RoomMembersPage,
+	RoomProgressPage,
 	RoomsPage,
 };

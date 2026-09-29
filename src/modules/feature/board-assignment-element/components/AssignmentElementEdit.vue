@@ -128,7 +128,7 @@
 					hide-details
 					:label="t('components.cardElement.assignmentElement.peerReview.mode')"
 					data-testid="assignment-peer-review-mode"
-					@update:model-value="(value: 'manual' | 'auto') => onChangePeerReviewMode(value)"
+					@update:model-value="(value: AssignmentElementContentPeerReviewMode) => onChangePeerReviewMode(value)"
 				/>
 				<VTextField
 					v-if="peerReviewMode === 'auto'"
@@ -150,7 +150,13 @@
 import DueDateTimeField from "./DueDateTimeField.vue";
 import GraceMinutesSelect from "./GraceMinutesSelect.vue";
 import { AssignmentElement } from "@/types/board/ContentElement";
-import { ContentElementType, PeerReviewSettingsResponse } from "@api-server";
+import {
+	AssignmentElementContentPeerReviewMode,
+	ContentElementType,
+	PeerReviewSettingsBodyParamsMode,
+	PeerReviewSettingsResponse,
+	PeerReviewSettingsResponseMode,
+} from "@api-server";
 import { usePeerReviewApi } from "@data-assignment";
 import { useCardStore, useContentElementState } from "@data-board";
 import { mdiDelete, mdiPlus } from "@icons/material";
@@ -178,13 +184,13 @@ const cardStore = useCardStore();
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss
 const peerReviewEnabled = ref(props.element.content.peerReviewEnabled);
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss
-const peerReviewMode = ref<"manual" | "auto">(props.element.content.peerReviewMode);
+const peerReviewMode = ref<AssignmentElementContentPeerReviewMode>(props.element.content.peerReviewMode);
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss
 const peerReviewCount = ref(props.element.content.peerReviewCount);
 
 const peerReviewModeItems = computed(() => [
-	{ title: t("components.cardElement.assignmentElement.peerReview.modeManual"), value: "manual" },
-	{ title: t("components.cardElement.assignmentElement.peerReview.modeAuto"), value: "auto" },
+	{ title: t("components.cardElement.assignmentElement.peerReview.modeManual"), value: AssignmentElementContentPeerReviewMode.MANUAL },
+	{ title: t("components.cardElement.assignmentElement.peerReview.modeAuto"), value: AssignmentElementContentPeerReviewMode.AUTO },
 ]);
 
 // Because the dedicated endpoint above bypasses the generic content-update flow entirely, no
@@ -200,7 +206,9 @@ const syncStore = (result: PeerReviewSettingsResponse) => {
 			content: {
 				...modelValue.value,
 				peerReviewEnabled: result.enabled,
-				peerReviewMode: result.mode,
+				// both enums serialize to the same 'manual'/'auto' strings, but they are
+				// distinct TS types (see updateSettings below)
+				peerReviewMode: result.mode as unknown as AssignmentElementContentPeerReviewMode,
 				peerReviewCount: result.count,
 			},
 		},
@@ -212,7 +220,7 @@ const onTogglePeerReview = async (enabled: boolean | null) => {
 	peerReviewEnabled.value = !!enabled;
 	const result = await updateSettings(props.element.id, {
 		enabled: peerReviewEnabled.value,
-		mode: peerReviewMode.value,
+		mode: peerReviewMode.value as unknown as PeerReviewSettingsBodyParamsMode,
 		count: peerReviewCount.value,
 	});
 	// on failure updateSettings already showed an error toast; nothing was saved, so the
@@ -221,17 +229,17 @@ const onTogglePeerReview = async (enabled: boolean | null) => {
 		peerReviewEnabled.value = !enabled;
 		return;
 	}
-	peerReviewMode.value = result.mode;
+	peerReviewMode.value = result.mode as unknown as AssignmentElementContentPeerReviewMode;
 	peerReviewCount.value = result.count ?? peerReviewCount.value;
 	syncStore(result);
 };
 
-const onChangePeerReviewMode = async (mode: "manual" | "auto") => {
+const onChangePeerReviewMode = async (mode: AssignmentElementContentPeerReviewMode) => {
 	const previous = peerReviewMode.value;
 	peerReviewMode.value = mode;
 	const result = await updateSettings(props.element.id, {
 		enabled: peerReviewEnabled.value,
-		mode,
+		mode: mode as unknown as PeerReviewSettingsBodyParamsMode,
 		count: peerReviewCount.value,
 	});
 	if (!result) {
@@ -247,7 +255,7 @@ const onChangePeerReviewCount = async (value: string) => {
 	peerReviewCount.value = count;
 	const result = await updateSettings(props.element.id, {
 		enabled: peerReviewEnabled.value,
-		mode: peerReviewMode.value,
+		mode: peerReviewMode.value as unknown as PeerReviewSettingsBodyParamsMode,
 		count,
 	});
 	if (!result) {

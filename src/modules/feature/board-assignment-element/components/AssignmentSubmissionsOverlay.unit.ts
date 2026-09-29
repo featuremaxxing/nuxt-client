@@ -4,7 +4,7 @@ import { AssignmentElement } from "@/types/board/ContentElement";
 import { FileRecordParent } from "@/types/file/File";
 import { assignmentElementResponseFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
+import { AssignmentElementContentPeerReviewMode, AssignmentStatus, AssignmentSubmissionResponse } from "@api-server";
 import { mount } from "@vue/test-utils";
 
 const {
@@ -807,7 +807,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 
 		it("opens the panel and auto-assigns reviewers", async () => {
 			element.content.peerReviewEnabled = true;
-			element.content.peerReviewMode = "auto";
+			element.content.peerReviewMode = AssignmentElementContentPeerReviewMode.AUTO;
 			const { wrapper } = setup();
 
 			await vi.dynamicImportSettled();
@@ -821,7 +821,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 		// carries a label and a counter reflecting the actual assignment state.
 		it("shows a labeled button with a count of assigned submissions", async () => {
 			element.content.peerReviewEnabled = true;
-			element.content.peerReviewMode = "manual";
+			element.content.peerReviewMode = AssignmentElementContentPeerReviewMode.MANUAL;
 			fetchSubmissionsMock.mockResolvedValue({
 				maxPoints: 10,
 				dueDate: null,
@@ -854,7 +854,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 
 		it("refetches assignments (updating the counter) after a change in the panel", async () => {
 			element.content.peerReviewEnabled = true;
-			element.content.peerReviewMode = "auto";
+			element.content.peerReviewMode = AssignmentElementContentPeerReviewMode.AUTO;
 			listAssignmentsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([
 				{
 					submissionId: "submission-1",
@@ -877,7 +877,7 @@ describe("AssignmentSubmissionsOverlay", () => {
 
 		it("manually assigns a reviewer to a submission", async () => {
 			element.content.peerReviewEnabled = true;
-			element.content.peerReviewMode = "manual";
+			element.content.peerReviewMode = AssignmentElementContentPeerReviewMode.MANUAL;
 			fetchSubmissionsMock.mockResolvedValue({
 				maxPoints: 10,
 				dueDate: null,
