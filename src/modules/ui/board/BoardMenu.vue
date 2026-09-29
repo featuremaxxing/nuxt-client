@@ -76,6 +76,7 @@ const ariaLabelForScope: Record<BoardMenuScope, keyof MessageSchema> = {
 	[BoardMenuScope.CHECKBOX_ELEMENT]: "components.board.menu.checkboxElement",
 	[BoardMenuScope.ASSIGNMENT_ELEMENT]: "components.board.menu.assignmentElement",
 	[BoardMenuScope.AI_QUESTION_ELEMENT]: "components.board.menu.aiQuestionElement",
+	[BoardMenuScope.FILE_AREA_LINK_ELEMENT]: "components.board.menu.fileAreaLinkElement",
 };
 
 const boardMenuAriaLabel = computed(() => ariaLabelForScope[props.scope]);

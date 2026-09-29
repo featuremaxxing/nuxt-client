@@ -19,22 +19,9 @@
  * @export
  * @enum {string}
  */
-export enum ContentElementType {
+export enum FileAreaLinkTargetType {
     FILE = 'file',
-    DRAWING = 'drawing',
-    LINK = 'link',
-    RICH_TEXT = 'richText',
-    EXTERNAL_TOOL = 'externalTool',
-    COLLABORATIVE_TEXT_EDITOR = 'collaborativeTextEditor',
-    VIDEO_CONFERENCE = 'videoConference',
-    FILE_FOLDER = 'fileFolder',
-    DELETED = 'deleted',
-    H5P = 'h5p',
-    POLL = 'poll',
-    CHECKBOX = 'checkbox',
-    ASSIGNMENT = 'assignment',
-    AI_QUESTION = 'aiQuestion',
-    FILE_AREA_LINK = 'fileAreaLink'
+    FOLDER = 'folder'
 }
 
 

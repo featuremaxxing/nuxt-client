@@ -1,4 +1,5 @@
 import { ElementTypeSelectionOptions, useSharedElementTypeSelection } from "./SharedElementTypeSelection.composable";
+import { BoardContextType } from "@/types/board/BoardContext";
 import { AnyContentElement } from "@/types/board/ContentElement";
 import { BoardFeature, ContentElementType, PreferredToolResponse } from "@api-server";
 import { notifyInfo, useAppStore } from "@data-app";
@@ -7,6 +8,7 @@ import {
 	useBoardAllowedOperations,
 	useBoardFeatures,
 	useCardStore,
+	useSharedBoardPageInformation,
 } from "@data-board";
 import { useEnvConfig } from "@data-env";
 import { useAddCollaboraFile } from "@feature-collabora";
@@ -14,6 +16,7 @@ import {
 	mdiCheckboxOutline,
 	mdiClipboardTextOutline,
 	mdiFileDocumentOutline,
+	mdiFolderMultipleOutline,
 	mdiFolderOpenOutline,
 	mdiFormatText,
 	mdiLink,
@@ -35,6 +38,7 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 	const isVideoConferenceEnabled = computed(() => isFeatureEnabled(BoardFeature.VIDEOCONFERENCE));
 	const { allowedOperations } = useBoardAllowedOperations();
 	const cardStore = useCardStore();
+	const { contextType } = useSharedBoardPageInformation();
 
 	const { t } = useI18n();
 
@@ -152,6 +156,16 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.folderElement.subtitle"),
 				action: () => onElementClick(ContentElementType.FILE_FOLDER),
 				testId: "create-element-file-folder",
+			});
+		}
+
+		// links into a file area of the same room, so only on room boards
+		if (envConfig.value.FEATURE_BOARD_FILE_AREA_ENABLED && contextType.value === BoardContextType.ROOM) {
+			options.push({
+				icon: mdiFolderMultipleOutline,
+				label: t("components.elementTypeSelection.elements.fileAreaLinkElement.subtitle"),
+				action: () => onElementClick(ContentElementType.FILE_AREA_LINK),
+				testId: "create-element-file-area-link",
 			});
 		}
 

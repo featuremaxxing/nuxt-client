@@ -36,6 +36,7 @@ import { CollaborativeTextEditorElement } from "@feature-board-collaborative-tex
 import { DeletedElement } from "@feature-board-deleted-element";
 import { DrawingContentElement } from "@feature-board-drawing-element";
 import { ExternalToolElement } from "@feature-board-external-tool-element";
+import { FileAreaLinkContentElement } from "@feature-board-file-area-link-element";
 import { FileContentElement } from "@feature-board-file-element";
 import { FolderContentElement } from "@feature-board-folder-element";
 import { H5pElement } from "@feature-board-h5p-element";
@@ -138,6 +139,11 @@ const mapToComponent = (type: ContentElementType) => {
 			break;
 		case ContentElementType.DELETED:
 			return DeletedElement;
+		case ContentElementType.FILE_AREA_LINK:
+			if (envConfig.value.FEATURE_BOARD_FILE_AREA_ENABLED) {
+				return FileAreaLinkContentElement;
+			}
+			break;
 		case ContentElementType.FILE_FOLDER:
 			if (envConfig.value.FEATURE_COLUMN_BOARD_FILE_FOLDER_ENABLED) {
 				return FolderContentElement;

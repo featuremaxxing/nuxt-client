@@ -163,7 +163,7 @@ const { getAppPasswords, createAppPassword, deleteAppPassword } = useAppPassword
 useTitle(buildPageTitle(t("pages.webdav.title")));
 
 const systems = ["macos", "windows", "ios", "linux"] as const;
-const structureLevels = ["contexts", "context", "board", "column", "card", "folder"] as const;
+const structureLevels = ["context", "board", "folder"] as const;
 const webDavUrl = `${window.location.origin}/api/v3/webdav/`;
 
 const appPasswords = ref<AppPassword[]>([]);

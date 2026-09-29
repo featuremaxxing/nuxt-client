@@ -496,6 +496,7 @@ export default {
 	"components.board.menu.h5pElement": "Configuración de elementos de aprendizaje interactivo",
 	"components.board.menu.pollElement": "Configuración de la encuesta",
 	"components.board.menu.checkboxElement": "Configuración de casilla",
+	"components.board.menu.fileAreaLinkElement": "Ajustes del elemento área de archivos",
 	"components.board.menu.assignmentElement": "Configuración de la tarea",
 	"components.board.menu.deletedElement": "Configuración de contenido eliminado",
 	"components.board.notifications.errors.fileNameExists": "Ya existe un archivo con este nombre.",
@@ -589,6 +590,23 @@ export default {
 	"components.cardElement.fileElement.videoFormatError":
 		"El formato de vídeo no es compatible con este navegador / sistema operativo.",
 	"components.cardElement.fileElement.openOfficeDocument": "Abrir documento Office",
+	"components.cardElement.fileAreaLinkElement": "Área de archivos",
+	"components.cardElement.fileAreaLinkElement.changeTarget": "Cambiar destino",
+	"components.cardElement.fileAreaLinkElement.emptyFolder": "Esta carpeta está vacía.",
+	"components.cardElement.fileAreaLinkElement.forbidden":
+		"Este archivo está en un área de archivos que no es visible para ti.",
+	"components.cardElement.fileAreaLinkElement.missing": '"{name}" ya no existe.',
+	"components.cardElement.fileAreaLinkElement.noTarget": "Todavía no hay ningún archivo ni carpeta vinculados.",
+	"components.cardElement.fileAreaLinkElement.openInFileArea": "Abrir en el área de archivos",
+	"components.cardElement.fileAreaLinkElement.pick": "Elegir archivo o carpeta",
+	"components.cardElement.fileAreaLinkElement.picker.fileArea": "Área de archivos",
+	"components.cardElement.fileAreaLinkElement.picker.linkFile": "Vincular archivo",
+	"components.cardElement.fileAreaLinkElement.picker.linkFolder": "Vincular esta carpeta",
+	"components.cardElement.fileAreaLinkElement.picker.noFileAreas":
+		"Todavía no hay ningún área de archivos en esta sala.",
+	"components.cardElement.fileAreaLinkElement.picker.title": "Vincular un archivo o una carpeta de un área de archivos",
+	"components.cardElement.fileAreaLinkElement.tooManySubfolders":
+		"Esta carpeta tiene demasiadas subcarpetas para mostrarla aquí.",
 	"components.cardElement.folderElement": "Carpeta de archivos",
 	"components.cardElement.folderElement.untitled": "Carpeta sin título",
 	"components.cardElement.folderElement.storage.error":
@@ -905,6 +923,7 @@ export default {
 	"components.elementTypeSelection.elements.h5pElement.subtitle": "Elemento de aprendizaje interactivo",
 	"components.elementTypeSelection.elements.pollElement.subtitle": "Encuesta",
 	"components.elementTypeSelection.elements.checkboxElement.subtitle": "Casilla",
+	"components.elementTypeSelection.elements.fileAreaLinkElement.subtitle": "Área de archivos",
 	"components.elementTypeSelection.elements.aiQuestionElement.subtitle": "Pregunta de IA",
 	"components.elementTypeSelection.elements.assignmentElement.subtitle": "Tarea",
 	"components.elementTypeSelection.elements.collabora.subtitle": "Crear documento",
@@ -1342,7 +1361,7 @@ export default {
 		"Fija tarjetas importantes de distintos espacios en un lugar personal y mantén tus contenidos de aprendizaje a la vista.",
 	"pages.dashboard.features.webdav.title": "Unidad de red",
 	"pages.dashboard.features.webdav.description":
-		"Monta tus tableros como unidad en Finder o en el Explorador de Windows. Estructura: cursos o salas › curso › tablero › sección › tarjeta › carpeta, es decir, como máximo seis niveles. Los archivos están en tarjetas o en sus carpetas.",
+		"Conecta las áreas de archivos de tus salas como unidad en Finder o en el Explorador de Windows. Estructura: sala › área de archivos › carpetas, con cualquier profundidad.",
 	"pages.dashboard.features.webdav.link": "Configurar unidad de red",
 	"pages.dashboard.empty.news": "Hasta el momento no hay noticias.",
 	"pages.dashboard.new.features": "Hay nuevas funciones en {instanceTitle}.",
@@ -1952,16 +1971,13 @@ export default {
 	"pages.room.progress.title": "Progreso",
 	"pages.webdav.title": "Unidad de red (WebDAV)",
 	"pages.webdav.intro":
-		"Monta los archivos de tus tableros como una unidad en Finder, en el Explorador de Windows o en la app Archivos. Los cursos y salas aparecen como carpetas con tableros, secciones y tarjetas. Las carpetas nuevas se convierten en secciones, tarjetas o elementos de carpeta, y los archivos se guardan directamente en el tablero.",
+		"Conecta las áreas de archivos de tus salas como unidad en Finder, en el Explorador de Windows o en la app Archivos. Las salas aparecen como carpetas y dentro están sus áreas de archivos con todas las carpetas y archivos. Las carpetas y archivos nuevos se guardan directamente en el área de archivos.",
 	"pages.webdav.structure.title": "Estructura",
-	"pages.webdav.structure.level.contexts": "Cursos / Salas",
-	"pages.webdav.structure.level.context": "Curso / Sala",
-	"pages.webdav.structure.level.board": "Tablero",
-	"pages.webdav.structure.level.column": "Sección",
-	"pages.webdav.structure.level.card": "Tarjeta",
-	"pages.webdav.structure.level.folder": "Carpeta",
+	"pages.webdav.structure.level.context": "Sala",
+	"pages.webdav.structure.level.board": "Área de archivos",
+	"pages.webdav.structure.level.folder": "Carpeta …",
 	"pages.webdav.structure.text":
-		"Como máximo seis niveles. Los archivos están en una tarjeta o en una carpeta dentro de ella, y una carpeta no tiene más subcarpetas. Las carpetas nuevas se convierten en sección, tarjeta o carpeta según el nivel. Los cursos, salas y tableros se crean en la aplicación web.",
+		"La unidad de red solo muestra áreas de archivos. Allí las carpetas se pueden anidar sin límite y los archivos pueden estar en cualquier nivel. Las salas y las áreas de archivos se crean en la aplicación web; los tableros normales con secciones y tarjetas no aparecen aquí.",
 	"pages.webdav.address.title": "Dirección",
 	"pages.webdav.instructions.macos.title": "macOS (Finder)",
 	"pages.webdav.instructions.macos.text":
