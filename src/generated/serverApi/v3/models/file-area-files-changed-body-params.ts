@@ -17,14 +17,14 @@
 /**
  * 
  * @export
- * @enum {string}
+ * @interface FileAreaFilesChangedBodyParams
  */
-export enum BoardLayout {
-    COLUMNS = 'columns',
-    LIST = 'list',
-    GRID = 'grid',
-    FILES = 'files'
+export interface FileAreaFilesChangedBodyParams {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FileAreaFilesChangedBodyParams
+     */
+    parentIds: Array<string>;
 }
-
-
 
