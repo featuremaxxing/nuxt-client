@@ -50,6 +50,30 @@ export interface CardSkeletonResponse {
      * @memberof CardSkeletonResponse
      */
     originTitle?: string;
+    /**
+     * How many of the checkboxes, assignments and polls of a pinned card the current user has completed. Only set inside a personal learning room, and only when the card holds something for the user to do.
+     * @type {number}
+     * @memberof CardSkeletonResponse
+     */
+    progressDone?: number;
+    /**
+     * How many checkboxes, assignments and polls of a pinned card count for the current user.
+     * @type {number}
+     * @memberof CardSkeletonResponse
+     */
+    progressTotal?: number;
+    /**
+     * Earliest due date of an assignment on a pinned card the current user has not handed in yet.
+     * @type {string}
+     * @memberof CardSkeletonResponse
+     */
+    nextDueDate?: string;
+    /**
+     * Private note of the learning room owner on a pinned card.
+     * @type {string}
+     * @memberof CardSkeletonResponse
+     */
+    note?: string;
 }
 
 

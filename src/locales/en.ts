@@ -1264,6 +1264,12 @@ export default {
 	"global.sidebar.item.system": "System",
 	"global.sidebar.item.tasks": "Tasks",
 	"global.sidebar.item.learningRoom": "My learning room",
+	"pages.learningRoom.note.add": "Add note",
+	"pages.learningRoom.note.edit": "Edit note",
+	"pages.learningRoom.note.hint": "Only visible to you",
+	"pages.learningRoom.note.label": "My note",
+	"pages.learningRoom.status.done": "All done",
+	"pages.learningRoom.status.progress": "{done} of {total} done",
 	"pages.learningRoom.title": "My learning room",
 	"pages.learningRoom.empty.title": "Nothing pinned yet",
 	"pages.learningRoom.empty.description":

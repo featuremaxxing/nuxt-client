@@ -19,6 +19,7 @@ describe("pinnedCardsStore", () => {
 			pinCard,
 			unpinCard,
 			movePinnedCard: vi.fn(),
+			updatePinnedCardNote: vi.fn(),
 		});
 
 		return { fetchPinnedCardIds, pinCard, unpinCard };

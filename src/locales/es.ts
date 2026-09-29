@@ -1285,6 +1285,12 @@ export default {
 	"global.sidebar.item.system": "Sistema",
 	"global.sidebar.item.tasks": "Tareas",
 	"global.sidebar.item.learningRoom": "Mi espacio de aprendizaje",
+	"pages.learningRoom.note.add": "Añadir nota",
+	"pages.learningRoom.note.edit": "Editar nota",
+	"pages.learningRoom.note.hint": "Solo visible para ti",
+	"pages.learningRoom.note.label": "Mi nota",
+	"pages.learningRoom.status.done": "Todo hecho",
+	"pages.learningRoom.status.progress": "{done} de {total} hechos",
 	"pages.learningRoom.title": "Mi espacio de aprendizaje",
 	"pages.learningRoom.empty.title": "Aún no hay nada fijado",
 	"pages.learningRoom.empty.description":

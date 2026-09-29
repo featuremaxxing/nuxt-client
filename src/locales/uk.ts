@@ -1279,6 +1279,12 @@ export default {
 	"global.sidebar.item.system": "Cистема",
 	"global.sidebar.item.tasks": "Завдання",
 	"global.sidebar.item.learningRoom": "Мій навчальний простір",
+	"pages.learningRoom.note.add": "Додати нотатку",
+	"pages.learningRoom.note.edit": "Редагувати нотатку",
+	"pages.learningRoom.note.hint": "Бачите лише ви",
+	"pages.learningRoom.note.label": "Моя нотатка",
+	"pages.learningRoom.status.done": "Усе виконано",
+	"pages.learningRoom.status.progress": "{done} з {total} виконано",
 	"pages.learningRoom.title": "Мій навчальний простір",
 	"pages.learningRoom.empty.title": "Ще нічого не закріплено",
 	"pages.learningRoom.empty.description":

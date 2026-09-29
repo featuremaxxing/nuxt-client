@@ -1292,6 +1292,12 @@ export default {
 	"global.sidebar.item.system": "System",
 	"global.sidebar.item.tasks": "Aufgaben",
 	"global.sidebar.item.learningRoom": "Mein Lernraum",
+	"pages.learningRoom.note.add": "Notiz hinzufügen",
+	"pages.learningRoom.note.edit": "Notiz bearbeiten",
+	"pages.learningRoom.note.hint": "Nur für dich sichtbar",
+	"pages.learningRoom.note.label": "Meine Notiz",
+	"pages.learningRoom.status.done": "Alles erledigt",
+	"pages.learningRoom.status.progress": "{done} von {total} erledigt",
 	"pages.learningRoom.title": "Mein Lernraum",
 	"pages.learningRoom.empty.title": "Noch nichts angepinnt",
 	"pages.learningRoom.empty.description":

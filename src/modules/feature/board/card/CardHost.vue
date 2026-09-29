@@ -28,23 +28,14 @@
 					<CardSkeleton :height />
 				</template>
 				<template v-if="card">
-					<VChip
-						v-if="isPinnedCopy"
-						size="x-small"
-						variant="tonal"
-						class="ml-4 mt-2 mb-1"
-						:to="originRoute"
-						:append-icon="mdiArrowTopRight"
-						:aria-label="t('components.board.action.openOrigin')"
-						data-testid="card-origin-chip"
-						@click.stop
-						@dblclick.stop
-					>
-						{{ originTitle ?? t("components.board.action.openOrigin") }}
-						<VTooltip activator="parent" location="bottom">
-							{{ t("components.board.action.openOrigin") }}
-						</VTooltip>
-					</VChip>
+					<PinnedCardHeader
+						v-if="pinned"
+						:origin-route="originRoute"
+						:origin-title="pinned.originTitle"
+						:progress-done="pinned.progressDone"
+						:progress-total="pinned.progressTotal"
+						:next-due-date="pinned.nextDueDate"
+					/>
 					<CardTitle
 						:is-edit-mode="isEditMode"
 						:value="card.title"
@@ -67,6 +58,13 @@
 								@click="onOpenOrigin"
 							>
 								{{ t("components.board.action.openOrigin") }}
+							</KebabMenuAction>
+							<KebabMenuAction
+								:icon="mdiNoteEditOutline"
+								data-testid="kebab-menu-action-edit-note"
+								@click="isEditingNote = true"
+							>
+								{{ note ? t("pages.learningRoom.note.edit") : t("pages.learningRoom.note.add") }}
 							</KebabMenuAction>
 							<KebabMenuAction :icon="mdiPinOffOutline" data-testid="kebab-menu-action-unpin-card" @click="onTogglePin">
 								{{ t("components.board.action.unpinCard") }}
@@ -120,6 +118,7 @@
 						/>
 						<CardAddElementMenu v-if="isEditMode" @add-element="onAddElement" />
 					</div>
+					<PinnedCardNote v-if="pinned" v-model:editing="isEditingNote" :note="note" @save="onSaveNote" />
 				</template>
 			</VCard>
 		</CardHostInteractionHandler>
@@ -133,13 +132,15 @@ import CardHostInteractionHandler from "./CardHostInteractionHandler.vue";
 import CardSkeleton from "./CardSkeleton.vue";
 import CardTitle from "./CardTitle.vue";
 import ContentElementList from "./ContentElementList.vue";
+import PinnedCardHeader from "./PinnedCardHeader.vue";
+import PinnedCardNote from "./PinnedCardNote.vue";
 import { useSafeTaskRunner } from "@/composables/async-tasks.composable";
 import { BoardContextType } from "@/types/board/BoardContext";
 import { ElementMove, verticalCursorKeys } from "@/types/board/DragAndDrop";
 import { colorToHexLighten3, colorToHexLighten5 } from "@/utils/color.utils";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
 import { delay } from "@/utils/helpers";
-import { Colors } from "@api-server";
+import { CardSkeletonResponse, Colors } from "@api-server";
 import {
 	useBoardAllowedOperations,
 	useBoardFocusHandler,
@@ -149,9 +150,9 @@ import {
 	useSharedBoardPageInformation,
 } from "@data-board";
 import { useEnvConfig } from "@data-env";
-import { usePinnedCardsStore } from "@data-learning-room";
+import { useLearningRoomApi, usePinnedCardsStore } from "@data-learning-room";
 import { withGlobalLoadingState } from "@feature-dialog";
-import { mdiArrowTopRight, mdiPinOffOutline } from "@icons/material";
+import { mdiArrowTopRight, mdiNoteEditOutline, mdiPinOffOutline } from "@icons/material";
 import { BoardMenu, BoardMenuScope, DetailViewButton, PinCardButton } from "@ui-board";
 import { SvsColorPickerMenu } from "@ui-controls";
 import {
@@ -166,7 +167,7 @@ import {
 } from "@ui-kebab-menu";
 import { useShareBoardLink } from "@util-board";
 import { useDebounceFn, useElementHover, useElementSize } from "@vueuse/core";
-import { computed, onMounted, ref, toRef } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -177,11 +178,7 @@ type Props = {
 	columnIndex: number;
 	focusTitleOnEditStart?: boolean;
 	/** set for cards pinned into the learning room - they live in another board */
-	isPinnedCopy?: boolean;
-	/** name of the room a pinned card comes from */
-	originTitle?: string;
-	/** board a pinned card comes from, for the link back to the original */
-	originBoardId?: string;
+	pinned?: CardSkeletonResponse;
 	isKeyboardMoveDisabled?: boolean;
 };
 
@@ -218,7 +215,7 @@ const onTogglePin = async () => {
 // them twice. Pinned copies keep the button, it is how they are unpinned.
 const { contextType } = useSharedBoardPageInformation();
 const isPersonalBoard = computed(() => contextType.value === BoardContextType.USER);
-const showPinButton = computed(() => isLearningRoomEnabled.value && (!isPersonalBoard.value || props.isPinnedCopy));
+const showPinButton = computed(() => isLearningRoomEnabled.value && (!isPersonalBoard.value || isPinnedCopy.value));
 
 const isHovered = useElementHover(cardHost);
 const route = useRoute();
@@ -234,15 +231,42 @@ const card = computed(() => cardStore.getCard(cardId.value));
 // every board right, but those rights do not reach into the original board -
 // deleting or moving from here would act on the course board of the whole
 // class. So the card stays read-only here and links back to its original.
+const isPinnedCopy = computed(() => props.pinned !== undefined);
+
 const originRoute = computed(() =>
-	props.originBoardId
+	props.pinned?.originBoardId
 		? {
 				name: "boards-id",
-				params: { id: props.originBoardId },
+				params: { id: props.pinned.originBoardId },
 				hash: `#${getShareLinkId(props.cardId, BoardMenuScope.CARD)}`,
 			}
 		: undefined
 );
+
+// the owner's private note - kept locally so saving shows at once, without
+// waiting for the board to reload
+const note = ref<string>();
+watch(
+	() => props.pinned?.note,
+	(value) => {
+		note.value = value;
+	},
+	{ immediate: true }
+);
+const isEditingNote = ref(false);
+const { updatePinnedCardNote } = useLearningRoomApi();
+
+const onSaveNote = async (value: string) => {
+	const pinnedCardId = props.pinned?.pinnedCardId;
+	if (!pinnedCardId) return;
+
+	const previous = note.value;
+	note.value = value === "" ? undefined : value;
+	const succeeded = await updatePinnedCardNote(pinnedCardId, value);
+	if (!succeeded) {
+		note.value = previous;
+	}
+};
 
 const onOpenOrigin = async () => {
 	if (originRoute.value) {
@@ -318,7 +342,7 @@ const onAddElement = () => askType();
 const onDeleteElement = (elementId: string) => cardStore.deleteElementRequest({ cardId: cardId.value, elementId });
 
 const onStartEditMode = () => {
-	if (props.isPinnedCopy) return;
+	if (isPinnedCopy.value) return;
 	startEditMode();
 };
 

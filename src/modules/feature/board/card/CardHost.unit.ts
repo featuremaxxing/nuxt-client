@@ -1,6 +1,8 @@
 import { setupAddElementDialogMock } from "../test-utils/AddElementDialogMock";
 import CardHost from "./CardHost.vue";
 import ContentElementList from "./ContentElementList.vue";
+import PinnedCardHeader from "./PinnedCardHeader.vue";
+import PinnedCardNote from "./PinnedCardNote.vue";
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useCardRestApi } from "@/modules/data/board/cardActions/cardRestApi.composable";
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
@@ -12,7 +14,7 @@ import * as confirmDialogUtils from "@/utils/confirmation-dialog.utils";
 import { createTestEnvStore, mockComposable } from "@@/tests/test-utils";
 import { cardResponseFactory, fileElementResponseFactory } from "@@/tests/test-utils/factory";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { BoardResponseAllowedOperations, CardResponse, Colors } from "@api-server";
+import { BoardResponseAllowedOperations, CardResponse, CardSkeletonResponse, Colors } from "@api-server";
 import {
 	useBoardFocusHandler,
 	useCardStore,
@@ -32,12 +34,12 @@ import {
 	KebabMenuActionShareLink,
 } from "@ui-kebab-menu";
 import { useShareBoardLink, useSharedFileSelect, useSharedLastCreatedElement } from "@util-board";
-import { shallowMount } from "@vue/test-utils";
+import { flushPromises, shallowMount } from "@vue/test-utils";
 import { useElementHover } from "@vueuse/core";
 import { Mocked } from "vitest";
 import { computed, ref } from "vue";
 import { createRouterMock, injectRouterMock, RouterMock } from "vue-router-mock";
-import { VCard, VChip } from "vuetify/components";
+import { VCard } from "vuetify/components";
 
 vi.mock("@util-board");
 
@@ -126,9 +128,7 @@ describe("CardHost", () => {
 		allowedOperations?: Partial<BoardResponseAllowedOperations>;
 		backgroundColor?: Colors;
 		cardId?: string;
-		originTitle?: string;
-		originBoardId?: string;
-		isPinnedCopy?: boolean;
+		pinned?: CardSkeletonResponse;
 		contextType?: BoardContextType;
 		isLearningRoomEnabled?: boolean;
 	}) => {
@@ -185,9 +185,7 @@ describe("CardHost", () => {
 				height: card?.height ?? 0,
 				columnIndex: 0,
 				rowIndex: 1,
-				originTitle: options?.originTitle,
-				originBoardId: options?.originBoardId,
-				isPinnedCopy: options?.isPinnedCopy,
+				pinned: options?.pinned,
 			},
 		});
 
@@ -198,36 +196,50 @@ describe("CardHost", () => {
 	};
 
 	describe("pinned copy in the learning room", () => {
-		const setupPinnedCopy = () =>
+		const pinned: CardSkeletonResponse = {
+			cardId: "cardId",
+			height: 100,
+			pinnedCardId: "pinnedCardId",
+			originTitle: "Mathe 9b",
+			originBoardId: "originBoardId",
+			progressDone: 1,
+			progressTotal: 2,
+			nextDueDate: "2026-10-02T10:00:00.000Z",
+			note: "Frage an Frau M.",
+		};
+
+		const setupPinnedCopy = (overrides: Partial<CardSkeletonResponse> = {}) =>
 			setup({
-				isPinnedCopy: true,
-				originTitle: "Mathe 9b",
-				originBoardId: "originBoardId",
+				pinned: { ...pinned, ...overrides },
 				contextType: BoardContextType.USER,
 				isLearningRoomEnabled: true,
 				allowedOperations: { deleteCard: true, moveCard: true, copyCard: true, updateCardTitle: true },
 			});
 
-		it("should show where the card comes from and link back to it", () => {
+		it("should hand origin, link and status to the header", () => {
 			useShareBoardLinkMock.getShareLinkId.mockReturnValue("card-cardId");
 			const { wrapper } = setupPinnedCopy();
 
-			const chip = wrapper.getComponent(VChip);
+			const header = wrapper.getComponent(PinnedCardHeader);
 
-			expect(chip.text()).toContain("Mathe 9b");
-			expect(chip.props("to")).toEqual({
-				name: "boards-id",
-				params: { id: "originBoardId" },
-				hash: "#card-cardId",
-			});
+			expect(header.props()).toEqual(
+				expect.objectContaining({
+					originTitle: "Mathe 9b",
+					originRoute: { name: "boards-id", params: { id: "originBoardId" }, hash: "#card-cardId" },
+					progressDone: 1,
+					progressTotal: 2,
+					nextDueDate: "2026-10-02T10:00:00.000Z",
+				})
+			);
 		});
 
-		it("should only offer to open the original or unpin it", () => {
+		it("should only offer to open the original, edit the note or unpin it", () => {
 			// the learning room grants its owner every board right - those must not
 			// reach the original card in the course board
 			const { wrapper } = setupPinnedCopy();
 
 			expect(wrapper.find('[data-testid="kebab-menu-action-open-origin"]').exists()).toBe(true);
+			expect(wrapper.find('[data-testid="kebab-menu-action-edit-note"]').exists()).toBe(true);
 			expect(wrapper.find('[data-testid="kebab-menu-action-unpin-card"]').exists()).toBe(true);
 			expect(wrapper.findComponent(KebabMenuActionDelete).exists()).toBe(false);
 			expect(wrapper.findComponent(KebabMenuActionDuplicate).exists()).toBe(false);
@@ -249,6 +261,54 @@ describe("CardHost", () => {
 
 			expect(wrapper.findComponent(PinCardButton).exists()).toBe(true);
 		});
+
+		describe("note", () => {
+			it("should show the stored note", () => {
+				const { wrapper } = setupPinnedCopy();
+
+				expect(wrapper.getComponent(PinnedCardNote).props("note")).toBe("Frage an Frau M.");
+			});
+
+			it("should open the note editor from the menu", async () => {
+				const { wrapper } = setupPinnedCopy({ note: undefined });
+
+				await wrapper.find('[data-testid="kebab-menu-action-edit-note"]').trigger("click");
+
+				expect(wrapper.getComponent(PinnedCardNote).props("editing")).toBe(true);
+			});
+
+			it("should save the note on the pointer", async () => {
+				const updatePinnedCardNote = vi.fn().mockResolvedValue(true);
+				vi.mocked(useLearningRoomApi).mockReturnValue(
+					mockComposable(useLearningRoomApi, {
+						fetchPinnedCardIds: vi.fn().mockResolvedValue([]),
+						updatePinnedCardNote,
+					})
+				);
+				const { wrapper } = setupPinnedCopy();
+
+				wrapper.getComponent(PinnedCardNote).vm.$emit("save", "verstanden");
+				await flushPromises();
+
+				expect(updatePinnedCardNote).toHaveBeenCalledWith("pinnedCardId", "verstanden");
+				expect(wrapper.getComponent(PinnedCardNote).props("note")).toBe("verstanden");
+			});
+
+			it("should restore the old note when saving fails", async () => {
+				vi.mocked(useLearningRoomApi).mockReturnValue(
+					mockComposable(useLearningRoomApi, {
+						fetchPinnedCardIds: vi.fn().mockResolvedValue([]),
+						updatePinnedCardNote: vi.fn().mockResolvedValue(false),
+					})
+				);
+				const { wrapper } = setupPinnedCopy();
+
+				wrapper.getComponent(PinnedCardNote).vm.$emit("save", "verstanden");
+				await flushPromises();
+
+				expect(wrapper.getComponent(PinnedCardNote).props("note")).toBe("Frage an Frau M.");
+			});
+		});
 	});
 
 	describe("own card in the learning room", () => {
@@ -256,16 +316,17 @@ describe("CardHost", () => {
 			const { wrapper } = setup({ contextType: BoardContextType.USER, isLearningRoomEnabled: true });
 
 			expect(wrapper.findComponent(PinCardButton).exists()).toBe(false);
-			expect(wrapper.find('[data-testid="card-origin-chip"]').exists()).toBe(false);
+			expect(wrapper.findComponent(PinnedCardHeader).exists()).toBe(false);
+			expect(wrapper.findComponent(PinnedCardNote).exists()).toBe(false);
 		});
 	});
 
 	describe("regular card in a room", () => {
-		it("should offer the pin button and no origin chip", () => {
+		it("should offer the pin button and no learning room parts", () => {
 			const { wrapper } = setup({ isLearningRoomEnabled: true });
 
 			expect(wrapper.findComponent(PinCardButton).exists()).toBe(true);
-			expect(wrapper.find('[data-testid="card-origin-chip"]').exists()).toBe(false);
+			expect(wrapper.findComponent(PinnedCardHeader).exists()).toBe(false);
 		});
 	});
 

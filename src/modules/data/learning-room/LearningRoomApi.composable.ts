@@ -71,5 +71,15 @@ export const useLearningRoomApi = () => {
 		}
 	};
 
-	return { fetchLearningRoom, fetchPinnedCardIds, pinCard, unpinCard, movePinnedCard };
+	const updatePinnedCardNote = async (pinnedCardId: string, note: string): Promise<boolean> => {
+		try {
+			await $axios.put(`/v3/learning-room/pinned-cards/${pinnedCardId}/note`, { note });
+			return true;
+		} catch (error) {
+			showError(error);
+			return false;
+		}
+	};
+
+	return { fetchLearningRoom, fetchPinnedCardIds, pinCard, unpinCard, movePinnedCard, updatePinnedCardNote };
 };
