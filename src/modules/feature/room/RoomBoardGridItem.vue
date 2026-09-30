@@ -1,13 +1,21 @@
 <template>
 	<VCard
 		class="room-content-grid-item d-flex flex-column"
-		:class="isDraft ? 'bg-white' : 'bg-surface-light'"
+		:class="[isDraft || isLocked ? 'bg-white' : 'bg-surface-light', { 'room-content-grid-item--locked': isLocked }]"
 		tabindex="0"
-		:variant="isDraft ? 'outlined' : 'flat'"
+		:variant="isDraft || isLocked ? 'outlined' : 'flat'"
+		:aria-label="ariaLabel"
 		:data-testid="`board-grid-item-${index}`"
 		:ripple="false"
+		@keydown.enter.self="router.push(boardPath)"
 	>
-		<RouterLink tabindex="-1" :to="boardPath" class="grid-item-router-link flex-grow-1">
+		<!-- the whole card leads to the board; the kebab menu sits on top of the link -->
+		<RouterLink
+			tabindex="-1"
+			:to="boardPath"
+			class="grid-item-router-link flex-grow-1 pb-4"
+			:data-testid="`board-grid-item-link-${index}`"
+		>
 			<VCardSubtitle
 				class="mt-4 d-flex align-center"
 				:class="{ 'opacity-80': isDraft }"
@@ -17,59 +25,50 @@
 				{{ subtitleText }}
 			</VCardSubtitle>
 			<VCardTitle
-				:class="{ 'opacity-80': isDraft }"
+				:class="{ 'opacity-80': isDraft || isLocked }"
 				class="grid-item-card-title"
 				:data-testid="`board-grid-title-${index}`"
 			>
-				<h2 class="text-break text-body-1 font-weight-bold ma-0">{{ board.title }}</h2>
+				<h3 class="text-break text-body-1 font-weight-bold ma-0">{{ board.title }}</h3>
 			</VCardTitle>
 			<p
+				v-if="learningPathStep && !isLocked"
+				class="mx-4 mb-2 text-body-2 text-medium-emphasis d-flex align-center"
+				:data-testid="`board-grid-item-path-step-${index}`"
+			>
+				<VIcon size="14" class="mr-1" :icon="mdiMapMarkerPath" />
+				{{ t("pages.room.boardCard.pathStep", learningPathStep) }}
+			</p>
+			<p
 				v-if="lockedBy"
-				class="mx-4 mb-0 text-body-2 d-flex align-center"
+				class="mx-4 mb-0 text-body-2 text-medium-emphasis d-flex align-center"
 				:data-testid="`board-grid-item-locked-${index}`"
 			>
 				<VIcon size="16" class="mr-1" :icon="mdiLockOutline" />
-				{{ t("pages.room.boardCard.locked", { title: lockedBy.title }) }}
+				{{ lockedHint || t("pages.room.boardCard.locked", { title: lockedBy.title }) }}
 			</p>
 			<ProgressBar
 				v-if="progress && progress.total > 0"
 				:done="progress.done"
 				:total="progress.total"
+				:label="t('pages.room.boardCard.progress', { percent: progressPercent })"
 				class="mx-4"
 				:data-testid="`board-grid-item-progress-${index}`"
 			/>
 		</RouterLink>
 
-		<KebabMenu v-if="hasAnyAllowedOperation" class="board-grid-item-menu" :data-testid="`board-dot-menu-${index}`">
-			<KebabMenuActionPublish
-				v-if="board.allowedOperations?.updateBoardVisibility && isDraft"
-				@click="emit('update:visibility', board, true)"
-			/>
-			<KebabMenuActionRevert
-				v-if="board.allowedOperations?.updateBoardVisibility && !isDraft"
-				@click="emit('update:visibility', board, false)"
-			/>
-			<KebabMenuActionDuplicate v-if="board.allowedOperations?.copyBoard" @click="emit('duplicate:board', board)" />
-			<KebabMenuActionDelete v-if="board.allowedOperations?.deleteBoard" @click="emit('delete:board', board)" />
-		</KebabMenu>
-
-		<VCardActions class="justify-end pr-4">
-			<VBtn
-				class="board-open-button"
-				:data-testid="`board-open-button-${index}`"
-				tabindex="0"
-				variant="text"
-				color="primary"
-				:to="boardPath"
-				:aria-label="`${subtitleText}: ${board.title}`"
-			>
-				{{ isLocked ? t("pages.room.boardCard.label.openLearningPath") : t("pages.room.boardCard.label.openItem") }}
-			</VBtn>
-		</VCardActions>
+		<RoomBoardMenu
+			:board="board"
+			:index="index"
+			@update:visibility="(board, isVisible) => emit('update:visibility', board, isVisible)"
+			@delete:board="emit('delete:board', $event)"
+			@duplicate:board="emit('duplicate:board', $event)"
+		/>
 	</VCard>
 </template>
 
 <script setup lang="ts">
+import RoomBoardMenu from "./RoomBoardMenu.vue";
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
@@ -82,35 +81,29 @@ import {
 	mdiViewAgendaOutline,
 	mdiViewDashboardOutline,
 } from "@icons/material";
-import {
-	KebabMenu,
-	KebabMenuActionDelete,
-	KebabMenuActionDuplicate,
-	KebabMenuActionPublish,
-	KebabMenuActionRevert,
-} from "@ui-kebab-menu";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
 	roomId: { type: String, required: true },
 	board: { type: Object as PropType<RoomBoardItem>, required: true },
 	index: { type: Number, required: true },
 	progress: { type: Object as PropType<ProgressSummary>, default: undefined },
+	// where the board sits in a learning path of the room
+	learningPathStep: { type: Object as PropType<{ title: string; position: number }>, default: undefined },
+	// what still has to be completed before a locked board opens
+	lockedHint: { type: String, default: "" },
 });
 
 const { t } = useI18n();
+const router = useRouter();
 
 const emit = defineEmits<{
 	"update:visibility": [board: RoomBoardItemResponse, isVisible: boolean];
 	"delete:board": [board: RoomBoardItemResponse];
 	"duplicate:board": [board: RoomBoardItemResponse];
 }>();
-
-const hasAnyAllowedOperation = computed(() => {
-	const { copyBoard, deleteBoard, updateBoardVisibility } = props.board?.allowedOperations ?? {};
-	return copyBoard || deleteBoard || updateBoardVisibility;
-});
 
 const isListBoard = computed(() => props.board.layout === BoardLayout.LIST);
 
@@ -123,6 +116,10 @@ const isLearningPath = computed(() => props.board.layout === BoardLayout.LEARNIN
 // a learning path keeps this board closed for the user: the card leads to the learning path instead
 const lockedBy = computed(() => props.board.lockedByLearningPath);
 const isLocked = computed(() => !!lockedBy.value);
+
+const progressPercent = computed(() =>
+	props.progress && props.progress.total > 0 ? Math.round((props.progress.done / props.progress.total) * 100) : 0
+);
 
 const subtitleIcon = computed(() => {
 	if (isLocked.value) return mdiLockOutline;
@@ -148,6 +145,11 @@ const subtitleText = computed(() => {
 	return text;
 });
 
+const ariaLabel = computed(() => {
+	const target = isLocked.value ? `, ${t("pages.room.boardCard.label.openLearningPath")}` : "";
+	return `${subtitleText.value}: ${props.board.title}${target}`;
+});
+
 const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value.id}` : `/boards/${props.board.id}`));
 </script>
 
@@ -156,9 +158,12 @@ const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value
 	outline: auto;
 }
 
-.room-content-grid-item.cursor-default:hover:not(:has(.grid-item-router-link:hover, .board-open-button:hover))
-	.v-card__overlay {
+.room-content-grid-item.cursor-default:hover:not(:has(.grid-item-router-link:hover)) .v-card__overlay {
 	opacity: 0;
+}
+
+.room-content-grid-item--locked {
+	border-style: dashed !important;
 }
 
 .grid-item-card-title {
@@ -173,16 +178,11 @@ const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value
 	color: inherit;
 }
 
-.grid-item-router-link:hover {
-	.grid-item-card-title {
-		text-decoration: underline;
-	}
+.grid-item-router-link:hover .grid-item-card-title {
+	text-decoration: underline;
 }
 
-.board-grid-item-menu {
-	position: absolute;
-	top: 0.25rem;
-	right: 0.25rem;
-	z-index: var(--z-elevated);
+.grid-item-router-link .v-card-subtitle {
+	padding-right: 3rem;
 }
 </style>

@@ -28,13 +28,15 @@ export const wouldCreateCycle = (steps: LearningPathStep[], fromId: string, toId
 	return false;
 };
 
+type PlacedStep = Pick<LearningPathStep, "id" | "positionX" | "positionY" | "prerequisiteStepIds">;
+
 // Steps in reading order: every step after its prerequisites, ties from top to bottom and left
-// to right as they are placed on the canvas. Used for the list view and screen readers.
-export const orderedSteps = (steps: LearningPathStep[]): LearningPathStep[] => {
+// to right as they are placed on the canvas. Used for the list view, the room and screen readers.
+export const orderedSteps = <T extends PlacedStep>(steps: T[]): T[] => {
 	const byPosition = [...steps].sort((a, b) => a.positionY - b.positionY || a.positionX - b.positionX);
 	const ids = new Set(steps.map((step) => step.id));
 	const placed = new Set<string>();
-	const result: LearningPathStep[] = [];
+	const result: T[] = [];
 
 	while (result.length < byPosition.length) {
 		const next =

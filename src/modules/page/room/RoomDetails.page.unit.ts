@@ -15,7 +15,7 @@ import { RoomDetailsPage } from "@page-room";
 import { createTestingPinia } from "@pinia/testing";
 import { EmptyState } from "@ui-empty-state";
 import { DefaultWireframe } from "@ui-layout";
-import { LeaveRoomProhibitedDialog, SelectBoardLayoutDialog } from "@ui-room-details";
+import { CreateBoardNameDialog, LeaveRoomProhibitedDialog, SelectBoardLayoutDialog } from "@ui-room-details";
 import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { setActivePinia } from "pinia";
 import { Mocked } from "vitest";
@@ -360,11 +360,17 @@ describe("@pages/RoomsDetails.page.vue", () => {
 
 				const selectLayoutDialog = wrapper.getComponent(SelectBoardLayoutDialog);
 				await selectLayoutDialog.vm.$emit("select", BoardLayout.COLUMNS);
+				const nameDialog = wrapper.getComponent(CreateBoardNameDialog);
+				expect(nameDialog.props("modelValue")).toBe(true);
+				expect(roomDetailsStore.createBoard).not.toHaveBeenCalled();
+
+				await nameDialog.vm.$emit("confirm", "Bruchrechnung");
+				await flushPromises();
 
 				expect(roomDetailsStore.createBoard).toHaveBeenCalledWith(
 					room.id,
 					serverApi.BoardLayout.COLUMNS,
-					"pages.roomDetails.board.defaultName"
+					"Bruchrechnung"
 				);
 				expect(router.push).toHaveBeenCalledWith(`/boards/${createdBoardId}`);
 			});
@@ -380,12 +386,10 @@ describe("@pages/RoomsDetails.page.vue", () => {
 				await openDialog(wrapper);
 				const selectLayoutDialog = wrapper.getComponent(SelectBoardLayoutDialog);
 				await selectLayoutDialog.vm.$emit("select", BoardLayout.LIST);
+				await wrapper.getComponent(CreateBoardNameDialog).vm.$emit("confirm", "Vokabeln");
+				await flushPromises();
 
-				expect(roomDetailsStore.createBoard).toHaveBeenCalledWith(
-					room.id,
-					serverApi.BoardLayout.LIST,
-					"pages.roomDetails.board.defaultName"
-				);
+				expect(roomDetailsStore.createBoard).toHaveBeenCalledWith(room.id, serverApi.BoardLayout.LIST, "Vokabeln");
 				expect(router.push).toHaveBeenCalledWith(`/boards/${createdBoardId}`);
 			});
 		});

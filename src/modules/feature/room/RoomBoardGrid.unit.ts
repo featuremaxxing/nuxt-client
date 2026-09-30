@@ -1,8 +1,16 @@
 import RoomBoardGrid from "./RoomBoardGrid.vue";
 import RoomBoardGridItem from "./RoomBoardGridItem.vue";
+import RoomFileAreaItem from "./RoomFileAreaItem.vue";
+import RoomLearningPathCard from "./RoomLearningPathCard.vue";
+import { BoardLayout } from "@/types/board/Board";
+import { RoomBoardItem } from "@/types/room/Room";
 import { roomBoardGridItemFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { RoomItemResponseAllowedOperations } from "@api-server";
+import {
+	RoomItemResponseAllowedOperations,
+	RoomLearningPathStepResponseStatusEnum,
+	RoomLearningPathStepResponseUnlockModeEnum,
+} from "@api-server";
 import { useRoomDetailsStore } from "@data-room";
 import { createTestingPinia } from "@pinia/testing";
 import { mount } from "@vue/test-utils";
@@ -17,9 +25,10 @@ describe("@feature-room/RoomBoardGrid", () => {
 	const setup = (
 		options: Partial<{
 			allowedOperations: Partial<RoomItemResponseAllowedOperations> | undefined;
+			boards: RoomBoardItem[];
 		}> = {}
 	) => {
-		const boards = roomBoardGridItemFactory.buildList(3);
+		const boards = options.boards ?? roomBoardGridItemFactory.buildList(3);
 
 		const wrapper = mount(RoomBoardGrid, {
 			global: {
@@ -143,5 +152,75 @@ describe("@feature-room/RoomBoardGrid", () => {
 		expect(boardItem.classes()).toContain("cursor-grab");
 		expect(boardItem.classes()).toContain("room-content-grid-item-editable");
 		expect(boardItem.classes()).not.toContain("room-content-grid-item--view-only");
+	});
+
+	describe("sections", () => {
+		const mixedBoards = () => {
+			const [first, second] = roomBoardGridItemFactory.buildList(2);
+			const files = roomBoardGridItemFactory.build({ layout: BoardLayout.FILES });
+			const path = roomBoardGridItemFactory.build({
+				title: "Optik",
+				layout: BoardLayout.LEARNING_PATH,
+				learningPath: {
+					steps: [
+						{
+							id: "step-1",
+							boardId: second.id,
+							title: second.title,
+							isVisible: true,
+							status: RoomLearningPathStepResponseStatusEnum.Open,
+							prerequisiteStepIds: [],
+							unlockMode: RoomLearningPathStepResponseUnlockModeEnum.All,
+							positionX: 0,
+							positionY: 0,
+						},
+					],
+				},
+			});
+			// room order: board, file area, learning path, board
+			return [first, files, path, second];
+		};
+
+		it("should show a room with only boards without headings", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find("[data-testid='room-section-boards'] h2").exists()).toBe(false);
+		});
+
+		it("should group learning paths, boards and files under headings", () => {
+			const { wrapper } = setup({ boards: mixedBoards() });
+
+			const sections = wrapper.findAll("section");
+			expect(sections.map((section) => section.attributes("data-testid"))).toEqual([
+				"room-section-paths",
+				"room-section-boards",
+				"room-section-files",
+			]);
+			expect(sections[0].get("h2").text()).toBe("pages.room.section.learningPaths");
+			expect(wrapper.findAllComponents(RoomLearningPathCard)).toHaveLength(1);
+			expect(wrapper.findAllComponents(RoomBoardGridItem)).toHaveLength(2);
+			expect(wrapper.findAllComponents(RoomFileAreaItem)).toHaveLength(1);
+		});
+
+		it("should tell a board its place in the learning path", () => {
+			const boards = mixedBoards();
+			const { wrapper } = setup({ boards });
+
+			const items = wrapper.findAllComponents(RoomBoardGridItem);
+			expect(items[0].props("learningPathStep")).toBeUndefined();
+			expect(items[1].props("learningPathStep")).toEqual({ title: "Optik", position: 1 });
+			// the index stays the position in the whole room
+			expect(items[1].props("index")).toBe(3);
+		});
+
+		it("should move a board within its section to the room position of the target", () => {
+			const boards = mixedBoards();
+			const { wrapper } = setup({ boards, allowedOperations: { editContent: true } });
+
+			const sortable = wrapper.get("[data-testid='room-section-boards']").findComponent({ name: "Sortable" });
+			sortable.vm.$emit("end", { oldIndex: 0, newIndex: 1 });
+
+			expect(useRoomDetailsStore().moveBoard).toHaveBeenCalledWith("test-room", boards[0].id, 3);
+		});
 	});
 });

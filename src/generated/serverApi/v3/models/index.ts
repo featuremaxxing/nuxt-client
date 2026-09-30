@@ -355,6 +355,8 @@ export * from './room-invitation-link-response';
 export * from './room-invitation-link-validation-error';
 export * from './room-item-response';
 export * from './room-item-response-allowed-operations';
+export * from './room-learning-path-response';
+export * from './room-learning-path-step-response';
 export * from './room-list-response';
 export * from './room-member-list-response';
 export * from './room-member-response';

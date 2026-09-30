@@ -4,7 +4,6 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { mount } from "@vue/test-utils";
 import { ComponentProps } from "vue-component-type-helpers";
-import { VBtn } from "vuetify/components";
 
 const mockBoard: RoomBoardItem = {
 	id: "59cce2c61113d1132c98dc06",
@@ -95,9 +94,42 @@ describe("@feature-room/RoomBoardGridItem", () => {
 		it("should lead to the learning path instead of the board", () => {
 			const { wrapper } = setup({ board: lockedBoard, index: 0, roomId: "Mathe" });
 
-			const openButton = wrapper.getComponent<typeof VBtn>("[data-testid='board-open-button-0']");
-			expect(openButton.props("to")).toBe("/boards/path-id");
-			expect(openButton.text()).toBe("pages.room.boardCard.label.openLearningPath");
+			expect(wrapper.get("[data-testid='board-grid-item-link-0']").attributes("to")).toBe("/boards/path-id");
+			expect(wrapper.get("[data-testid='board-grid-item-0']").attributes("aria-label")).toContain(
+				"pages.room.boardCard.label.openLearningPath"
+			);
+		});
+
+		it("should name what is still missing when the hint is known", () => {
+			const { wrapper } = setup({ board: lockedBoard, index: 0, roomId: "Mathe", lockedHint: "Schaffe zuerst: A" });
+
+			expect(wrapper.get("[data-testid='board-grid-item-locked-0']").text()).toBe("Schaffe zuerst: A");
+		});
+	});
+
+	describe("the whole card", () => {
+		it("should lead to the board", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.get("[data-testid='board-grid-item-link-0']").attributes("to")).toBe(`/boards/${mockBoard.id}`);
+			expect(wrapper.find("[data-testid='board-open-button-0']").exists()).toBe(false);
+		});
+
+		it("should show the progress in percent", () => {
+			const { wrapper } = setup({ board: mockBoard, index: 0, roomId: "Mathe", progress: { done: 1, total: 3 } });
+
+			expect(wrapper.get("[data-testid='progress-bar-label']").text()).toBe("pages.room.boardCard.progress");
+		});
+
+		it("should show its place in a learning path", () => {
+			const { wrapper } = setup({
+				board: mockBoard,
+				index: 0,
+				roomId: "Mathe",
+				learningPathStep: { title: "Optik", position: 2 },
+			});
+
+			expect(wrapper.get("[data-testid='board-grid-item-path-step-0']").text()).toBe("pages.room.boardCard.pathStep");
 		});
 	});
 

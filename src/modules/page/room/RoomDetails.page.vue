@@ -44,7 +44,13 @@
 			v-if="allowedOperations.editContent"
 			v-model="boardLayoutDialogIsOpen"
 			allow-room-layouts
-			@select="onCreateBoard"
+			@select="onSelectLayout"
+		/>
+		<CreateBoardNameDialog
+			v-if="allowedOperations.editContent"
+			v-model="boardNameDialogIsOpen"
+			:layout="newBoardLayout"
+			@confirm="onCreateBoard"
 		/>
 		<LeaveRoomProhibitedDialog v-model="isLeaveRoomProhibitedDialogOpen" />
 	</DefaultWireframe>
@@ -67,7 +73,7 @@ import { useShareFlow } from "@feature-share";
 import { mdiPlus } from "@icons/material";
 import { EmptyState, LearningContentEmptyStateSvg } from "@ui-empty-state";
 import { Breadcrumb, DefaultWireframe } from "@ui-layout";
-import { LeaveRoomProhibitedDialog, SelectBoardLayoutDialog } from "@ui-room-details";
+import { CreateBoardNameDialog, LeaveRoomProhibitedDialog, SelectBoardLayoutDialog } from "@ui-room-details";
 import { FabAction } from "@ui-speed-dial-menu";
 import { useTitle } from "@vueuse/core";
 import { storeToRefs } from "pinia";
@@ -216,12 +222,18 @@ const onLeaveRoom = async () => {
 	router.push("/rooms");
 };
 
-const onCreateBoard = async (layout: BoardLayout) => {
-	const defaultName =
-		layout === BoardLayout.FILES
-			? t("pages.roomDetails.board.defaultFileAreaName")
-			: t("pages.roomDetails.board.defaultName");
-	const boardId = await createBoard(room.value.id, layout, defaultName);
+// a new board is named right away, so the room does not fill up with boards of the same default name
+const boardNameDialogIsOpen = ref(false);
+const newBoardLayout = ref<BoardLayout>(BoardLayout.COLUMNS);
+
+const onSelectLayout = (layout: BoardLayout) => {
+	newBoardLayout.value = layout;
+	boardLayoutDialogIsOpen.value = false;
+	boardNameDialogIsOpen.value = true;
+};
+
+const onCreateBoard = async (name: string) => {
+	const boardId = await createBoard(room.value.id, newBoardLayout.value, name);
 	router.push(`/boards/${boardId}`);
 };
 

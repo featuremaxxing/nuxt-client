@@ -16,6 +16,7 @@
 import { BoardLayout } from './board-layout';
 import { RoomBoardItemResponseAllowedOperations } from './room-board-item-response-allowed-operations';
 import { RoomBoardLockResponse } from './room-board-lock-response';
+import { RoomLearningPathResponse } from './room-learning-path-response';
 
 /**
  * 
@@ -71,6 +72,12 @@ export interface RoomBoardItemResponse {
      * @memberof RoomBoardItemResponse
      */
     lockedByLearningPath?: RoomBoardLockResponse;
+    /**
+     * For learning paths: their boards with the state of the user.
+     * @type {RoomLearningPathResponse}
+     * @memberof RoomBoardItemResponse
+     */
+    learningPath?: RoomLearningPathResponse;
 }
 
 
