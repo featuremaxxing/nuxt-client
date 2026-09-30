@@ -38,6 +38,7 @@
 					@rename-file="onRenameFile"
 					@delete-file="onDeleteFile"
 					@download-file="onDownload"
+					@unzip-file="onUnzip"
 					@upload="uploadFiles"
 					@move-folder="onMoveFolder"
 					@move-file="onMoveFile"
@@ -59,13 +60,15 @@
 import FileAreaColumn from "./FileAreaColumn.vue";
 import FileAreaFileDetails from "./FileAreaFileDetails.vue";
 import FolderNameDialog from "./FolderNameDialog.vue";
-import { FileRecord } from "@/types/file/File";
+import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { askDeletionForItem } from "@/utils/confirmation-dialog.utils";
-import { downloadFile } from "@/utils/fileHelper";
+import { downloadFile, sanitizeZipPathSegment } from "@/utils/fileHelper";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { BoardResponse } from "@api-server";
+import { notifyError } from "@data-app";
 import { useBoardApi, useSharedBoardPageInformation } from "@data-board";
-import { type FileAreaFolder, useFileAreaSocket, useFileAreaState } from "@data-board-file-area";
+import { type FileAreaFolder, useFileAreaApi, useFileAreaSocket, useFileAreaState } from "@data-board-file-area";
+import { useFileStorageApi } from "@data-file";
 import {
 	KebabMenu,
 	KebabMenuActionDelete,
@@ -76,6 +79,7 @@ import {
 import { DefaultWireframe } from "@ui-layout";
 import { useTitle } from "@vueuse/core";
 import { computed, onMounted, PropType, reactive, ref, toRef, watch } from "vue";
+import JSZip from "jszip";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -89,6 +93,9 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const boardApi = useBoardApi();
+const fileAreaApi = useFileAreaApi();
+const fileStorage = useFileStorageApi();
+
 const { createPageInformation, breadcrumbs: sharedBreadcrumbs } = useSharedBoardPageInformation();
 
 const boardId = toRef(props, "boardId");
@@ -113,6 +120,7 @@ const {
 	hasError,
 	folders,
 	loadAll,
+	loadFolders,
 	restorePath,
 	openFolder,
 	selectFile,
@@ -230,6 +238,70 @@ const onDeleteFile = async (file: FileRecord) => {
 };
 
 const onDownload = (file: FileRecord) => downloadFile(file.url, file.name);
+
+const MAX_ARCHIVE_ENTRIES = 500;
+const MAX_ARCHIVE_UNCOMPRESSED_SIZE = 500 * 1024 * 1024;
+
+type ZipEntryWithSize = { _data?: { uncompressedSize?: number } };
+
+const onUnzip = async (file: FileRecord) => {
+	try {
+		const response = await fetch(file.url, { credentials: "include" });
+		if (!response.ok) throw new Error("Could not download archive");
+
+		const zip = await JSZip.loadAsync(await response.blob());
+		const entries = Object.values(zip.files);
+		const uncompressedSize = entries.reduce(
+			(total, entry) => total + ((entry as unknown as ZipEntryWithSize)._data?.uncompressedSize ?? 0),
+			0
+		);
+		if (entries.length > MAX_ARCHIVE_ENTRIES || uncompressedSize > MAX_ARCHIVE_UNCOMPRESSED_SIZE) {
+			throw new Error("Archive exceeds extraction limit");
+		}
+
+		const folderIds = new Map<string, string>();
+		for (const folder of folders.value) folderIds.set(`${folder.parentId}:${folder.title}`, folder.id);
+		const touchedParentIds = new Set<string>();
+
+		const resolveParent = async (segments: string[]): Promise<string> => {
+			let currentParentId = file.parentId;
+			for (const segment of segments) {
+				const key = `${currentParentId}:${segment}`;
+				const existingFolderId = folderIds.get(key);
+				if (existingFolderId) {
+					currentParentId = existingFolderId;
+					continue;
+				}
+				const created = await fileAreaApi.createFolder(currentParentId, segment);
+				folderIds.set(key, created.id);
+				currentParentId = created.id;
+			}
+			return currentParentId;
+		};
+
+		for (const entry of entries) {
+			const segments = entry.name
+				.split("/")
+				.filter((segment) => segment.length > 0 && segment !== "." && segment !== "..")
+				.map(sanitizeZipPathSegment)
+				.filter((segment) => segment.length > 0);
+			if (segments.length === 0) continue;
+			if (entry.dir) {
+				await resolveParent(segments);
+				continue;
+			}
+
+			const parentId = await resolveParent(segments.slice(0, -1));
+			const blob = await entry.async("blob");
+			await fileStorage.upload(new File([blob], segments.at(-1) as string), parentId, FileRecordParent.BOARDNODES);
+			touchedParentIds.add(parentId);
+		}
+
+		await loadFolders();
+		await fileAreaApi.notifyFilesChanged(boardId.value, [...touchedParentIds]);
+	} catch {
+		notifyError(t("pages.boardFileArea.extractError"));
+	}
 
 const onMoveFolder = async (folderId: string, toParentId: string) => {
 	try {

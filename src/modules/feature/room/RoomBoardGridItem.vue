@@ -41,6 +41,9 @@
 				v-if="board.allowedOperations?.updateBoardVisibility && !isDraft"
 				@click="emit('update:visibility', board, false)"
 			/>
+			<KebabMenuAction v-if="isFileArea" :icon="mdiFolderZipOutline" @click="emit('download:file-area', board)">
+				{{ t("pages.boardFileArea.downloadArchive") }}
+			</KebabMenuAction>
 			<KebabMenuActionDuplicate v-if="board.allowedOperations?.copyBoard" @click="emit('duplicate:board', board)" />
 			<KebabMenuActionDelete v-if="board.allowedOperations?.deleteBoard" @click="emit('delete:board', board)" />
 		</KebabMenu>
@@ -67,9 +70,15 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
 import { ProgressSummary } from "@data-board-progress";
 import { ProgressBar } from "@feature-board-progress";
-import { mdiFolderMultipleOutline, mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
+import {
+	mdiFolderMultipleOutline,
+	mdiFolderZipOutline,
+	mdiViewAgendaOutline,
+	mdiViewDashboardOutline,
+} from "@icons/material";
 import {
 	KebabMenu,
+	KebabMenuAction,
 	KebabMenuActionDelete,
 	KebabMenuActionDuplicate,
 	KebabMenuActionPublish,
@@ -91,11 +100,12 @@ const emit = defineEmits<{
 	"update:visibility": [board: RoomBoardItemResponse, isVisible: boolean];
 	"delete:board": [board: RoomBoardItemResponse];
 	"duplicate:board": [board: RoomBoardItemResponse];
+	"download:file-area": [board: RoomBoardItemResponse];
 }>();
 
 const hasAnyAllowedOperation = computed(() => {
 	const { copyBoard, deleteBoard, updateBoardVisibility } = props.board?.allowedOperations ?? {};
-	return copyBoard || deleteBoard || updateBoardVisibility;
+	return copyBoard || deleteBoard || updateBoardVisibility || props.board.layout === BoardLayout.FILES;
 });
 
 const isListBoard = computed(() => props.board.layout === BoardLayout.LIST);

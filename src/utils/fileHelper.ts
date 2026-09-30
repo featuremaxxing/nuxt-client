@@ -123,6 +123,14 @@ export function downloadFilesAsArchive(params: ArchiveFileParams) {
 	form.appendChild(fileRecordIdsInput);
 	form.appendChild(archiveNameInput);
 
+	if (params.paths) {
+		const pathsInput = document.createElement("input");
+		pathsInput.type = "hidden";
+		pathsInput.name = "paths";
+		pathsInput.value = JSON.stringify(params.paths);
+		form.appendChild(pathsInput);
+	}
+
 	document.body.appendChild(form);
 	form.submit();
 	document.body.removeChild(form);
