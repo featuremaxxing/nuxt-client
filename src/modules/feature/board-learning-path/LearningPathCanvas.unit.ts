@@ -69,13 +69,24 @@ describe("LearningPathCanvas", () => {
 
 		it("should connect two tiles by dragging from the handle", () => {
 			const { wrapper, tile } = setup({ steps: [step("a"), step("b", { positionX: 400 })] });
-			const handle = tile("a").get("[data-testid=learning-path-tile-handle]");
+			const handle = tile("a").get("[data-testid=learning-path-tile-handle-right]");
 
 			pointer(handle.element, "pointerdown", OFFSET + 220, OFFSET + 48);
 			pointer(window, "pointermove", OFFSET + 300, OFFSET + 40);
 			pointer(window, "pointerup", OFFSET + 410, OFFSET + 10);
 
 			expect(wrapper.emitted("connect")).toEqual([["a", "b"]]);
+		});
+
+		it("should connect from a handle on any side", () => {
+			const { wrapper, tile } = setup({ steps: [step("a"), step("b", { positionY: 300 })] });
+			const handle = tile("a").get("[data-testid=learning-path-tile-handle-bottom]");
+
+			pointer(handle.element, "pointerdown", OFFSET + 110, OFFSET + 96);
+			pointer(window, "pointerup", OFFSET + 110, OFFSET + 320);
+
+			expect(wrapper.emitted("connect")).toEqual([["a", "b"]]);
+			expect(tile("a").findAll("[data-testid^=learning-path-tile-handle-]")).toHaveLength(4);
 		});
 
 		it("should move the focused tile with the arrow keys", async () => {
@@ -130,7 +141,7 @@ describe("LearningPathCanvas", () => {
 			pointer(window, "pointerup", 60, 40);
 
 			expect(wrapper.emitted("move")).toBeUndefined();
-			expect(tile("a").find("[data-testid=learning-path-tile-handle]").exists()).toBe(false);
+			expect(tile("a").find("[data-testid^=learning-path-tile-handle-]").exists()).toBe(false);
 		});
 	});
 });

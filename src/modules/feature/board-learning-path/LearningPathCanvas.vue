@@ -52,7 +52,7 @@
 				@pointerdown.stop="onTilePointerDown($event, step)"
 				@click="onTileClick(step)"
 				@keydown="onTileKeydown($event, step)"
-				@handle-pointerdown="onHandlePointerDown($event, step)"
+				@handle-pointerdown="(event, side) => onHandlePointerDown(event, step, side)"
 			/>
 		</div>
 
@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { BOARD_DRAG_TYPE, TILE_HEIGHT, TILE_WIDTH } from "./canvas";
+import { anchorOf, BOARD_DRAG_TYPE, curveBetween, edgeBetween, type Side, TILE_HEIGHT, TILE_WIDTH } from "./canvas";
 import LearningPathTile from "./LearningPathTile.vue";
 import { edgesOf, type LearningPathStep } from "@data-board-learning-path";
 import { mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
@@ -125,7 +125,7 @@ const isDropTarget = ref(false);
 type Interaction =
 	| { kind: "pan"; startX: number; startY: number; panX: number; panY: number }
 	| { kind: "drag"; step: LearningPathStep; startX: number; startY: number; x: number; y: number; moved: boolean }
-	| { kind: "connect"; from: LearningPathStep; x: number; y: number };
+	| { kind: "connect"; from: LearningPathStep; side: Side; x: number; y: number };
 
 const interaction = ref<Interaction>();
 // the click that ends a drag must not also select or open the tile
@@ -146,21 +146,14 @@ const tileStyle = (step: LearningPathStep) => {
 	return { left: `${x}px`, top: `${y}px` };
 };
 
-const curve = (x1: number, y1: number, x2: number, y2: number): string => {
-	const bend = Math.max(40, Math.abs(x2 - x1) / 2);
-	return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
-};
-
 const edgePaths = computed(() => {
 	const byId = new Map(props.steps.map((step) => [step.id, step]));
 
 	return edgesOf(props.steps).map(({ fromId, toId }) => {
-		const from = positionOf(byId.get(fromId) as LearningPathStep);
 		const to = byId.get(toId) as LearningPathStep;
-		const toPosition = positionOf(to);
 		return {
 			key: `${fromId}-${toId}`,
-			d: curve(from.x + TILE_WIDTH, from.y + TILE_HEIGHT / 2, toPosition.x, toPosition.y + TILE_HEIGHT / 2),
+			d: edgeBetween(positionOf(byId.get(fromId) as LearningPathStep), positionOf(to)),
 			isActive: props.selectedStepId === toId || props.selectedStepId === fromId,
 			isLocked: !props.isEditor && to.status === "locked",
 		};
@@ -170,8 +163,7 @@ const edgePaths = computed(() => {
 const draftEdge = computed(() => {
 	const current = interaction.value;
 	if (current?.kind !== "connect") return undefined;
-	const from = positionOf(current.from);
-	return curve(from.x + TILE_WIDTH, from.y + TILE_HEIGHT / 2, current.x, current.y);
+	return curveBetween(anchorOf(positionOf(current.from), current.side), current.side, { x: current.x, y: current.y });
 });
 
 // --- coordinates ---
@@ -232,9 +224,9 @@ const onTilePointerDown = (event: PointerEvent, step: LearningPathStep) => {
 	capture(event);
 };
 
-const onHandlePointerDown = (event: PointerEvent, step: LearningPathStep) => {
+const onHandlePointerDown = (event: PointerEvent, step: LearningPathStep, side: Side) => {
 	const { x, y } = toCanvas(event.clientX, event.clientY);
-	interaction.value = { kind: "connect", from: step, x, y };
+	interaction.value = { kind: "connect", from: step, side, x, y };
 	capture(event);
 };
 

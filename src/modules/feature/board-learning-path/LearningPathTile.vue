@@ -28,18 +28,23 @@
 			</template>
 			<template v-else>{{ statusText }}</template>
 		</span>
-		<span
-			v-if="isEditor"
-			class="lp-tile__handle"
-			:title="t('pages.learningPath.connectHint')"
-			data-testid="learning-path-tile-handle"
-			aria-hidden="true"
-			@pointerdown.stop.prevent="emit('handle-pointerdown', $event)"
-		/>
+		<template v-if="isEditor">
+			<span
+				v-for="side in SIDES"
+				:key="side"
+				class="lp-tile__handle"
+				:class="`lp-tile__handle--${side}`"
+				:title="t('pages.learningPath.connectHint')"
+				:data-testid="`learning-path-tile-handle-${side}`"
+				aria-hidden="true"
+				@pointerdown.stop.prevent="emit('handle-pointerdown', $event, side)"
+			/>
+		</template>
 	</button>
 </template>
 
 <script setup lang="ts">
+import { type Side, SIDES } from "./canvas";
 import { type LearningPathStep } from "@data-board-learning-path";
 import {
 	mdiCheckCircle,
@@ -60,7 +65,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-	(e: "handle-pointerdown", event: PointerEvent): void;
+	(e: "handle-pointerdown", event: PointerEvent, side: Side): void;
 }>();
 
 const { t } = useI18n();
@@ -182,13 +187,39 @@ const ariaLabel = computed(() => {
 
 .lp-tile__handle {
 	position: absolute;
-	right: -9px;
-	top: calc(50% - 9px);
 	width: 18px;
 	height: 18px;
 	border-radius: 50%;
 	border: 2px solid rgb(var(--v-theme-surface));
 	background: rgb(var(--v-theme-primary));
 	cursor: crosshair;
+	opacity: 0.35;
+	transition: opacity 0.15s;
+}
+
+.lp-tile:hover .lp-tile__handle,
+.lp-tile--selected .lp-tile__handle,
+.lp-tile__handle:hover {
+	opacity: 1;
+}
+
+.lp-tile__handle--top {
+	top: -9px;
+	left: calc(50% - 9px);
+}
+
+.lp-tile__handle--right {
+	right: -9px;
+	top: calc(50% - 9px);
+}
+
+.lp-tile__handle--bottom {
+	bottom: -9px;
+	left: calc(50% - 9px);
+}
+
+.lp-tile__handle--left {
+	left: -9px;
+	top: calc(50% - 9px);
 }
 </style>
