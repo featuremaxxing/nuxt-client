@@ -2488,6 +2488,8 @@ export default {
 	"pages.boardFileArea.upload": "Dateien hochladen",
 	"pages.boardFileArea.download": "Herunterladen",
 	"pages.boardFileArea.downloadArchive": "Als ZIP herunterladen",
+	"pages.boardFileArea.selectFilesForArchive": "Dateien für ZIP auswählen",
+	"pages.boardFileArea.downloadSelectedFiles": "Auswahl herunterladen",
 	"pages.boardFileArea.downloadArchiveEmpty": "Dieser Dateibereich enthält keine Dateien.",
 	"pages.boardFileArea.extract": "Entpacken",
 	"pages.boardFileArea.extractError": "Das ZIP-Archiv konnte nicht entpackt werden.",

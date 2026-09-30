@@ -2463,6 +2463,8 @@ export default {
 	"pages.boardFileArea.upload": "Завантажити файли",
 	"pages.boardFileArea.download": "Завантажити",
 	"pages.boardFileArea.downloadArchive": "Завантажити як ZIP",
+	"pages.boardFileArea.selectFilesForArchive": "Вибрати файли для ZIP",
+	"pages.boardFileArea.downloadSelectedFiles": "Завантажити вибране",
 	"pages.boardFileArea.downloadArchiveEmpty": "Ця область файлів не містить файлів.",
 	"pages.boardFileArea.extract": "Розпакувати",
 	"pages.boardFileArea.extractError": "Не вдалося розпакувати ZIP-архів.",

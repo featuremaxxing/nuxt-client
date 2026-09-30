@@ -2496,6 +2496,8 @@ export default {
 	"pages.boardFileArea.upload": "Subir archivos",
 	"pages.boardFileArea.download": "Descargar",
 	"pages.boardFileArea.downloadArchive": "Descargar como ZIP",
+	"pages.boardFileArea.selectFilesForArchive": "Seleccionar archivos para ZIP",
+	"pages.boardFileArea.downloadSelectedFiles": "Descargar selección",
 	"pages.boardFileArea.downloadArchiveEmpty": "Esta área de archivos no contiene archivos.",
 	"pages.boardFileArea.extract": "Extraer",
 	"pages.boardFileArea.extractError": "No se pudo extraer el archivo ZIP.",

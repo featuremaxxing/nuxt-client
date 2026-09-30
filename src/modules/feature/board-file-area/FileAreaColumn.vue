@@ -12,6 +12,15 @@
 			<h2 class="file-area-column__title text-subtitle-1">{{ title }}</h2>
 			<div v-if="canEdit" class="d-flex">
 				<VBtn
+					v-if="column.files.length > 0"
+					:icon="mdiFolderZipOutline"
+					variant="text"
+					size="small"
+					:aria-label="t('pages.boardFileArea.downloadArchive')"
+					data-testid="file-area-download-selected-files"
+					@click="emit('download-files-as-archive', column.files, title)"
+				/>
+				<VBtn
 					:icon="mdiFolderPlusOutline"
 					variant="text"
 					size="small"
@@ -98,6 +107,7 @@ import {
 	mdiFileDocumentOutline,
 	mdiFolderOutline,
 	mdiFolderPlusOutline,
+	mdiFolderZipOutline,
 	mdiTrayArrowUp,
 } from "@icons/material";
 import { KebabMenu, KebabMenuAction, KebabMenuActionDelete, KebabMenuActionRename } from "@ui-kebab-menu";
@@ -123,6 +133,7 @@ const emit = defineEmits<{
 	(e: "delete-file", file: FileRecord): void;
 	(e: "download-file", file: FileRecord): void;
 	(e: "unzip-file", file: FileRecord): void;
+	(e: "download-files-as-archive", files: FileRecord[], title: string): void;
 	(e: "upload", parentId: string, files: File[]): void;
 	(e: "move-folder", folderId: string, toParentId: string): void;
 	(e: "move-file", fileId: string, toParentId: string): void;

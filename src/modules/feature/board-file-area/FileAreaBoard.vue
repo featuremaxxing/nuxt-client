@@ -39,6 +39,7 @@
 					@delete-file="onDeleteFile"
 					@download-file="onDownload"
 					@unzip-file="onUnzip"
+					@download-files-as-archive="openArchiveSelection"
 					@upload="uploadFiles"
 					@move-folder="onMoveFolder"
 					@move-file="onMoveFile"
@@ -54,6 +55,27 @@
 		@confirm="onNameConfirmed"
 		@cancel="nameDialog.isOpen = false"
 	/>
+	<VDialog v-model="archiveSelection.isOpen" max-width="480">
+		<VCard>
+			<VCardTitle>{{ t("pages.boardFileArea.selectFilesForArchive") }}</VCardTitle>
+			<VCardText>
+				<VCheckbox
+					v-for="file in archiveSelection.files"
+					:key="file.id"
+					v-model="archiveSelection.fileIds"
+					:label="file.name"
+					:value="file.id"
+				/>
+			</VCardText>
+			<VCardActions>
+				<VSpacer />
+				<VBtn variant="text" @click="archiveSelection.isOpen = false">{{ t("common.actions.cancel") }}</VBtn>
+				<VBtn color="primary" :disabled="archiveSelection.fileIds.length === 0" @click="downloadSelectedFiles">
+					{{ t("pages.boardFileArea.downloadSelectedFiles") }}
+				</VBtn>
+			</VCardActions>
+		</VCard>
+	</VDialog>
 </template>
 
 <script setup lang="ts">
@@ -62,7 +84,7 @@ import FileAreaFileDetails from "./FileAreaFileDetails.vue";
 import FolderNameDialog from "./FolderNameDialog.vue";
 import { FileRecord, FileRecordParent } from "@/types/file/File";
 import { askDeletionForItem } from "@/utils/confirmation-dialog.utils";
-import { downloadFile, sanitizeZipPathSegment } from "@/utils/fileHelper";
+import { downloadFile, downloadFilesAsArchive, sanitizeZipPathSegment } from "@/utils/fileHelper";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { BoardResponse } from "@api-server";
 import { notifyError } from "@data-app";
@@ -167,6 +189,13 @@ const nameDialog = reactive({
 	file: undefined as FileRecord | undefined,
 });
 
+const archiveSelection = reactive({
+	isOpen: false,
+	title: "",
+	files: [] as FileRecord[],
+	fileIds: [] as string[],
+});
+
 const openNameDialog = (action: typeof nameDialog.action, dialogTitle: string, name: string, targetId = "") => {
 	Object.assign(nameDialog, { isOpen: true, title: dialogTitle, name, action, targetId });
 };
@@ -230,6 +259,19 @@ const onDeleteBoard = async () => {
 const onDeleteFolder = async (folder: FileAreaFolder) => {
 	const shouldDelete = await askDeletionForItem(folder.title, "pages.boardFileArea.folder");
 	if (shouldDelete) await deleteFolder(folder.id);
+};
+
+const openArchiveSelection = (files: FileRecord[], archiveTitle: string) => {
+	Object.assign(archiveSelection, { isOpen: true, title: archiveTitle, files, fileIds: [] });
+};
+
+const downloadSelectedFiles = () => {
+	if (archiveSelection.fileIds.length === 0) return;
+	downloadFilesAsArchive({
+		fileRecordIds: archiveSelection.fileIds,
+		archiveName: archiveSelection.title,
+	});
+	archiveSelection.isOpen = false;
 };
 
 const onDeleteFile = async (file: FileRecord) => {
