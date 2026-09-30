@@ -302,6 +302,7 @@ const onUnzip = async (file: FileRecord) => {
 	} catch {
 		notifyError(t("pages.boardFileArea.extractError"));
 	}
+};
 
 const onMoveFolder = async (folderId: string, toParentId: string) => {
 	try {
