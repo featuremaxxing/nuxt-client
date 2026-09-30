@@ -381,6 +381,29 @@ describe("FileContent", () => {
 				expect(props.showmenu).toBe("true");
 			});
 
+			it("should pass true when 3D model file", () => {
+				const { wrapper } = setup({
+					mimeType: "model/stl",
+					previewUrl: undefined,
+				});
+
+				const props = wrapper.findComponent(FileDisplay).attributes();
+
+				expect(props.showmenu).toBe("true");
+			});
+
+			it("should pass false when 3D model file cannot be downloaded", () => {
+				const { wrapper } = setup({
+					mimeType: "model/stl",
+					previewUrl: undefined,
+					isDownloadAllowed: false,
+				});
+
+				const props = wrapper.findComponent(FileDisplay).attributes();
+
+				expect(props.showmenu).toBe("false");
+			});
+
 			it("should pass true when pdf file is not on a listboard", () => {
 				const { wrapper } = setup({
 					mimeType: "application/pdf",
@@ -693,6 +716,17 @@ describe("FileContent", () => {
 				const props = wrapper.findComponent(FileDescription).attributes();
 
 				expect(props.isdownloadlink).toBe("false");
+			});
+
+			it("should pass false when file is a 3D model, so a click does not download it", () => {
+				const { wrapper } = setup({
+					mimeType: "model/stl",
+					previewUrl: undefined,
+				});
+				const props = wrapper.findComponent(FileDescription).attributes();
+
+				expect(props.isdownloadlink).toBe("false");
+				expect(props.href).toBeUndefined();
 			});
 
 			it("should pass false when file is collabora", () => {

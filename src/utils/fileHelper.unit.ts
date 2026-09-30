@@ -9,6 +9,7 @@ import {
 	formatFileSize,
 	formatSecondsToHourMinSec,
 	getFileExtension,
+	getModel3dFormat,
 	isAudioMimeType,
 	isPdfMimeType,
 	isPreviewPossible,
@@ -755,6 +756,34 @@ describe("@/utils/fileHelper", () => {
 
 				expect(result).toBe(false);
 			});
+		});
+	});
+
+	describe("getModel3dFormat", () => {
+		it.each([
+			["model.stl", "application/octet-stream", "stl"],
+			["MODEL.STL", "", "stl"],
+			["scene.gltf", "application/json", "gltf"],
+			["scene.glb", "model/gltf-binary", "glb"],
+		])("should detect '%s' (%s) by its extension", (name, mimeType, expected) => {
+			expect(getModel3dFormat(name, mimeType)).toBe(expected);
+		});
+
+		it.each([
+			["upload", "model/stl", "stl"],
+			["upload", "application/vnd.ms-pki.stl", "stl"],
+			["upload", "model/gltf+json", "gltf"],
+			["upload", "model/gltf-binary", "glb"],
+		])("should fall back to the mime type for '%s' (%s)", (name, mimeType, expected) => {
+			expect(getModel3dFormat(name, mimeType)).toBe(expected);
+		});
+
+		it.each([
+			["image.png", "image/png"],
+			["model.obj", "application/octet-stream"],
+			["document.pdf", "application/pdf"],
+		])("should not treat '%s' (%s) as a 3D model", (name, mimeType) => {
+			expect(getModel3dFormat(name, mimeType)).toBeUndefined();
 		});
 	});
 

@@ -37,7 +37,7 @@
 					dragoverBubble: false,
 					draggable: '.draggable',
 					easing: 'cubic-bezier(1, 0, 0, 1)',
-					filter: '.v-input, v-btn',
+					filter: '.v-input, v-btn, .prevent-card-drag',
 					preventOnFilter: false,
 					forceFallback: true,
 					ghostClass: sortableGhostClasses,

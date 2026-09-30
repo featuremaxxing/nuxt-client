@@ -80,6 +80,24 @@ describe("useFileInteractionType", () => {
 		expect(result).toBe(FileInteractionType.None);
 	});
 
+	it.each([
+		["model.stl", "application/octet-stream"],
+		["scene.gltf", "model/gltf+json"],
+		["scene.glb", "model/gltf-binary"],
+	])("should return none for the 3D model '%s', which is rotated in place", (fileName, mimeType) => {
+		const result = useFileInteractionType({
+			hasFileRecord: true,
+			isCollaboraEnabled: false,
+			isCollaboraEditable: false,
+			mimeType,
+			fileName,
+			hasPreviewUrl: false,
+			isDownloadAllowed: true,
+		});
+
+		expect(result).toBe(FileInteractionType.None);
+	});
+
 	it("should return download for fallback downloadable files", () => {
 		const result = useFileInteractionType({
 			hasFileRecord: true,

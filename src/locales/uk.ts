@@ -580,6 +580,12 @@ export default {
 		"Формат аудіо не підтримується цим браузером / операційною системою.",
 	"components.cardElement.fileElement.caption": "опис",
 	"components.cardElement.fileElement.emptyAlt": "Ось зображення з такою назвою",
+	"components.cardElement.fileElement.model3d.dragToRotate": "Перетягніть, щоб обертати",
+	"components.cardElement.fileElement.model3d.label": "3D-перегляд {name}",
+	"components.cardElement.fileElement.model3d.error.tooLarge": "Файл завеликий для 3D-перегляду.",
+	"components.cardElement.fileElement.model3d.error.externalResources":
+		"3D-перегляд неможливий: файл glTF посилається на інші файли. Завантажте його як .glb або як glTF із вбудованими даними.",
+	"components.cardElement.fileElement.model3d.error.failed": "Не вдалося завантажити 3D-перегляд.",
 	"components.cardElement.fileElement.noElement": "Файл відсутній",
 	"components.cardElement.fileElement.pdfAlt": "попередній перегляд зображення для ",
 	"components.cardElement.fileElement.collaboraFile": "Документ",
