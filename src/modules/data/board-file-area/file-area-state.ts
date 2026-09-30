@@ -2,9 +2,8 @@ import { type FileAreaFolder, type FileAreaFolders, useFileAreaApi } from "./fil
 import type { FileAreaChangedPayload } from "./file-area-socket";
 import { FileRecord, FileRecordParent, StorageLocation } from "@/types/file/File";
 import { $axios } from "@/utils/api";
-import { FileApiFactory } from "@api-file-storage";
 import { useAppStore } from "@data-app";
-import { useFileStorageApi } from "@data-file";
+import { useFileRecordsStore, useFileStorageApi } from "@data-file";
 import { computed, type Ref, ref } from "vue";
 
 export type FileAreaColumnData = {
@@ -19,7 +18,7 @@ const byName = (a: string, b: string): number => a.localeCompare(b, undefined, {
 export const useFileAreaState = (boardId: Ref<string>) => {
 	const api = useFileAreaApi();
 	const fileStorage = useFileStorageApi();
-	const fileApi = FileApiFactory(undefined, "/v3", $axios);
+	const fileRecordsStore = useFileRecordsStore();
 
 	const folders = ref<FileAreaFolder[]>([]);
 	const allowedOperations = ref<FileAreaFolders["allowedOperations"]>();
@@ -146,12 +145,12 @@ export const useFileAreaState = (boardId: Ref<string>) => {
 		await api.notifyFilesChanged(boardId.value, [...new Set(files.map((file) => file.parentId))]);
 	};
 
-	// The file storage cannot change the parent of a file, so a move is a copy plus a delete.
+	// A real move in the file storage: the file keeps its id, so links to it on cards stay valid.
 	const moveFile = async (file: FileRecord, toParentId: string): Promise<void> => {
 		if (file.parentId === toParentId) return;
 		const schoolId = useAppStore().school?.id as string;
 
-		await fileApi.copyFile(file.id, {
+		const response = await $axios.patch<FileRecord>(`/v3/file/move/${file.id}`, {
 			target: {
 				storageLocationId: schoolId,
 				storageLocation: StorageLocation.SCHOOL,
@@ -159,7 +158,9 @@ export const useFileAreaState = (boardId: Ref<string>) => {
 				parentType: FileRecordParent.BOARDNODES,
 			},
 		});
-		await fileStorage.deleteFiles([file]);
+		// same id, new parent: the store keeps records per parent
+		fileRecordsStore.deleteFileRecords([file]);
+		fileRecordsStore.upsertFileRecords([response.data]);
 		await Promise.all([loadFiles(file.parentId), loadFiles(toParentId)]);
 		await api.notifyFilesChanged(boardId.value, [file.parentId, toParentId]);
 	};
