@@ -50,7 +50,7 @@
 				:hint="hints[step.id]"
 				:style="tileStyle(step)"
 				@pointerdown.stop="onTilePointerDown($event, step)"
-				@click="onTileClick(step)"
+				@click="onTileClick($event, step)"
 				@keydown="onTileKeydown($event, step)"
 				@handle-pointerdown="(event, side) => onHandlePointerDown(event, step, side)"
 			/>
@@ -128,8 +128,6 @@ type Interaction =
 	| { kind: "connect"; from: LearningPathStep; side: Side; x: number; y: number };
 
 const interaction = ref<Interaction>();
-// the click that ends a drag must not also select or open the tile
-let suppressNextClick = false;
 
 const stageStyle = computed(() => ({
 	transform: `translate(${pan.value.x}px, ${pan.value.y}px) scale(${zoom.value})`,
@@ -184,8 +182,10 @@ const stepAt = (x: number, y: number): LearningPathStep | undefined =>
 
 // --- pointer interactions ---
 
-const capture = (event: PointerEvent) => {
-	viewport.value?.setPointerCapture?.(event.pointerId);
+// Moves and the release are followed on the window, so a pointer that leaves the canvas while
+// dragging is not lost. No pointer capture: it would retarget the release, and with it the
+// click, away from the tile.
+const capture = () => {
 	window.addEventListener("pointermove", onPointerMove);
 	window.addEventListener("pointerup", onPointerUp);
 	window.addEventListener("pointercancel", onPointerUp);
@@ -207,7 +207,7 @@ const onBackgroundPointerDown = (event: PointerEvent) => {
 		panX: pan.value.x,
 		panY: pan.value.y,
 	};
-	capture(event);
+	capture();
 };
 
 const onTilePointerDown = (event: PointerEvent, step: LearningPathStep) => {
@@ -221,13 +221,13 @@ const onTilePointerDown = (event: PointerEvent, step: LearningPathStep) => {
 		y: step.positionY,
 		moved: false,
 	};
-	capture(event);
+	capture();
 };
 
 const onHandlePointerDown = (event: PointerEvent, step: LearningPathStep, side: Side) => {
 	const { x, y } = toCanvas(event.clientX, event.clientY);
 	interaction.value = { kind: "connect", from: step, side, x, y };
-	capture(event);
+	capture();
 };
 
 const onPointerMove = (event: PointerEvent) => {
@@ -255,9 +255,10 @@ const onPointerUp = (event: PointerEvent) => {
 	if (current?.kind === "pan") {
 		const moved = Math.hypot(event.clientX - current.startX, event.clientY - current.startY) >= CLICK_TOLERANCE;
 		if (!moved) emit("select", undefined);
-	} else if (current?.kind === "drag" && current.moved) {
-		suppressNextClick = true;
-		emit("move", current.step.id, current.x, current.y);
+	} else if (current?.kind === "drag") {
+		// an editor's click on a tile is a drag that did not move: it opens the settings
+		if (current.moved) emit("move", current.step.id, current.x, current.y);
+		else emit("select", current.step.id);
 	} else if (current?.kind === "connect") {
 		const { x, y } = toCanvas(event.clientX, event.clientY);
 		const target = stepAt(x, y);
@@ -270,13 +271,11 @@ onBeforeUnmount(release);
 
 // --- clicks and keyboard ---
 
-const onTileClick = (step: LearningPathStep) => {
-	if (suppressNextClick) {
-		suppressNextClick = false;
-		return;
-	}
+// Pointer clicks of editors are handled when the pointer is released (see onPointerUp), here
+// only the keyboard (Enter, Space - a click without detail) selects a tile.
+const onTileClick = (event: MouseEvent, step: LearningPathStep) => {
 	if (props.isEditor) {
-		emit("select", step.id);
+		if (event.detail === 0) emit("select", step.id);
 	} else if (step.status === "open" || step.status === "done") {
 		emit("open", step);
 	}

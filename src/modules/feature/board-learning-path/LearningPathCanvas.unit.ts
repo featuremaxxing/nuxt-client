@@ -2,6 +2,7 @@ import LearningPathCanvas from "./LearningPathCanvas.vue";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { type LearningPathStep } from "@data-board-learning-path";
 import { mount } from "@vue/test-utils";
+import { nextTick } from "vue";
 
 const step = (id: string, overrides: Partial<LearningPathStep> = {}): LearningPathStep => ({
 	id,
@@ -47,7 +48,32 @@ describe("LearningPathCanvas", () => {
 	});
 
 	describe("as an editor", () => {
-		it("should select a tile on click", async () => {
+		it("should select a tile on click", () => {
+			const { wrapper, tile } = setup();
+
+			pointer(tile("b").element, "pointerdown", 430, 50);
+			pointer(tile("b").element, "pointerup", 431, 50);
+			tile("b").element.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+
+			expect(wrapper.emitted("select")).toEqual([["b"]]);
+		});
+
+		it("should select a tile again after working elsewhere", () => {
+			const { wrapper, tile } = setup();
+			const canvas = wrapper.get("[data-testid=learning-path-canvas]").element;
+
+			pointer(tile("a").element, "pointerdown", 10, 10);
+			pointer(window, "pointermove", 60, 40);
+			pointer(window, "pointerup", 60, 40);
+			pointer(canvas, "pointerdown", 700, 300);
+			pointer(window, "pointerup", 700, 300);
+			pointer(tile("a").element, "pointerdown", 60, 40);
+			pointer(tile("a").element, "pointerup", 60, 40);
+
+			expect(wrapper.emitted("select")).toEqual([[undefined], ["a"]]);
+		});
+
+		it("should select a tile with the keyboard", async () => {
 			const { wrapper, tile } = setup();
 
 			await tile("b").trigger("click");
@@ -61,7 +87,8 @@ describe("LearningPathCanvas", () => {
 			pointer(tile("a").element, "pointerdown", 10, 10);
 			pointer(window, "pointermove", 60, 40);
 			pointer(window, "pointerup", 60, 40);
-			await tile("a").trigger("click");
+			tile("a").element.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+			await nextTick();
 
 			expect(wrapper.emitted("move")).toEqual([["a", 50, 30]]);
 			expect(wrapper.emitted("select")).toBeUndefined();
