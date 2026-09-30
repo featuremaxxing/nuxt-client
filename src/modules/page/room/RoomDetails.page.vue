@@ -43,7 +43,7 @@
 		<SelectBoardLayoutDialog
 			v-if="allowedOperations.editContent"
 			v-model="boardLayoutDialogIsOpen"
-			allow-file-area
+			allow-room-layouts
 			@select="onCreateBoard"
 		/>
 		<LeaveRoomProhibitedDialog v-model="isLeaveRoomProhibitedDialogOpen" />

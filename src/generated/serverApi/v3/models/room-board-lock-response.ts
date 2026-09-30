@@ -13,19 +13,23 @@
  */
 
 
-
 /**
  * 
  * @export
- * @enum {string}
+ * @interface RoomBoardLockResponse
  */
-export enum BoardLayout {
-    COLUMNS = 'columns',
-    LIST = 'list',
-    GRID = 'grid',
-    FILES = 'files',
-    LEARNING_PATH = 'learningPath'
+export interface RoomBoardLockResponse {
+    /**
+     * The learning path that locks the board.
+     * @type {string}
+     * @memberof RoomBoardLockResponse
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomBoardLockResponse
+     */
+    title: string;
 }
-
-
 

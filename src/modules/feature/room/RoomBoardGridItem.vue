@@ -23,6 +23,14 @@
 			>
 				<h2 class="text-break text-body-1 font-weight-bold ma-0">{{ board.title }}</h2>
 			</VCardTitle>
+			<p
+				v-if="lockedBy"
+				class="mx-4 mb-0 text-body-2 d-flex align-center"
+				:data-testid="`board-grid-item-locked-${index}`"
+			>
+				<VIcon size="16" class="mr-1" :icon="mdiLockOutline" />
+				{{ t("pages.room.boardCard.locked", { title: lockedBy.title }) }}
+			</p>
 			<ProgressBar
 				v-if="progress && progress.total > 0"
 				:done="progress.done"
@@ -55,7 +63,7 @@
 				:to="boardPath"
 				:aria-label="`${subtitleText}: ${board.title}`"
 			>
-				{{ t("pages.room.boardCard.label.openItem") }}
+				{{ isLocked ? t("pages.room.boardCard.label.openLearningPath") : t("pages.room.boardCard.label.openItem") }}
 			</VBtn>
 		</VCardActions>
 	</VCard>
@@ -67,7 +75,13 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
 import { ProgressSummary } from "@data-board-progress";
 import { ProgressBar } from "@feature-board-progress";
-import { mdiFolderMultipleOutline, mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
+import {
+	mdiFolderMultipleOutline,
+	mdiLockOutline,
+	mdiMapMarkerPath,
+	mdiViewAgendaOutline,
+	mdiViewDashboardOutline,
+} from "@icons/material";
 import {
 	KebabMenu,
 	KebabMenuActionDelete,
@@ -104,8 +118,16 @@ const isDraft = computed(() => props.board.isVisible === false);
 
 const isFileArea = computed(() => props.board.layout === BoardLayout.FILES);
 
+const isLearningPath = computed(() => props.board.layout === BoardLayout.LEARNING_PATH);
+
+// a learning path keeps this board closed for the user: the card leads to the learning path instead
+const lockedBy = computed(() => props.board.lockedByLearningPath);
+const isLocked = computed(() => !!lockedBy.value);
+
 const subtitleIcon = computed(() => {
+	if (isLocked.value) return mdiLockOutline;
 	if (isFileArea.value) return mdiFolderMultipleOutline;
+	if (isLearningPath.value) return mdiMapMarkerPath;
 	return isListBoard.value ? mdiViewAgendaOutline : mdiViewDashboardOutline;
 });
 
@@ -114,6 +136,9 @@ const subtitleText = computed(() => {
 		? t("pages.room.boardCard.label.listBoard")
 		: t("pages.room.boardCard.label.columnBoard");
 	if (isFileArea.value) text = t("pages.room.boardCard.label.fileArea");
+	if (isLearningPath.value) text = t("pages.room.boardCard.label.learningPath");
+
+	if (isLocked.value) return `${text} - ${t("pages.room.boardCard.label.locked")}`;
 
 	if (isDraft.value) {
 		const suffix = ` - ${t("common.words.draft")}`;
@@ -123,7 +148,7 @@ const subtitleText = computed(() => {
 	return text;
 });
 
-const boardPath = computed(() => `/boards/${props.board.id}`);
+const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value.id}` : `/boards/${props.board.id}`));
 </script>
 
 <style>

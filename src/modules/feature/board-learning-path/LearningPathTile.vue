@@ -1,0 +1,194 @@
+<template>
+	<button
+		type="button"
+		class="lp-tile"
+		:class="[`lp-tile--${visualState}`, { 'lp-tile--selected': isSelected }]"
+		:aria-label="ariaLabel"
+		:aria-disabled="!isEditor && !isOpenable"
+		:aria-pressed="isEditor ? isSelected : undefined"
+		:title="hint || undefined"
+		:data-testid="`learning-path-tile-${step.id}`"
+	>
+		<span class="lp-tile__head">
+			<VIcon :icon="statusIcon" size="18" class="lp-tile__icon" aria-hidden="true" />
+			<span class="lp-tile__title">{{ displayTitle }}</span>
+		</span>
+		<span class="lp-tile__meta">
+			<template v-if="isEditor">
+				<span v-if="!step.isVisible && step.status !== 'unavailable'" class="lp-tile__chip">
+					{{ t("common.words.draft") }}
+				</span>
+				<span v-if="step.lockUntilPrerequisitesDone" class="lp-tile__chip">
+					<VIcon :icon="mdiLockOutline" size="12" aria-hidden="true" />
+					{{ t("pages.learningPath.tile.locks") }}
+				</span>
+				<span v-if="step.studentCount" data-testid="learning-path-tile-progress">
+					{{ t("pages.learningPath.progress", { done: step.doneCount ?? 0, total: step.studentCount }) }}
+				</span>
+			</template>
+			<template v-else>{{ statusText }}</template>
+		</span>
+		<span
+			v-if="isEditor"
+			class="lp-tile__handle"
+			:title="t('pages.learningPath.connectHint')"
+			data-testid="learning-path-tile-handle"
+			aria-hidden="true"
+			@pointerdown.stop.prevent="emit('handle-pointerdown', $event)"
+		/>
+	</button>
+</template>
+
+<script setup lang="ts">
+import { type LearningPathStep } from "@data-board-learning-path";
+import {
+	mdiCheckCircle,
+	mdiEyeOffOutline,
+	mdiLockOutline,
+	mdiMapMarkerPath,
+	mdiViewDashboardOutline,
+} from "@icons/material";
+import { computed, PropType } from "vue";
+import { useI18n } from "vue-i18n";
+
+const props = defineProps({
+	step: { type: Object as PropType<LearningPathStep>, required: true },
+	isEditor: { type: Boolean, default: false },
+	isSelected: { type: Boolean, default: false },
+	// why a locked step is locked
+	hint: { type: String, default: "" },
+});
+
+const emit = defineEmits<{
+	(e: "handle-pointerdown", event: PointerEvent): void;
+}>();
+
+const { t } = useI18n();
+
+const isOpenable = computed(() => props.step.status === "open" || props.step.status === "done");
+
+// editors see every step as it is configured, students see their own state
+const visualState = computed(() => (props.isEditor ? (props.step.isVisible ? "open" : "draft") : props.step.status));
+
+const statusIcon = computed(() => {
+	if (props.isEditor) return mdiViewDashboardOutline;
+	switch (props.step.status) {
+		case "done":
+			return mdiCheckCircle;
+		case "locked":
+			return mdiLockOutline;
+		case "unavailable":
+			return mdiEyeOffOutline;
+		default:
+			return mdiMapMarkerPath;
+	}
+});
+
+const statusText = computed(() => t(`pages.learningPath.status.${props.step.status}`));
+
+const displayTitle = computed(() => props.step.title || t("pages.learningPath.tile.unavailable"));
+
+const ariaLabel = computed(() => {
+	const parts = [displayTitle.value];
+	if (!props.isEditor) parts.push(statusText.value);
+	if (props.hint) parts.push(props.hint);
+	return parts.join(", ");
+});
+</script>
+
+<style scoped>
+.lp-tile {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	width: 220px;
+	height: 96px;
+	padding: 10px 14px;
+	text-align: left;
+	border-radius: 8px;
+	border: 1px solid rgba(var(--v-theme-on-surface), 0.2);
+	background: rgb(var(--v-theme-surface));
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+	cursor: pointer;
+	user-select: none;
+	touch-action: none;
+}
+
+.lp-tile:focus-visible {
+	outline: 2px solid rgb(var(--v-theme-primary));
+	outline-offset: 2px;
+}
+
+.lp-tile--selected {
+	border: 2px solid rgb(var(--v-theme-primary));
+}
+
+.lp-tile--done {
+	border-color: rgb(var(--v-theme-success));
+}
+
+.lp-tile--done .lp-tile__icon {
+	color: rgb(var(--v-theme-success));
+}
+
+.lp-tile--open .lp-tile__icon {
+	color: rgb(var(--v-theme-primary));
+}
+
+.lp-tile--locked,
+.lp-tile--unavailable {
+	cursor: not-allowed;
+	background: rgba(var(--v-theme-on-surface), 0.04);
+	color: rgba(var(--v-theme-on-surface), 0.6);
+}
+
+.lp-tile--draft {
+	border-style: dashed;
+}
+
+.lp-tile__head {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.lp-tile__title {
+	font-weight: 700;
+	line-height: 1.3;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.lp-tile__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.8125rem;
+	color: rgba(var(--v-theme-on-surface), 0.7);
+}
+
+.lp-tile__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding: 0 6px;
+	border-radius: 10px;
+	background: rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.lp-tile__handle {
+	position: absolute;
+	right: -9px;
+	top: calc(50% - 9px);
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: 2px solid rgb(var(--v-theme-surface));
+	background: rgb(var(--v-theme-primary));
+	cursor: crosshair;
+}
+</style>

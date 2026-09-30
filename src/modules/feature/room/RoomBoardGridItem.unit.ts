@@ -4,6 +4,7 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { mount } from "@vue/test-utils";
 import { ComponentProps } from "vue-component-type-helpers";
+import { VBtn } from "vuetify/components";
 
 const mockBoard: RoomBoardItem = {
 	id: "59cce2c61113d1132c98dc06",
@@ -72,6 +73,45 @@ describe("@feature-room/RoomBoardGridItem", () => {
 			const { wrapper } = setup({ board, index: 0, roomId: "Mathe" });
 
 			expect(wrapper.find("[data-testid='board-dot-menu-0']").exists()).toBe(true);
+		});
+	});
+
+	describe("when a learning path locks the board", () => {
+		const lockedBoard: RoomBoardItem = {
+			...mockBoard,
+			isVisible: true,
+			lockedByLearningPath: { id: "path-id", title: "Optik" },
+		};
+
+		it("should show the lock and name the learning path", () => {
+			const { wrapper } = setup({ board: lockedBoard, index: 0, roomId: "Mathe" });
+
+			expect(wrapper.get("[data-testid='board-grid-item-subtitle-0']").text()).toBe(
+				"pages.room.boardCard.label.columnBoard - pages.room.boardCard.label.locked"
+			);
+			expect(wrapper.get("[data-testid='board-grid-item-locked-0']").text()).toContain("pages.room.boardCard.locked");
+		});
+
+		it("should lead to the learning path instead of the board", () => {
+			const { wrapper } = setup({ board: lockedBoard, index: 0, roomId: "Mathe" });
+
+			const openButton = wrapper.getComponent<typeof VBtn>("[data-testid='board-open-button-0']");
+			expect(openButton.props("to")).toBe("/boards/path-id");
+			expect(openButton.text()).toBe("pages.room.boardCard.label.openLearningPath");
+		});
+	});
+
+	describe("when the board is a learning path", () => {
+		it("should compute the learning path subtitle", () => {
+			const { wrapper } = setup({
+				board: { ...mockBoard, isVisible: true, layout: BoardLayout.LEARNING_PATH },
+				index: 0,
+				roomId: "Mathe",
+			});
+
+			expect(wrapper.get("[data-testid='board-grid-item-subtitle-0']").text()).toBe(
+				"pages.room.boardCard.label.learningPath"
+			);
 		});
 	});
 });

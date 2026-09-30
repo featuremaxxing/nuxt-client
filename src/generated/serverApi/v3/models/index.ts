@@ -342,6 +342,7 @@ export * from './rich-text-element-response';
 export * from './role-name';
 export * from './room-board-item-response';
 export * from './room-board-item-response-allowed-operations';
+export * from './room-board-lock-response';
 export * from './room-board-list-response';
 export * from './room-color';
 export * from './room-created-response';

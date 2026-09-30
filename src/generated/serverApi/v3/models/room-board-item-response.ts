@@ -15,6 +15,7 @@
 
 import { BoardLayout } from './board-layout';
 import { RoomBoardItemResponseAllowedOperations } from './room-board-item-response-allowed-operations';
+import { RoomBoardLockResponse } from './room-board-lock-response';
 
 /**
  * 
@@ -64,6 +65,12 @@ export interface RoomBoardItemResponse {
      * @memberof RoomBoardItemResponse
      */
     allowedOperations: RoomBoardItemResponseAllowedOperations;
+    /**
+     * Set when a learning path keeps the board closed until other boards are completed.
+     * @type {RoomBoardLockResponse}
+     * @memberof RoomBoardItemResponse
+     */
+    lockedByLearningPath?: RoomBoardLockResponse;
 }
 
 
