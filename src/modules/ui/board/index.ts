@@ -4,5 +4,14 @@ import BoardSectionCreationHeader from "./BoardSectionCreationHeader.vue";
 import ContentElementBar from "./content-element/ContentElementBar.vue";
 import DetailViewButton from "./DetailViewButton.vue";
 import EmptyElement from "./EmptyElement.vue";
+import PinCardButton from "./PinCardButton.vue";
 
-export { BoardMenu, BoardMenuScope, BoardSectionCreationHeader, ContentElementBar, DetailViewButton, EmptyElement };
+export {
+	BoardMenu,
+	BoardMenuScope,
+	BoardSectionCreationHeader,
+	ContentElementBar,
+	DetailViewButton,
+	EmptyElement,
+	PinCardButton,
+};

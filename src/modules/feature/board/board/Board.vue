@@ -178,7 +178,7 @@ import { BOARD_IS_LIST_LAYOUT, extractDataAttribute, useElementFocus } from "@ut
 import { useTimeout } from "@vueuse/core";
 import { SortableEvent } from "sortablejs";
 import { Sortable } from "sortablejs-vue3";
-import { computed, ComputedRef, onUnmounted, provide, ref, watch } from "vue";
+import { computed, ComputedRef, onBeforeUnmount, provide, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -357,7 +357,11 @@ watch(
 	{ immediate: true }
 );
 
-onUnmounted(() => {
+// Before, not after unmount: when one page with a board replaces another (the
+// learning room linking to a card's original room), Vue sets up the new board
+// first and runs onUnmounted of the old one afterwards - which would disconnect
+// the socket and clear the store right after the new board asked for its data.
+onBeforeUnmount(() => {
 	boardStore.disconnectSocketRequest();
 	boardStore.setBoard(undefined);
 	cardStore.resetState();

@@ -60,6 +60,7 @@
 						}"
 						:card-id="element.cardId"
 						:height="element.height"
+						:pinned="element.pinnedCardId ? element : undefined"
 						:row-index="elementIndex"
 						:column-index="reactiveIndex"
 						@move:card-keyboard="onMoveCardKeyboard(elementIndex, element.cardId, $event)"
