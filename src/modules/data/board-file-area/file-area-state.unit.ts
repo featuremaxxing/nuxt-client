@@ -18,6 +18,7 @@ vi.mock("./file-area-api", () => ({
 	}),
 }));
 vi.mock("@data-file", () => ({
+	useFileRecordsStore: () => storeRecords,
 	useFileStorageApi: () => ({
 		getFileRecordsByParentId: () => [],
 		fetchFiles,
@@ -27,6 +28,11 @@ vi.mock("@data-file", () => ({
 	}),
 }));
 vi.mock("@data-app", () => ({ useAppStore: () => ({ school: { id: "school" } }) }));
+
+const axiosPatch = vi.fn();
+vi.mock("@/utils/api", () => ({ $axios: { patch: (...args: unknown[]) => axiosPatch(...args) } }));
+
+const storeRecords = { deleteFileRecords: vi.fn(), upsertFileRecords: vi.fn() };
 
 const folder = (id: string, parentId: string, title: string) => ({ id, parentId, title, createdAt: "", updatedAt: "" });
 
@@ -96,5 +102,20 @@ describe("useFileAreaState", () => {
 
 		expect(fetchFiles).toHaveBeenCalledTimes(1);
 		expect(fetchFiles).toHaveBeenCalledWith("board", "boardnodes");
+	});
+
+	it("should move a file in the file storage so it keeps its id", async () => {
+		const { moveFile } = await setup();
+		const file = { id: "file", name: "a.pdf", parentId: "a" } as never;
+		axiosPatch.mockResolvedValue({ data: { id: "file", name: "a.pdf", parentId: "c" } });
+
+		await moveFile(file, "c");
+
+		expect(axiosPatch).toHaveBeenCalledWith("/v3/file/move/file", {
+			target: { storageLocationId: "school", storageLocation: "school", parentId: "c", parentType: "boardnodes" },
+		});
+		expect(storeRecords.deleteFileRecords).toHaveBeenCalledWith([file]);
+		expect(storeRecords.upsertFileRecords).toHaveBeenCalledWith([{ id: "file", name: "a.pdf", parentId: "c" }]);
+		expect(notifyFilesChanged).toHaveBeenCalledWith("board", ["a", "c"]);
 	});
 });
