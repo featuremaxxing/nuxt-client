@@ -39,6 +39,7 @@
 			@update:board-visibility="onUpdateBoardVisibility"
 			@delete:board="onDeleteBoard"
 			@duplicate:board="onDuplicateBoard"
+			@download:file-area="onDownloadFileArea"
 		/>
 		<SelectBoardLayoutDialog
 			v-if="allowedOperations.editContent"
@@ -54,10 +55,12 @@
 import { BoardLayout } from "@/types/board/Board";
 import { RoomDetails } from "@/types/room/Room";
 import { ShareTokenParentType } from "@/types/sharing/Token";
+import { downloadFilesAsArchive } from "@/utils/fileHelper";
 import { askConfirmation } from "@/utils/confirmation-dialog.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
+import { useFileAreaArchive } from "@data-board-file-area";
 import { RoomBoardItemResponse } from "@api-server";
-import { useAppStoreRefs } from "@data-app";
+import { notifyError, useAppStoreRefs } from "@data-app";
 import { ProgressSummary, RoomProgress, useBoardProgressApi } from "@data-board-progress";
 import { useEnvConfig } from "@data-env";
 import { useRoomAllowedOperations, useRoomDetailsStore, useRoomStore } from "@data-room";
@@ -83,6 +86,7 @@ const { t } = useI18n();
 
 const roomDetailsStore = useRoomDetailsStore();
 const { leaveRoom, deleteRoom } = useRoomStore();
+const { buildArchive } = useFileAreaArchive();
 
 const { roomBoards } = storeToRefs(roomDetailsStore);
 const { createBoard, updateBoardVisibility, deleteBoard, fetchRoomAndBoards } = roomDetailsStore;
@@ -247,6 +251,19 @@ const onDuplicateBoard = async (board: RoomBoardItemResponse) => {
 	const { result } = await executeCopyBoard(board.id);
 	if (result?.id) {
 		await roomDetailsStore.fetchRoomAndBoards(props.room.id);
+	}
+};
+
+const onDownloadFileArea = async (board: RoomBoardItemResponse) => {
+	try {
+		const archive = await buildArchive(board.id);
+		if (archive.fileRecordIds.length === 0) {
+			notifyError(t("pages.boardFileArea.downloadArchiveEmpty"));
+			return;
+		}
+		downloadFilesAsArchive({ ...archive, archiveName: board.title });
+	} catch {
+		notifyError(t("pages.boardFileArea.error.generic"));
 	}
 };
 </script>

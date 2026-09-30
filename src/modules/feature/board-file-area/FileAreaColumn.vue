@@ -12,6 +12,15 @@
 			<h2 class="file-area-column__title text-subtitle-1">{{ title }}</h2>
 			<div v-if="canEdit" class="d-flex">
 				<VBtn
+					v-if="column.files.length > 0"
+					:icon="mdiFolderZipOutline"
+					variant="text"
+					size="small"
+					:aria-label="t('pages.boardFileArea.downloadArchive')"
+					data-testid="file-area-download-selected-files"
+					@click="emit('download-files-as-archive', column.files, title)"
+				/>
+				<VBtn
 					:icon="mdiFolderPlusOutline"
 					variant="text"
 					size="small"
@@ -66,6 +75,13 @@
 				<template #append>
 					<KebabMenu :aria-label="t('pages.boardFileArea.menu', { name: file.name })">
 						<KebabMenuActionDownloadFile @click="emit('download-file', file)" />
+						<KebabMenuAction
+							v-if="canEdit && isZipFile(file)"
+							:icon="mdiArchiveOutline"
+							@click="emit('unzip-file', file)"
+						>
+							{{ t("pages.boardFileArea.extract") }}
+						</KebabMenuAction>
 						<template v-if="canEdit">
 							<KebabMenuActionRename @click="emit('rename-file', file)" />
 							<KebabMenuActionDelete @click="emit('delete-file', file)" />
@@ -86,13 +102,15 @@ import { FileRecord } from "@/types/file/File";
 import { extractFilesFromItems } from "@/utils/fileHelper";
 import type { FileAreaColumnData, FileAreaFolder } from "@data-board-file-area";
 import {
+	mdiArchiveOutline,
 	mdiChevronRight,
 	mdiFileDocumentOutline,
 	mdiFolderOutline,
 	mdiFolderPlusOutline,
+	mdiFolderZipOutline,
 	mdiTrayArrowUp,
 } from "@icons/material";
-import { KebabMenu, KebabMenuActionDelete, KebabMenuActionRename } from "@ui-kebab-menu";
+import { KebabMenu, KebabMenuAction, KebabMenuActionDelete, KebabMenuActionRename } from "@ui-kebab-menu";
 import { computed, PropType, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -114,6 +132,8 @@ const emit = defineEmits<{
 	(e: "rename-file", file: FileRecord): void;
 	(e: "delete-file", file: FileRecord): void;
 	(e: "download-file", file: FileRecord): void;
+	(e: "unzip-file", file: FileRecord): void;
+	(e: "download-files-as-archive", files: FileRecord[], title: string): void;
 	(e: "upload", parentId: string, files: File[]): void;
 	(e: "move-folder", folderId: string, toParentId: string): void;
 	(e: "move-file", fileId: string, toParentId: string): void;
@@ -126,6 +146,9 @@ const isOver = ref(false);
 const DRAG_TYPE = "application/x-file-area-item";
 
 const isEmpty = computed(() => props.column.folders.length === 0 && props.column.files.length === 0);
+
+const isZipFile = (file: FileRecord): boolean =>
+	file.mimeType === "application/zip" || file.name.toLowerCase().endsWith(".zip");
 
 const onFileSelection = (event: Event) => {
 	const input = event.target as HTMLInputElement;

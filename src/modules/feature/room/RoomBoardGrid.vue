@@ -28,6 +28,7 @@
 				@update:visibility="(board, isVisible) => emit('update:boardVisibility', board, isVisible)"
 				@delete:board="emit('delete:board', $event)"
 				@duplicate:board="emit('duplicate:board', $event)"
+				@download:file-area="emit('download:file-area', $event)"
 			/>
 		</template>
 	</Sortable>
@@ -60,6 +61,7 @@ const emit = defineEmits<{
 	"update:boardVisibility": [board: RoomBoardItemResponse, isVisible: boolean];
 	"delete:board": [board: RoomBoardItemResponse];
 	"duplicate:board": [board: RoomBoardItemResponse];
+	"download:file-area": [board: RoomBoardItemResponse];
 }>();
 
 const { t } = useI18n();
