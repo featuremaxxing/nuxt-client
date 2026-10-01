@@ -1,5 +1,7 @@
 import { RoomBoardItem } from "@/types/room/Room";
 import {
+	LearningPathColor,
+	RoomBoardLockResponseReasonEnum as LockReason,
 	RoomLearningPathResponse,
 	RoomLearningPathStepResponse,
 	RoomLearningPathStepResponseStatusEnum as StepStatus,
@@ -7,9 +9,10 @@ import {
 } from "@api-server";
 import { orderedSteps } from "@data-board-learning-path";
 
-export type LearningPathStepInfo = { title: string; position: number };
+export type LearningPathStepInfo = { title: string; position: number; color?: LearningPathColor };
 
-export type LockedHint = { mode: "all" | "any"; titles: string[] };
+// "choose": no learning path chosen yet, the student has to pick one first
+export type LockedHint = { mode: "all" | "any" | "choose"; titles: string[] };
 
 // teachers get the class numbers, students their own state
 export const isEditorSummary = (summary: RoomLearningPathResponse): boolean => summary.studentCount !== undefined;
@@ -18,14 +21,16 @@ export const isEditorSummary = (summary: RoomLearningPathResponse): boolean => s
 export const visibleChain = (summary: RoomLearningPathResponse): RoomLearningPathStepResponse[] =>
 	orderedSteps(summary.steps).filter((step) => isEditorSummary(summary) || step.status !== StepStatus.Unavailable);
 
-// For every board of the room that is part of a learning path: the path and its step number.
-// A board on several paths shows the first one of the room.
-export const stepInfoByBoardId = (boards: RoomBoardItem[]): Record<string, LearningPathStepInfo> => {
-	const result: Record<string, LearningPathStepInfo> = {};
+// For every board of the room that is part of a learning path: the paths and its step number in
+// each. Students only see the paths they go, teachers all of them.
+export const stepInfoByBoardId = (boards: RoomBoardItem[]): Record<string, LearningPathStepInfo[]> => {
+	const result: Record<string, LearningPathStepInfo[]> = {};
 	for (const board of boards) {
-		if (!board.learningPath) continue;
-		visibleChain(board.learningPath).forEach((step, index) => {
-			result[step.boardId] ??= { title: board.title, position: index + 1 };
+		const summary = board.learningPath;
+		if (!summary || !(isEditorSummary(summary) || summary.isEnrolled)) continue;
+
+		visibleChain(summary).forEach((step, index) => {
+			(result[step.boardId] ??= []).push({ title: board.title, position: index + 1, color: summary.color });
 		});
 	}
 
@@ -39,6 +44,11 @@ export const lockedHintByBoardId = (boards: RoomBoardItem[]): Record<string, Loc
 	const result: Record<string, LockedHint> = {};
 
 	for (const board of boards) {
+		if (board.lockedByLearningPath?.reason === LockReason.ChooseLearningPath) {
+			result[board.id] = { mode: "choose", titles: [] };
+			continue;
+		}
+
 		const summary = board.lockedByLearningPath && pathsById.get(board.lockedByLearningPath.id)?.learningPath;
 		if (!summary) continue;
 

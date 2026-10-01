@@ -3,6 +3,8 @@ import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { roomBoardGridItemFactory } from "@@/tests/test-utils";
 import {
+	LearningPathColor,
+	RoomBoardLockResponseReasonEnum as LockReason,
 	RoomLearningPathResponse,
 	RoomLearningPathStepResponse,
 	RoomLearningPathStepResponseStatusEnum as Status,
@@ -48,28 +50,44 @@ describe("room-learning-paths", () => {
 	});
 
 	describe("stepInfoByBoardId", () => {
-		it("should number the boards of a learning path", () => {
-			const info = stepInfoByBoardId([pathBoard("p1", { steps })]);
+		it("should number the boards of a learning path the student goes", () => {
+			const info = stepInfoByBoardId([pathBoard("p1", { steps, isEnrolled: true, color: LearningPathColor.Green })]);
 
 			expect(info).toEqual({
-				"board-a": { title: "Path p1", position: 1 },
-				"board-c": { title: "Path p1", position: 2 },
+				"board-a": [{ title: "Path p1", position: 1, color: LearningPathColor.Green }],
+				"board-c": [{ title: "Path p1", position: 2, color: LearningPathColor.Green }],
 			});
 		});
 
-		it("should keep the first learning path of the room for a board on several", () => {
+		it("should leave out the learning paths a student does not go", () => {
+			expect(stepInfoByBoardId([pathBoard("p1", { steps, isEnrolled: false })])).toEqual({});
+		});
+
+		it("should show teachers every learning path", () => {
+			const info = stepInfoByBoardId([pathBoard("p1", { steps, studentCount: 2, completedStudentCount: 0 })]);
+
+			expect(Object.keys(info)).toEqual(["board-a", "board-c", "board-d"]);
+		});
+
+		it("should list every learning path a board is part of", () => {
 			const info = stepInfoByBoardId([
-				pathBoard("p1", { steps: [step({ id: "a" })] }),
-				pathBoard("p2", { steps: [step({ id: "x" }), step({ id: "a", positionY: 10 })] }),
+				pathBoard("p1", { steps: [step({ id: "a" })], isEnrolled: true }),
+				pathBoard("p2", { steps: [step({ id: "x" }), step({ id: "a", positionY: 10 })], isEnrolled: true }),
 			]);
 
-			expect(info["board-a"]).toEqual({ title: "Path p1", position: 1 });
+			expect(info["board-a"].map((entry) => [entry.title, entry.position])).toEqual([
+				["Path p1", 1],
+				["Path p2", 2],
+			]);
 		});
 	});
 
 	describe("lockedHintByBoardId", () => {
 		const locked = (boardId: string, pathId: string): RoomBoardItem =>
-			roomBoardGridItemFactory.build({ id: boardId, lockedByLearningPath: { id: pathId, title: "Path" } });
+			roomBoardGridItemFactory.build({
+				id: boardId,
+				lockedByLearningPath: { id: pathId, title: "Path", reason: LockReason.Prerequisites },
+			});
 
 		it("should name the prerequisites that are not done yet", () => {
 			const path = pathBoard("p1", {
@@ -98,6 +116,15 @@ describe("room-learning-paths", () => {
 				mode: "any",
 				titles: ["A", "B"],
 			});
+		});
+
+		it("should ask to choose a learning path when none is chosen", () => {
+			const board = roomBoardGridItemFactory.build({
+				id: "board-c",
+				lockedByLearningPath: { id: "p1", title: "Path", reason: LockReason.ChooseLearningPath },
+			});
+
+			expect(lockedHintByBoardId([board])).toEqual({ "board-c": { mode: "choose", titles: [] } });
 		});
 
 		it("should give no hint when the learning path is not in the list", () => {

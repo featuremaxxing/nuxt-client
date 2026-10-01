@@ -12,6 +12,8 @@
  * Do not edit the class manually.
  */
 
+import { RoomBoardLockResponse } from './room-board-lock-response';
+
 /**
  * 
  * @export
@@ -60,6 +62,12 @@ export interface RoomLearningPathStepResponse {
      * @memberof RoomLearningPathStepResponse
      */
     unlockMode: RoomLearningPathStepResponseUnlockModeEnum;
+    /**
+     * What keeps a locked step closed for the user.
+     * @type {RoomBoardLockResponse}
+     * @memberof RoomLearningPathStepResponse
+     */
+    lock?: RoomBoardLockResponse;
     /**
      * 
      * @type {number}

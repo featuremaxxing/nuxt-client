@@ -12,6 +12,7 @@
  * Do not edit the class manually.
  */
 
+import { LearningPathColor } from './learning-path-color';
 import { RoomLearningPathStepResponse } from './room-learning-path-step-response';
 
 /**
@@ -22,12 +23,24 @@ import { RoomLearningPathStepResponse } from './room-learning-path-step-response
 export interface RoomLearningPathResponse {
     /**
      * 
+     * @type {LearningPathColor}
+     * @memberof RoomLearningPathResponse
+     */
+    color?: LearningPathColor;
+    /**
+     * Students only: whether they go this learning path.
+     * @type {boolean}
+     * @memberof RoomLearningPathResponse
+     */
+    isEnrolled?: boolean;
+    /**
+     * 
      * @type {Array<RoomLearningPathStepResponse>}
      * @memberof RoomLearningPathResponse
      */
     steps: Array<RoomLearningPathStepResponse>;
     /**
-     * Only for editors: the students of the room.
+     * Only for editors: the students who go this learning path.
      * @type {number}
      * @memberof RoomLearningPathResponse
      */

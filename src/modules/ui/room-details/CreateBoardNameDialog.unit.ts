@@ -1,6 +1,7 @@
 import CreateBoardNameDialog from "./CreateBoardNameDialog.vue";
+import LearningPathColorPicker from "./LearningPathColorPicker.vue";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
-import { BoardLayout } from "@api-server";
+import { BoardLayout, LearningPathColor } from "@api-server";
 import { createTestingPinia } from "@pinia/testing";
 import { SvsDialog } from "@ui-dialog";
 import { enableAutoUnmount, mount } from "@vue/test-utils";
@@ -16,11 +17,11 @@ describe("@ui-room-details/CreateBoardNameDialog", () => {
 		setActivePinia(createTestingPinia());
 	});
 
-	const setup = async (layout = BoardLayout.COLUMNS) => {
+	const setup = async (layout = BoardLayout.COLUMNS, usedColors: LearningPathColor[] = []) => {
 		const wrapper = mount(CreateBoardNameDialog, {
 			attachTo: document.body,
 			global: { plugins: [createTestingVuetify(), createTestingI18n()] },
-			props: { modelValue: false, layout },
+			props: { modelValue: false, layout, usedColors },
 		});
 		await wrapper.setProps({ modelValue: true });
 		await nextTick();
@@ -45,7 +46,7 @@ describe("@ui-room-details/CreateBoardNameDialog", () => {
 		await wrapper.getComponent(VTextField).setValue("  Bruchrechnung ");
 		wrapper.getComponent(SvsDialog).vm.$emit("confirm");
 
-		expect(wrapper.emitted("confirm")).toEqual([["Bruchrechnung"]]);
+		expect(wrapper.emitted("confirm")).toEqual([["Bruchrechnung", undefined]]);
 	});
 
 	it("should suggest a name that fits the kind of board", async () => {
@@ -65,5 +66,30 @@ describe("@ui-room-details/CreateBoardNameDialog", () => {
 		await nextTick();
 
 		expect(wrapper.getComponent(VTextField).props("modelValue")).toBe("");
+	});
+
+	describe("for a learning path", () => {
+		it("should offer the colors and start with a free one", async () => {
+			const { wrapper } = await setup(BoardLayout.LEARNING_PATH, [LearningPathColor.Blue]);
+
+			expect(wrapper.findComponent(LearningPathColorPicker).exists()).toBe(true);
+			expect(wrapper.findComponent(LearningPathColorPicker).props("modelValue")).toBe(LearningPathColor.Green);
+		});
+
+		it("should hand over the chosen color", async () => {
+			const { wrapper } = await setup(BoardLayout.LEARNING_PATH);
+
+			await wrapper.getComponent(VTextField).setValue("Optik");
+			await wrapper.getComponent(LearningPathColorPicker).vm.$emit("update:modelValue", LearningPathColor.Red);
+			wrapper.getComponent(SvsDialog).vm.$emit("confirm");
+
+			expect(wrapper.emitted("confirm")).toEqual([["Optik", LearningPathColor.Red]]);
+		});
+
+		it("should not offer colors for other boards", async () => {
+			const { wrapper } = await setup(BoardLayout.COLUMNS);
+
+			expect(wrapper.findComponent(LearningPathColorPicker).exists()).toBe(false);
+		});
 	});
 });

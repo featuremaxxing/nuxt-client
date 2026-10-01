@@ -2,6 +2,7 @@ import RoomBoardGridItem from "./RoomBoardGridItem.vue";
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
+import { LearningPathColor, RoomBoardLockResponseReasonEnum } from "@api-server";
 import { mount } from "@vue/test-utils";
 import { ComponentProps } from "vue-component-type-helpers";
 
@@ -79,7 +80,7 @@ describe("@feature-room/RoomBoardGridItem", () => {
 		const lockedBoard: RoomBoardItem = {
 			...mockBoard,
 			isVisible: true,
-			lockedByLearningPath: { id: "path-id", title: "Optik" },
+			lockedByLearningPath: { id: "path-id", title: "Optik", reason: RoomBoardLockResponseReasonEnum.Prerequisites },
 		};
 
 		it("should show the lock and name the learning path", () => {
@@ -126,7 +127,7 @@ describe("@feature-room/RoomBoardGridItem", () => {
 				board: mockBoard,
 				index: 0,
 				roomId: "Mathe",
-				learningPathStep: { title: "Optik", position: 2 },
+				learningPathSteps: [{ title: "Optik", position: 2, color: LearningPathColor.Blue }],
 			});
 
 			expect(wrapper.get("[data-testid='board-grid-item-path-step-0']").text()).toBe("pages.room.boardCard.pathStep");

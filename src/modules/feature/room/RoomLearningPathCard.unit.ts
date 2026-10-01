@@ -4,6 +4,7 @@ import { RoomBoardItem } from "@/types/room/Room";
 import { roomBoardGridItemFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import {
+	LearningPathColor,
 	RoomLearningPathResponse,
 	RoomLearningPathStepResponse,
 	RoomLearningPathStepResponseStatusEnum as Status,
@@ -25,7 +26,11 @@ const step = (id: string, status: Status, positionY: number, isVisible = true): 
 });
 
 describe("@feature-room/RoomLearningPathCard", () => {
-	const setup = (learningPath: RoomLearningPathResponse | undefined, board: Partial<RoomBoardItem> = {}) => {
+	const setup = (
+		learningPath: RoomLearningPathResponse | undefined,
+		board: Partial<RoomBoardItem> = {},
+		canChoose = false
+	) => {
 		const wrapper = mount(RoomLearningPathCard, {
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
@@ -41,6 +46,7 @@ describe("@feature-room/RoomLearningPathCard", () => {
 					...board,
 				}),
 				index: 0,
+				canChoose,
 			},
 		});
 
@@ -112,5 +118,44 @@ describe("@feature-room/RoomLearningPathCard", () => {
 		const { wrapper } = setup({ steps: [] }, { isVisible: false });
 
 		expect(wrapper.find("[data-testid='board-grid-item-draft-0']").exists()).toBe(true);
+	});
+
+	describe("when the room has several learning paths", () => {
+		it("should offer a student to go a learning path", async () => {
+			const { wrapper } = setup({ steps: [], isEnrolled: false }, {}, true);
+
+			await wrapper.get("[data-testid='learning-path-card-enroll-0']").trigger("click");
+
+			expect(wrapper.emitted("enroll:path")).toHaveLength(1);
+			expect(wrapper.find("[data-testid='learning-path-card-leave-0']").exists()).toBe(false);
+		});
+
+		it("should tell a student which learning path they go and let them leave it", async () => {
+			const { wrapper } = setup({ steps: [], isEnrolled: true }, {}, true);
+
+			expect(wrapper.find("[data-testid='learning-path-card-enrolled-0']").exists()).toBe(true);
+			await wrapper.get("[data-testid='learning-path-card-leave-0']").trigger("click");
+
+			expect(wrapper.emitted("leave:path")).toHaveLength(1);
+		});
+
+		it("should not offer a teacher to go a learning path", () => {
+			const { wrapper } = setup({ steps: [], studentCount: 3, completedStudentCount: 1 }, {}, true);
+
+			expect(wrapper.find("[data-testid='learning-path-card-enroll-0']").exists()).toBe(false);
+		});
+	});
+
+	it("should not offer a choice when the room has a single learning path", () => {
+		const { wrapper } = setup({ steps: [], isEnrolled: true }, {}, false);
+
+		expect(wrapper.find("[data-testid='learning-path-card-enroll-0']").exists()).toBe(false);
+		expect(wrapper.find("[data-testid='learning-path-card-leave-0']").exists()).toBe(false);
+	});
+
+	it("should take the color of the learning path", () => {
+		const { wrapper } = setup({ steps: [], color: LearningPathColor.Purple });
+
+		expect(wrapper.get("[data-testid='board-grid-item-0']").attributes("style")).toContain("--lp-color: #6a1b9a");
 	});
 });

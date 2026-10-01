@@ -2,6 +2,7 @@
 	<VCard
 		class="room-content-grid-item room-learning-path-card"
 		:class="isDraft ? 'bg-white' : 'bg-surface-light'"
+		:style="{ '--lp-color': pathColor }"
 		tabindex="0"
 		:variant="isDraft ? 'outlined' : 'flat'"
 		:aria-label="ariaLabel"
@@ -16,7 +17,7 @@
 			:data-testid="`board-grid-item-link-${index}`"
 		>
 			<div class="d-flex align-center flex-wrap ga-2 pr-8">
-				<VIcon size="18" :icon="mdiMapMarkerPath" />
+				<VIcon size="18" :icon="mdiMapMarkerPath" class="lp-card__icon" />
 				<h3
 					class="grid-item-card-title text-break text-body-1 font-weight-bold ma-0"
 					:class="{ 'opacity-80': isDraft }"
@@ -65,6 +66,34 @@
 			</p>
 		</RouterLink>
 
+		<!-- outside of the link: a button must not sit inside a link -->
+		<VCardActions v-if="canChoose && !isEditorView && summary" class="px-4 pt-0 pb-3">
+			<template v-if="summary.isEnrolled">
+				<span class="text-body-2 d-flex align-center" :data-testid="`learning-path-card-enrolled-${index}`">
+					<VIcon size="16" :icon="mdiCheck" class="mr-1" />
+					{{ t("pages.room.learningPathCard.enrolled") }}
+				</span>
+				<VBtn
+					size="small"
+					variant="text"
+					:data-testid="`learning-path-card-leave-${index}`"
+					@click="emit('leave:path', board)"
+				>
+					{{ t("pages.room.learningPathCard.leave") }}
+				</VBtn>
+			</template>
+			<VBtn
+				v-else
+				size="small"
+				variant="tonal"
+				color="primary"
+				:data-testid="`learning-path-card-enroll-${index}`"
+				@click="emit('enroll:path', board)"
+			>
+				{{ t("pages.room.learningPathCard.enroll") }}
+			</VBtn>
+		</VCardActions>
+
 		<RoomBoardMenu
 			:board="board"
 			:index="index"
@@ -84,7 +113,15 @@ import {
 	RoomLearningPathStepResponse,
 	RoomLearningPathStepResponseStatusEnum as StepStatus,
 } from "@api-server";
-import { mdiArrowRight, mdiCheckCircle, mdiLockOutline, mdiMapMarker, mdiMapMarkerPath } from "@icons/material";
+import { learningPathColorValue } from "@data-board-learning-path";
+import {
+	mdiArrowRight,
+	mdiCheck,
+	mdiCheckCircle,
+	mdiLockOutline,
+	mdiMapMarker,
+	mdiMapMarkerPath,
+} from "@icons/material";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -92,12 +129,16 @@ import { useRouter } from "vue-router";
 const props = defineProps({
 	board: { type: Object as PropType<RoomBoardItem>, required: true },
 	index: { type: Number, required: true },
+	// the room has several learning paths, students pick the ones they go
+	canChoose: { type: Boolean, default: false },
 });
 
 const emit = defineEmits<{
 	"update:visibility": [board: RoomBoardItemResponse, isVisible: boolean];
 	"delete:board": [board: RoomBoardItemResponse];
 	"duplicate:board": [board: RoomBoardItemResponse];
+	"enroll:path": [board: RoomBoardItemResponse];
+	"leave:path": [board: RoomBoardItemResponse];
 }>();
 
 const { t } = useI18n();
@@ -107,6 +148,7 @@ const boardPath = computed(() => `/boards/${props.board.id}`);
 const isDraft = computed(() => props.board.isVisible === false);
 
 const summary = computed(() => props.board.learningPath);
+const pathColor = computed(() => learningPathColorValue(summary.value?.color));
 const isEditorView = computed(() => !!summary.value && isEditorSummary(summary.value));
 const chain = computed(() => (summary.value ? visibleChain(summary.value) : []));
 
@@ -174,6 +216,14 @@ const ariaLabel = computed(() =>
 </script>
 
 <style scoped>
+.room-learning-path-card {
+	border-left: 6px solid var(--lp-color);
+}
+
+.lp-card__icon {
+	color: var(--lp-color);
+}
+
 .lp-chain {
 	display: flex;
 	flex-wrap: wrap;

@@ -5,6 +5,7 @@ import {
 	useLearningPathApi,
 } from "./learning-path-api";
 import { wouldCreateCycle } from "./learning-path-graph";
+import { type LearningPathColor } from "@api-server";
 import { notifyError } from "@data-app";
 import { useDebounceFn } from "@vueuse/core";
 import { computed, type Ref, ref } from "vue";
@@ -25,6 +26,9 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 
 	const steps = computed<LearningPathStep[]>(() => path.value?.steps ?? []);
 	const isEditor = computed(() => path.value?.isEditor ?? false);
+	const color = computed(() => path.value?.color);
+	const isEnrolled = computed(() => path.value?.isEnrolled ?? false);
+	const canChoose = computed(() => path.value?.canChoose ?? false);
 	// boards of the room that are not part of the path yet
 	const availableBoards = computed(() =>
 		(path.value?.availableBoards ?? []).filter((board) => !steps.value.some((step) => step.linkedBoardId === board.id))
@@ -95,10 +99,19 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 
 	const removeStep = (stepId: string) => change(() => api.deleteStep(stepId));
 
+	const setColor = (newColor: LearningPathColor) => change(() => api.updateColor(boardId.value, newColor));
+
+	// going a learning path decides which boards it locks for the student, so the states are reloaded
+	const enroll = () => change(() => api.enroll(boardId.value));
+	const leave = () => change(() => api.unenroll(boardId.value));
+
 	return {
 		path,
 		steps,
 		isEditor,
+		color,
+		isEnrolled,
+		canChoose,
 		availableBoards,
 		isLoading,
 		hasError,
@@ -110,5 +123,8 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 		connect,
 		disconnect,
 		removeStep,
+		setColor,
+		enroll,
+		leave,
 	};
 };

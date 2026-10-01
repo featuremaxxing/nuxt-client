@@ -47,6 +47,7 @@
 				:step="step"
 				:is-editor="isEditor"
 				:is-selected="step.id === selectedStepId"
+				:color="color"
 				:hint="hints[step.id]"
 				:style="tileStyle(step)"
 				@pointerdown.stop="onTilePointerDown($event, step)"
@@ -102,6 +103,8 @@ const CLICK_TOLERANCE = 4;
 const props = defineProps({
 	steps: { type: Array as PropType<LearningPathStep[]>, required: true },
 	isEditor: { type: Boolean, default: false },
+	// the color of the learning path, as a css color
+	color: { type: String, default: undefined },
 	selectedStepId: { type: String, default: undefined },
 	hints: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
 });

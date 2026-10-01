@@ -6,9 +6,12 @@ const fetchLearningPath = vi.fn();
 const createStep = vi.fn();
 const updateStep = vi.fn();
 const deleteStep = vi.fn();
+const updateColor = vi.fn();
+const enroll = vi.fn();
+const unenroll = vi.fn();
 
 vi.mock("./learning-path-api", () => ({
-	useLearningPathApi: () => ({ fetchLearningPath, createStep, updateStep, deleteStep }),
+	useLearningPathApi: () => ({ fetchLearningPath, createStep, updateStep, deleteStep, updateColor, enroll, unenroll }),
 }));
 
 const notifyError = vi.fn();
@@ -121,5 +124,43 @@ describe("useLearningPathState", () => {
 
 		expect(removed).toBe(false);
 		expect(fetchLearningPath).toHaveBeenCalledTimes(2);
+	});
+
+	describe("learning path colors and enrollment", () => {
+		it("should expose the color and whether the student goes the learning path", async () => {
+			fetchLearningPath.mockResolvedValue({
+				...path([]),
+				isEditor: false,
+				color: "green",
+				isEnrolled: true,
+				canChoose: true,
+			});
+
+			const { color, isEnrolled, canChoose } = await setup();
+
+			expect(color.value).toBe("green");
+			expect(isEnrolled.value).toBe(true);
+			expect(canChoose.value).toBe(true);
+		});
+
+		it("should change the color and reload", async () => {
+			const { setColor } = await setup();
+
+			await setColor("red" as never);
+
+			expect(updateColor).toHaveBeenCalledWith("path", "red");
+			expect(fetchLearningPath).toHaveBeenCalledTimes(2);
+		});
+
+		it("should enroll and leave, reloading the states each time", async () => {
+			const { enroll: goPath, leave } = await setup();
+
+			await goPath();
+			await leave();
+
+			expect(enroll).toHaveBeenCalledWith("path");
+			expect(unenroll).toHaveBeenCalledWith("path");
+			expect(fetchLearningPath).toHaveBeenCalledTimes(3);
+		});
 	});
 });

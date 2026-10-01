@@ -2,12 +2,21 @@
 	<DefaultWireframe max-width="full" :breadcrumbs="breadcrumbs">
 		<template #header>
 			<div class="d-flex align-center">
+				<span
+					class="lp-color-dot mr-3"
+					:style="{ background: pathColor }"
+					:title="colorName"
+					data-testid="learning-path-color-dot"
+				/>
 				<h1 data-testid="learning-path-title">{{ title }}</h1>
 				<VChip v-if="!isVisible" class="ml-4" data-testid="board-draft-chip">
 					{{ t("common.words.draft") }}
 				</VChip>
 				<KebabMenu v-if="canManage" class="ml-2" data-testid="board-menu-btn">
 					<KebabMenuActionRename @click="isTitleDialogOpen = true" />
+					<KebabMenuAction :icon="mdiPalette" data-test-id="kebab-menu-action-color" @click="isColorDialogOpen = true">
+						{{ t("pages.learningPath.color.change") }}
+					</KebabMenuAction>
 					<KebabMenuActionPublish v-if="!isVisible" @click="setVisibility(true)" />
 					<KebabMenuActionRevert v-else @click="setVisibility(false)" />
 					<KebabMenuActionDelete @click="onDeleteBoard" />
@@ -23,6 +32,38 @@
 			<p class="text-body-2 text-medium-emphasis mb-2" data-testid="learning-path-intro">
 				{{ isEditor ? t("pages.learningPath.intro.editor") : t("pages.learningPath.intro.student") }}
 			</p>
+			<p
+				v-if="isEditor && path?.studentCount !== undefined"
+				class="text-body-2 mb-2"
+				data-testid="learning-path-participants"
+			>
+				{{
+					t("pages.learningPath.participants", {
+						count: path.studentCount,
+						done: path.completedStudentCount ?? 0,
+					})
+				}}
+			</p>
+			<VAlert
+				v-if="!isEditor && canChoose"
+				:type="isEnrolled ? 'success' : 'info'"
+				variant="tonal"
+				density="compact"
+				class="mb-4"
+				data-testid="learning-path-enrollment"
+			>
+				<div class="d-flex align-center flex-wrap ga-2">
+					<span>{{
+						isEnrolled ? t("pages.learningPath.enrollment.enrolled") : t("pages.learningPath.enrollment.notEnrolled")
+					}}</span>
+					<VBtn v-if="isEnrolled" size="small" variant="text" data-testid="learning-path-leave" @click="leave">
+						{{ t("pages.learningPath.enrollment.leave") }}
+					</VBtn>
+					<VBtn v-else size="small" variant="flat" color="primary" data-testid="learning-path-enroll" @click="enroll">
+						{{ t("pages.learningPath.enrollment.enroll") }}
+					</VBtn>
+				</div>
+			</VAlert>
 			<VAlert v-if="steps.length === 0" type="info" variant="tonal" class="mb-4" data-testid="learning-path-empty">
 				{{ isEditor ? t("pages.learningPath.empty.editor") : t("pages.learningPath.empty.student") }}
 			</VAlert>
@@ -33,6 +74,7 @@
 					class="flex-grow-1"
 					:steps="steps"
 					:is-editor="isEditor"
+					:color="pathColor"
 					:selected-step-id="selectedStep?.id"
 					:hints="hints"
 					@select="selectedStepId = $event"
@@ -56,6 +98,7 @@
 		</template>
 	</DefaultWireframe>
 	<LearningPathTitleDialog v-model:is-dialog-open="isTitleDialogOpen" :name="title" @confirm="onRename" />
+	<LearningPathColorDialog v-model="isColorDialogOpen" :color="color" @confirm="onChangeColor" />
 </template>
 
 <script setup lang="ts">
@@ -68,15 +111,24 @@ import { askDeletionForItem } from "@/utils/confirmation-dialog.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { BoardResponse } from "@api-server";
 import { useBoardApi, useSharedBoardPageInformation } from "@data-board";
-import { type LearningPathStep, useLearningPathSocket, useLearningPathState } from "@data-board-learning-path";
+import {
+	type LearningPathColor,
+	learningPathColorValue,
+	type LearningPathStep,
+	useLearningPathSocket,
+	useLearningPathState,
+} from "@data-board-learning-path";
+import { mdiPalette } from "@icons/material";
 import {
 	KebabMenu,
+	KebabMenuAction,
 	KebabMenuActionDelete,
 	KebabMenuActionPublish,
 	KebabMenuActionRename,
 	KebabMenuActionRevert,
 } from "@ui-kebab-menu";
 import { DefaultWireframe } from "@ui-layout";
+import { LearningPathColorDialog } from "@ui-room-details";
 import { useTitle } from "@vueuse/core";
 import { computed, nextTick, onMounted, PropType, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -107,8 +159,12 @@ watch(
 const canManage = computed(() => props.board.allowedOperations?.updateBoardTitle ?? false);
 
 const {
+	path,
 	steps,
 	isEditor,
+	color,
+	isEnrolled,
+	canChoose,
 	availableBoards,
 	isLoading,
 	hasError,
@@ -120,6 +176,9 @@ const {
 	connect,
 	disconnect,
 	removeStep,
+	setColor,
+	enroll,
+	leave,
 } = useLearningPathState(boardId);
 
 useLearningPathSocket(boardId, {
@@ -142,7 +201,16 @@ const canvas = ref<InstanceType<typeof LearningPathCanvas>>();
 const selectedStepId = ref<string>();
 const selectedStep = computed(() => steps.value.find((step) => step.id === selectedStepId.value));
 
-// what a student still has to complete before a locked step opens
+const pathColor = computed(() => learningPathColorValue(color.value));
+const colorName = computed(() => (color.value ? t(`pages.learningPath.color.${color.value}`) : ""));
+
+const isColorDialogOpen = ref(false);
+const onChangeColor = async (newColor: LearningPathColor) => {
+	isColorDialogOpen.value = false;
+	await setColor(newColor);
+};
+
+// what a student still has to do before a locked step opens
 const hints = computed<Record<string, string>>(() => {
 	const isMissing = (step: LearningPathStep | undefined): step is LearningPathStep =>
 		!!step && step.status !== "done" && step.status !== "unavailable";
@@ -151,6 +219,14 @@ const hints = computed<Record<string, string>>(() => {
 		steps.value
 			.filter((step) => step.status === "locked")
 			.map((step) => {
+				// no learning path chosen yet, or the board is kept closed by another learning path the student goes
+				if (step.lock?.reason === "chooseLearningPath") {
+					return [step.id, t("pages.learningPath.lockedHint.chooseLearningPath")];
+				}
+				if (step.lock && step.lock.pathId !== boardId.value) {
+					return [step.id, t("pages.room.boardCard.locked", { title: step.lock.pathTitle })];
+				}
+
 				const titles = step.prerequisiteStepIds
 					.map((id) => steps.value.find((candidate) => candidate.id === id))
 					.filter(isMissing)
@@ -217,6 +293,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.lp-color-dot {
+	flex: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+}
+
 .lp-layout {
 	display: flex;
 	gap: 16px;

@@ -45,6 +45,8 @@
 						"
 						@delete:board="emit('delete:board', $event)"
 						@duplicate:board="emit('duplicate:board', $event)"
+						@enroll:path="emit('enroll:path', $event)"
+						@leave:path="emit('leave:path', $event)"
 					/>
 				</template>
 			</Sortable>
@@ -84,6 +86,8 @@ const emit = defineEmits<{
 	"update:boardVisibility": [board: RoomBoardItemResponse, isVisible: boolean];
 	"delete:board": [board: RoomBoardItemResponse];
 	"duplicate:board": [board: RoomBoardItemResponse];
+	"enroll:path": [board: RoomBoardItemResponse];
+	"leave:path": [board: RoomBoardItemResponse];
 }>();
 
 const { t } = useI18n();
@@ -150,14 +154,19 @@ const lockedHints = computed(() => {
 	return Object.fromEntries(
 		Object.entries(hints).map(([boardId, hint]) => [
 			boardId,
-			t(`pages.learningPath.lockedHint.${hint.mode}`, { titles: hint.titles.join(", ") }),
+			hint.mode === "choose"
+				? t("pages.learningPath.lockedHint.chooseLearningPath")
+				: t(`pages.learningPath.lockedHint.${hint.mode}`, { titles: hint.titles.join(", ") }),
 		])
 	);
 });
 
 // the index is the position in the whole room, so test ids and screen reader positions stay unique
+const pathCount = computed(() => props.boards.filter((board) => kindOf(board) === "paths" && board.isVisible).length);
+
 const itemProps = (board: RoomBoardItem) => {
 	const index = props.boards.indexOf(board);
+	if (kindOf(board) === "paths") return { board, index, canChoose: pathCount.value > 1 };
 	if (kindOf(board) !== "boards") return { board, index };
 
 	return {
@@ -165,7 +174,7 @@ const itemProps = (board: RoomBoardItem) => {
 		index,
 		roomId: props.roomId,
 		progress: props.progressByBoardId?.[board.id],
-		learningPathStep: stepInfo.value[board.id],
+		learningPathSteps: stepInfo.value[board.id] ?? [],
 		lockedHint: lockedHints.value[board.id] ?? "",
 	};
 };

@@ -31,5 +31,21 @@ export interface RoomBoardLockResponse {
      * @memberof RoomBoardLockResponse
      */
     title: string;
+    /**
+     * Whether boards of the learning path are still to be completed, or no learning path was chosen yet.
+     * @type {string}
+     * @memberof RoomBoardLockResponse
+     */
+    reason: RoomBoardLockResponseReasonEnum;
 }
+
+/**
+    * @export
+    * @enum {string}
+    */
+export enum RoomBoardLockResponseReasonEnum {
+    Prerequisites = 'prerequisites',
+    ChooseLearningPath = 'chooseLearningPath'
+}
+
 

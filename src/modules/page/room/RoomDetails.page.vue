@@ -14,6 +14,14 @@
 					@room:leave="onLeaveRoom"
 				/>
 				<RouterLink
+					v-if="canSeeLearningPathOverview"
+					:to="`/rooms/${room.id}/learning-paths`"
+					class="ml-4 text-body-2"
+					data-testid="room-learning-paths-link"
+				>
+					{{ t("pages.room.learningPaths.link") }}
+				</RouterLink>
+				<RouterLink
 					v-if="isProgressEnabled && roomProgress && roomProgress.summary.total > 0"
 					:to="`/rooms/${room.id}/progress`"
 					class="ml-4 text-body-2"
@@ -39,6 +47,8 @@
 			@update:board-visibility="onUpdateBoardVisibility"
 			@delete:board="onDeleteBoard"
 			@duplicate:board="onDuplicateBoard"
+			@enroll:path="onEnrollPath"
+			@leave:path="onLeavePath"
 		/>
 		<SelectBoardLayoutDialog
 			v-if="allowedOperations.editContent"
@@ -50,6 +60,7 @@
 			v-if="allowedOperations.editContent"
 			v-model="boardNameDialogIsOpen"
 			:layout="newBoardLayout"
+			:used-colors="usedPathColors"
 			@confirm="onCreateBoard"
 		/>
 		<LeaveRoomProhibitedDialog v-model="isLeaveRoomProhibitedDialogOpen" />
@@ -64,6 +75,7 @@ import { askConfirmation } from "@/utils/confirmation-dialog.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { RoomBoardItemResponse } from "@api-server";
 import { useAppStoreRefs } from "@data-app";
+import { type LearningPathColor, useLearningPathApi } from "@data-board-learning-path";
 import { ProgressSummary, RoomProgress, useBoardProgressApi } from "@data-board-progress";
 import { useEnvConfig } from "@data-env";
 import { useRoomAllowedOperations, useRoomDetailsStore, useRoomStore } from "@data-room";
@@ -232,9 +244,41 @@ const onSelectLayout = (layout: BoardLayout) => {
 	boardNameDialogIsOpen.value = true;
 };
 
-const onCreateBoard = async (name: string) => {
+const usedPathColors = computed(() =>
+	(roomBoards.value ?? []).flatMap((board) => (board.learningPath?.color ? [board.learningPath.color] : []))
+);
+
+// teachers see who goes which learning path, as long as the room has one
+const canSeeLearningPathOverview = computed(
+	() =>
+		allowedOperations.value.editContent &&
+		(roomBoards.value ?? []).some((board) => board.layout === BoardLayout.LEARNING_PATH)
+);
+
+const onCreateBoard = async (name: string, color?: LearningPathColor) => {
 	const boardId = await createBoard(room.value.id, newBoardLayout.value, name);
+	// the server starts with the next free color, the teacher may have picked another one
+	if (boardId && color) {
+		await useLearningPathApi()
+			.updateColor(boardId, color)
+			.catch(() => undefined);
+	}
 	router.push(`/boards/${boardId}`);
+};
+
+// a student chooses the learning paths to go; the locks of the room depend on it
+const onEnrollPath = async (board: RoomBoardItemResponse) => {
+	await useLearningPathApi()
+		.enroll(board.id)
+		.catch(() => undefined);
+	await fetchRoomAndBoards(props.room.id);
+};
+
+const onLeavePath = async (board: RoomBoardItemResponse) => {
+	await useLearningPathApi()
+		.unenroll(board.id)
+		.catch(() => undefined);
+	await fetchRoomAndBoards(props.room.id);
 };
 
 const onUpdateBoardVisibility = async (board: RoomBoardItemResponse, isVisible: boolean) => {

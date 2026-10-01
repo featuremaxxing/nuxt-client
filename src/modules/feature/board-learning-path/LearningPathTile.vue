@@ -6,6 +6,7 @@
 		:aria-label="ariaLabel"
 		:aria-disabled="!isEditor && !isOpenable"
 		:aria-pressed="isEditor ? isSelected : undefined"
+		:style="color ? { '--lp-color': color } : undefined"
 		:title="hint || undefined"
 		:data-testid="`learning-path-tile-${step.id}`"
 	>
@@ -60,6 +61,8 @@ const props = defineProps({
 	step: { type: Object as PropType<LearningPathStep>, required: true },
 	isEditor: { type: Boolean, default: false },
 	isSelected: { type: Boolean, default: false },
+	// the color of the learning path, as a css color
+	color: { type: String, default: undefined },
 	// why a locked step is locked
 	hint: { type: String, default: "" },
 });
@@ -118,6 +121,17 @@ const ariaLabel = computed(() => {
 	cursor: pointer;
 	user-select: none;
 	touch-action: none;
+}
+
+.lp-tile::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 5px;
+	border-radius: 8px 0 0 8px;
+	background: var(--lp-color, transparent);
 }
 
 .lp-tile:focus-visible {

@@ -203,6 +203,7 @@ export * from './launch-request-method';
 export * from './launch-type';
 export * from './layout-body-params';
 export * from './ldap-authorization-body-params';
+export * from './learning-path-color';
 export * from './lernstore-resources';
 export * from './lesson-content-response';
 export * from './lesson-copy-api-params';

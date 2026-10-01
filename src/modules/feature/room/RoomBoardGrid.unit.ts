@@ -162,6 +162,7 @@ describe("@feature-room/RoomBoardGrid", () => {
 				title: "Optik",
 				layout: BoardLayout.LEARNING_PATH,
 				learningPath: {
+					isEnrolled: true,
 					steps: [
 						{
 							id: "step-1",
@@ -207,8 +208,8 @@ describe("@feature-room/RoomBoardGrid", () => {
 			const { wrapper } = setup({ boards });
 
 			const items = wrapper.findAllComponents(RoomBoardGridItem);
-			expect(items[0].props("learningPathStep")).toBeUndefined();
-			expect(items[1].props("learningPathStep")).toEqual({ title: "Optik", position: 1 });
+			expect(items[0].props("learningPathSteps")).toEqual([]);
+			expect(items[1].props("learningPathSteps")).toEqual([{ title: "Optik", position: 1, color: undefined }]);
 			// the index stays the position in the whole room
 			expect(items[1].props("index")).toBe(3);
 		});
@@ -221,6 +222,28 @@ describe("@feature-room/RoomBoardGrid", () => {
 			sortable.vm.$emit("end", { oldIndex: 0, newIndex: 1 });
 
 			expect(useRoomDetailsStore().moveBoard).toHaveBeenCalledWith("test-room", boards[0].id, 3);
+		});
+
+		it("should only offer to choose when the room has several published learning paths", () => {
+			const makePath = (title: string) =>
+				roomBoardGridItemFactory.build({ title, layout: BoardLayout.LEARNING_PATH, isVisible: true });
+
+			const single = setup({ boards: [makePath("Eins")] }).wrapper;
+			expect(single.getComponent(RoomLearningPathCard).props("canChoose")).toBe(false);
+
+			const several = setup({ boards: [makePath("Eins"), makePath("Zwei")] }).wrapper;
+			expect(several.findAllComponents(RoomLearningPathCard)[0].props("canChoose")).toBe(true);
+		});
+
+		it("should pass on the choice of a student", () => {
+			const board = roomBoardGridItemFactory.build({ layout: BoardLayout.LEARNING_PATH, isVisible: true });
+			const { wrapper } = setup({ boards: [board] });
+
+			wrapper.getComponent(RoomLearningPathCard).vm.$emit("enroll:path", board);
+			wrapper.getComponent(RoomLearningPathCard).vm.$emit("leave:path", board);
+
+			expect(wrapper.emitted("enroll:path")).toEqual([[board]]);
+			expect(wrapper.emitted("leave:path")).toEqual([[board]]);
 		});
 	});
 });

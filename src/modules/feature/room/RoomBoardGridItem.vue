@@ -31,14 +31,17 @@
 			>
 				<h3 class="text-break text-body-1 font-weight-bold ma-0">{{ board.title }}</h3>
 			</VCardTitle>
-			<p
-				v-if="learningPathStep && !isLocked"
-				class="mx-4 mb-2 text-body-2 text-medium-emphasis d-flex align-center"
-				:data-testid="`board-grid-item-path-step-${index}`"
-			>
-				<VIcon size="14" class="mr-1" :icon="mdiMapMarkerPath" />
-				{{ t("pages.room.boardCard.pathStep", learningPathStep) }}
-			</p>
+			<template v-if="!isLocked">
+				<p
+					v-for="step in learningPathSteps"
+					:key="step.title"
+					class="mx-4 mb-2 text-body-2 text-medium-emphasis d-flex align-center"
+					:data-testid="`board-grid-item-path-step-${index}`"
+				>
+					<span class="path-dot mr-2" :style="{ background: learningPathColorValue(step.color) }" aria-hidden="true" />
+					{{ t("pages.room.boardCard.pathStep", step) }}
+				</p>
+			</template>
 			<p
 				v-if="lockedBy"
 				class="mx-4 mb-0 text-body-2 text-medium-emphasis d-flex align-center"
@@ -68,10 +71,12 @@
 </template>
 
 <script setup lang="ts">
+import { type LearningPathStepInfo } from "./room-learning-paths";
 import RoomBoardMenu from "./RoomBoardMenu.vue";
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
+import { learningPathColorValue } from "@data-board-learning-path";
 import { ProgressSummary } from "@data-board-progress";
 import { ProgressBar } from "@feature-board-progress";
 import {
@@ -91,7 +96,7 @@ const props = defineProps({
 	index: { type: Number, required: true },
 	progress: { type: Object as PropType<ProgressSummary>, default: undefined },
 	// where the board sits in a learning path of the room
-	learningPathStep: { type: Object as PropType<{ title: string; position: number }>, default: undefined },
+	learningPathSteps: { type: Array as PropType<LearningPathStepInfo[]>, default: () => [] },
 	// what still has to be completed before a locked board opens
 	lockedHint: { type: String, default: "" },
 });
@@ -180,6 +185,14 @@ const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value
 
 .grid-item-router-link:hover .grid-item-card-title {
 	text-decoration: underline;
+}
+
+.path-dot {
+	display: inline-block;
+	flex: none;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
 }
 
 .grid-item-router-link .v-card-subtitle {
