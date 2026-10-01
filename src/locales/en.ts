@@ -1329,6 +1329,15 @@ export default {
 	"pages.dashboard.title": "Dashboard",
 	"pages.dashboard.features.title": "New features",
 	"pages.dashboard.features.intro": "Discover new ways to learn and collaborate in rooms.",
+	"pages.dashboard.features.model3d.title": "3D view",
+	"pages.dashboard.features.model3d.description":
+		"STL and glTF files appear as a 3D model right on the card. Drag with the mouse to rotate the model.",
+	"pages.dashboard.features.keyboard.title": "Keyboard control",
+	"pages.dashboard.features.keyboard.description":
+		"In the card view, use the left and right arrow keys to go to the previous or next card.",
+	"pages.dashboard.features.checkbox.title": "Checkbox",
+	"pages.dashboard.features.checkbox.description":
+		"Add tick-off tasks to cards. Students check them off, teachers can confirm on request, and the room shows the progress of the class.",
 	"pages.dashboard.features.assignments.title": "Assignments",
 	"pages.dashboard.features.assignments.description":
 		"Create assignments directly on boards, collect submissions, and provide feedback with points, comments, audio, or corrections.",

@@ -90,6 +90,40 @@ describe("DashboardPage", () => {
 		expect(featureSection.text()).toContain("pages.dashboard.features.polls.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.aiQuestions.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.model3d.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.keyboard.title");
+	});
+
+	it("lists the newest features first", async () => {
+		createTestEnvStore({ FEATURE_WEBDAV_ENABLED: true, FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true });
+		const { wrapper } = setup({ roleName: RoleName.TEACHER });
+		await flushPromises();
+
+		const titles = wrapper.findAll("[data-testid='new-features'] .v-card-title").map((title) => title.text());
+		expect(titles).toEqual([
+			"pages.dashboard.features.model3d.title",
+			"pages.dashboard.features.keyboard.title",
+			"pages.dashboard.features.webdav.title",
+			"pages.dashboard.features.checkbox.title",
+			"pages.dashboard.features.assignments.title",
+			"pages.dashboard.features.polls.title",
+			"pages.dashboard.features.aiQuestions.title",
+			"pages.dashboard.features.learningRoom.title",
+		]);
+	});
+
+	describe("checkbox feature", () => {
+		it.each([
+			[true, true],
+			[false, false],
+		])("with FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED=%s it should be listed: %s", async (enabled, expected) => {
+			createTestEnvStore({ FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: enabled });
+			const { wrapper } = setup();
+			await flushPromises();
+
+			const featureSection = wrapper.get("[data-testid='new-features']");
+			expect(featureSection.text().includes("pages.dashboard.features.checkbox.title")).toBe(expected);
+		});
 	});
 
 	describe("network drive feature", () => {

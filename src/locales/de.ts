@@ -1359,6 +1359,15 @@ export default {
 	"pages.dashboard.title": "Übersicht",
 	"pages.dashboard.features.title": "Neue Funktionen",
 	"pages.dashboard.features.intro": "Entdecke die neuen Möglichkeiten für Lernen und Zusammenarbeit in Räumen.",
+	"pages.dashboard.features.model3d.title": "3D-Ansicht",
+	"pages.dashboard.features.model3d.description":
+		"STL- und glTF-Dateien erscheinen als 3D-Modell direkt auf der Karte. Ziehe mit der Maus, um das Modell zu drehen.",
+	"pages.dashboard.features.keyboard.title": "Tastatursteuerung",
+	"pages.dashboard.features.keyboard.description":
+		"Blättere in der Kartenansicht mit den Pfeiltasten nach links und rechts zur vorherigen oder nächsten Karte.",
+	"pages.dashboard.features.checkbox.title": "Checkbox",
+	"pages.dashboard.features.checkbox.description":
+		"Lege Häkchen-Aufgaben auf Karten an. Schüler:innen haken sie ab, auf Wunsch bestätigt die Lehrkraft, und im Raum siehst du den Fortschritt der Klasse.",
 	"pages.dashboard.features.assignments.title": "Aufgaben",
 	"pages.dashboard.features.assignments.description":
 		"Erstelle Aufgaben direkt auf Boards, sammle Abgaben ein und gib Rückmeldungen mit Punkten, Kommentaren, Audio oder Korrekturen.",

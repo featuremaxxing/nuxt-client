@@ -84,10 +84,20 @@ const baseFeatures: NewFeature[] = [
 ];
 
 // the network drive is for teachers only for now
+const isCheckboxAvailable = computed(() => useEnvConfig().value.FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED);
+
 const isWebDavAvailable = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && isTeacher.value);
 
+// newest first
 const newFeatures = computed<NewFeature[]>(() => [
-	...baseFeatures,
+	{
+		title: "pages.dashboard.features.model3d.title",
+		description: "pages.dashboard.features.model3d.description",
+	},
+	{
+		title: "pages.dashboard.features.keyboard.title",
+		description: "pages.dashboard.features.keyboard.description",
+	},
 	...(isWebDavAvailable.value
 		? [
 				{
@@ -98,6 +108,15 @@ const newFeatures = computed<NewFeature[]>(() => [
 				},
 			]
 		: []),
+	...(isCheckboxAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.checkbox.title",
+					description: "pages.dashboard.features.checkbox.description",
+				},
+			]
+		: []),
+	...baseFeatures,
 ]);
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));

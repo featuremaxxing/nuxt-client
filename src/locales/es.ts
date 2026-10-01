@@ -1355,6 +1355,15 @@ export default {
 	"pages.dashboard.title": "Panel",
 	"pages.dashboard.features.title": "Nuevas funciones",
 	"pages.dashboard.features.intro": "Descubre nuevas formas de aprender y colaborar en los espacios.",
+	"pages.dashboard.features.model3d.title": "Vista 3D",
+	"pages.dashboard.features.model3d.description":
+		"Los archivos STL y glTF aparecen como modelo 3D directamente en la tarjeta. Arrastra con el ratón para girar el modelo.",
+	"pages.dashboard.features.keyboard.title": "Control con el teclado",
+	"pages.dashboard.features.keyboard.description":
+		"En la vista de tarjeta, usa las flechas izquierda y derecha para ir a la tarjeta anterior o siguiente.",
+	"pages.dashboard.features.checkbox.title": "Casilla de verificación",
+	"pages.dashboard.features.checkbox.description":
+		"Añade tareas para marcar en las tarjetas. El alumnado las marca, el profesorado puede confirmarlas si se desea y en el espacio ves el progreso de la clase.",
 	"pages.dashboard.features.assignments.title": "Tareas",
 	"pages.dashboard.features.assignments.description":
 		"Crea tareas directamente en los tableros, recopila entregas y ofrece comentarios con puntos, texto, audio o correcciones.",

@@ -1346,6 +1346,15 @@ export default {
 	"pages.dashboard.title": "Панель керування",
 	"pages.dashboard.features.title": "Нові функції",
 	"pages.dashboard.features.intro": "Відкрийте нові можливості для навчання та співпраці в кімнатах.",
+	"pages.dashboard.features.model3d.title": "3D-перегляд",
+	"pages.dashboard.features.model3d.description":
+		"Файли STL і glTF відображаються як 3D-модель прямо на картці. Перетягуйте мишею, щоб обертати модель.",
+	"pages.dashboard.features.keyboard.title": "Керування клавіатурою",
+	"pages.dashboard.features.keyboard.description":
+		"У поданні картки використовуйте стрілки вліво та вправо, щоб перейти до попередньої або наступної картки.",
+	"pages.dashboard.features.checkbox.title": "Прапорець",
+	"pages.dashboard.features.checkbox.description":
+		"Додавайте на картки завдання з позначкою. Учні позначають їх, за потреби вчитель підтверджує, а в кімнаті ви бачите прогрес класу.",
 	"pages.dashboard.features.assignments.title": "Завдання",
 	"pages.dashboard.features.assignments.description":
 		"Створюйте завдання безпосередньо на дошках, збирайте роботи та надавайте відгуки з балами, коментарями, аудіо чи виправленнями.",
