@@ -7,6 +7,7 @@ import { roomBoardGridItemFactory, roomFactory } from "@@/tests/test-utils/facto
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import * as serverApi from "@api-server";
 import { CopyElementType, CopyStatusEnum } from "@api-server";
+import { useLearningPathApi } from "@data-board-learning-path";
 import { RoomVariant, useRoomDetailsStore } from "@data-room";
 import { useCopyFlow } from "@feature-copy";
 import { RoomBoardGrid, RoomMenu } from "@feature-room";
@@ -19,14 +20,21 @@ import { CreateBoardNameDialog, LeaveRoomProhibitedDialog, SelectBoardLayoutDial
 import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { setActivePinia } from "pinia";
 import { Mocked } from "vitest";
+import { getCurrentInstance } from "vue";
 import { createRouterMock, injectRouterMock } from "vue-router-mock";
 import { VBreadcrumbsItem, VBtn, VCard, VFab } from "vuetify/components";
 
 vi.mock("@feature-copy/copy-flow.composable");
 vi.mock("@feature-share/share-flow.composable");
 vi.mock("@data-room/Rooms.state");
+vi.mock("@data-board-learning-path", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@data-board-learning-path")>()),
+	useLearningPathApi: vi.fn(),
+}));
 
 describe("@pages/RoomsDetails.page.vue", () => {
+	const learningPathApi = { updateColor: vi.fn(), enroll: vi.fn(), unenroll: vi.fn() };
+
 	let useCopyFlowMock: Mocked<ReturnType<typeof useCopyFlow>>;
 	let useShareFlowMock: Mocked<ReturnType<typeof useShareFlow>>;
 
@@ -35,6 +43,12 @@ describe("@pages/RoomsDetails.page.vue", () => {
 
 		useCopyFlowMock = mockComposable(useCopyFlow, {});
 		vi.mocked(useCopyFlow).mockReturnValue(useCopyFlowMock);
+
+		// like the real composable, it only works while a component is being set up
+		vi.mocked(useLearningPathApi).mockImplementation(() => {
+			if (!getCurrentInstance()) throw new Error("useLearningPathApi() called outside of setup");
+			return learningPathApi as unknown as ReturnType<typeof useLearningPathApi>;
+		});
 
 		useShareFlowMock = mockComposable(useShareFlow, {});
 		vi.mocked(useShareFlow).mockReturnValue(useShareFlowMock);
@@ -392,6 +406,66 @@ describe("@pages/RoomsDetails.page.vue", () => {
 				expect(roomDetailsStore.createBoard).toHaveBeenCalledWith(room.id, serverApi.BoardLayout.LIST, "Vokabeln");
 				expect(router.push).toHaveBeenCalledWith(`/boards/${createdBoardId}`);
 			});
+		});
+	});
+
+	describe("when user creates a learning path", () => {
+		const createLearningPath = async (wrapper: VueWrapper) => {
+			await wrapper.getComponent(VFab).getComponent(VBtn).trigger("click");
+			await wrapper.getComponent(SelectBoardLayoutDialog).vm.$emit("select", BoardLayout.LEARNING_PATH);
+			await wrapper.getComponent(CreateBoardNameDialog).vm.$emit("confirm", "Optik", serverApi.LearningPathColor.Red);
+			await flushPromises();
+		};
+
+		it("should set the chosen color and open the learning path", async () => {
+			const { wrapper, roomDetailsStore, router } = setup({
+				allowedOperations: { accessRoom: true, editContent: true },
+			});
+			roomDetailsStore.createBoard.mockResolvedValue("path-id");
+			learningPathApi.updateColor.mockResolvedValue(undefined);
+
+			await createLearningPath(wrapper);
+
+			expect(learningPathApi.updateColor).toHaveBeenCalledWith("path-id", serverApi.LearningPathColor.Red);
+			expect(router.push).toHaveBeenCalledWith("/boards/path-id");
+		});
+
+		it("should open the learning path even when the color could not be set", async () => {
+			const { wrapper, roomDetailsStore, router } = setup({
+				allowedOperations: { accessRoom: true, editContent: true },
+			});
+			roomDetailsStore.createBoard.mockResolvedValue("path-id");
+			learningPathApi.updateColor.mockRejectedValue(new Error("nope"));
+
+			await createLearningPath(wrapper);
+
+			expect(router.push).toHaveBeenCalledWith("/boards/path-id");
+		});
+	});
+
+	describe("when a student chooses a learning path", () => {
+		it("should enroll and reload the boards", async () => {
+			const { wrapper, roomDetailsStore, room } = setup();
+			learningPathApi.enroll.mockResolvedValue(undefined);
+			const board = roomBoardGridItemFactory.build();
+
+			await wrapper.getComponent(RoomBoardGrid).vm.$emit("enroll:path", board);
+			await flushPromises();
+
+			expect(learningPathApi.enroll).toHaveBeenCalledWith(board.id);
+			expect(roomDetailsStore.fetchRoomAndBoards).toHaveBeenCalledWith(room.id);
+		});
+
+		it("should leave and reload the boards", async () => {
+			const { wrapper, roomDetailsStore, room } = setup();
+			learningPathApi.unenroll.mockResolvedValue(undefined);
+			const board = roomBoardGridItemFactory.build();
+
+			await wrapper.getComponent(RoomBoardGrid).vm.$emit("leave:path", board);
+			await flushPromises();
+
+			expect(learningPathApi.unenroll).toHaveBeenCalledWith(board.id);
+			expect(roomDetailsStore.fetchRoomAndBoards).toHaveBeenCalledWith(room.id);
 		});
 	});
 

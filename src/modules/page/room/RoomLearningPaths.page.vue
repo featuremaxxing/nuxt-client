@@ -35,7 +35,7 @@
 						<th scope="col">{{ t("pages.room.learningPaths.student") }}</th>
 						<th v-for="path in overview.paths" :key="path.id" scope="col">
 							<RouterLink :to="`/boards/${path.id}`" class="d-flex align-center ga-2 text-decoration-none">
-								<span class="dot" :style="{ background: learningPathColorValue(path.color) }" aria-hidden="true" />
+								<LearningPathMarker :color="path.color" :size="16" />
 								{{ path.title }}
 							</RouterLink>
 						</th>
@@ -81,10 +81,11 @@
 <script setup lang="ts">
 import RoomLearningPathCell from "./RoomLearningPathCell.vue";
 import { buildPageTitle } from "@/utils/pageTitle";
-import { learningPathColorValue, type LearningPathOverview, useLearningPathApi } from "@data-board-learning-path";
+import { type LearningPathOverview, useLearningPathApi } from "@data-board-learning-path";
 import { useRoomDetailsStore } from "@data-room";
 import { EmptyState, LearningContentEmptyStateSvg } from "@ui-empty-state";
 import { Breadcrumb, DefaultWireframe } from "@ui-layout";
+import { LearningPathMarker } from "@ui-room-details";
 import { useTitle } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";

@@ -98,6 +98,8 @@ const room = toRef(props, "room");
 
 const router = useRouter();
 const { t } = useI18n();
+// a composable that uses i18n has to be set up here, it fails when it is first called in a click handler
+const learningPathApi = useLearningPathApi();
 
 const roomDetailsStore = useRoomDetailsStore();
 const { leaveRoom, deleteRoom } = useRoomStore();
@@ -259,25 +261,19 @@ const onCreateBoard = async (name: string, color?: LearningPathColor) => {
 	const boardId = await createBoard(room.value.id, newBoardLayout.value, name);
 	// the server starts with the next free color, the teacher may have picked another one
 	if (boardId && color) {
-		await useLearningPathApi()
-			.updateColor(boardId, color)
-			.catch(() => undefined);
+		await learningPathApi.updateColor(boardId, color).catch(() => undefined);
 	}
 	router.push(`/boards/${boardId}`);
 };
 
 // a student chooses the learning paths to go; the locks of the room depend on it
 const onEnrollPath = async (board: RoomBoardItemResponse) => {
-	await useLearningPathApi()
-		.enroll(board.id)
-		.catch(() => undefined);
+	await learningPathApi.enroll(board.id).catch(() => undefined);
 	await fetchRoomAndBoards(props.room.id);
 };
 
 const onLeavePath = async (board: RoomBoardItemResponse) => {
-	await useLearningPathApi()
-		.unenroll(board.id)
-		.catch(() => undefined);
+	await learningPathApi.unenroll(board.id).catch(() => undefined);
 	await fetchRoomAndBoards(props.room.id);
 };
 

@@ -129,7 +129,7 @@ const ariaLabel = computed(() => {
 	top: 0;
 	bottom: 0;
 	left: 0;
-	width: 5px;
+	width: 7px;
 	border-radius: 8px 0 0 8px;
 	background: var(--lp-color, transparent);
 }

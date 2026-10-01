@@ -38,7 +38,7 @@
 					class="mx-4 mb-2 text-body-2 text-medium-emphasis d-flex align-center"
 					:data-testid="`board-grid-item-path-step-${index}`"
 				>
-					<span class="path-dot mr-2" :style="{ background: learningPathColorValue(step.color) }" aria-hidden="true" />
+					<LearningPathMarker :color="step.color" :size="14" class="mr-2" />
 					{{ t("pages.room.boardCard.pathStep", step) }}
 				</p>
 			</template>
@@ -76,7 +76,6 @@ import RoomBoardMenu from "./RoomBoardMenu.vue";
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { RoomBoardItemResponse } from "@api-server";
-import { learningPathColorValue } from "@data-board-learning-path";
 import { ProgressSummary } from "@data-board-progress";
 import { ProgressBar } from "@feature-board-progress";
 import {
@@ -86,6 +85,7 @@ import {
 	mdiViewAgendaOutline,
 	mdiViewDashboardOutline,
 } from "@icons/material";
+import { LearningPathMarker } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -185,14 +185,6 @@ const boardPath = computed(() => (lockedBy.value?.id ? `/boards/${lockedBy.value
 
 .grid-item-router-link:hover .grid-item-card-title {
 	text-decoration: underline;
-}
-
-.path-dot {
-	display: inline-block;
-	flex: none;
-	width: 10px;
-	height: 10px;
-	border-radius: 50%;
 }
 
 .grid-item-router-link .v-card-subtitle {

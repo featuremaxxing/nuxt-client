@@ -14,15 +14,15 @@
 			:data-testid="`learning-path-color-${color}`"
 			@click="model = color"
 		>
-			<VIcon v-if="color === model" :icon="mdiCheck" size="18" color="white" aria-hidden="true" />
+			<LearningPathMarker :color="color" :size="26" />
 		</button>
 		<span class="text-body-2 ml-2" data-testid="learning-path-color-name">{{ model ? colorName(model) : "" }}</span>
 	</div>
 </template>
 
 <script setup lang="ts">
+import LearningPathMarker from "./LearningPathMarker.vue";
 import { LEARNING_PATH_COLORS, LearningPathColor, learningPathColorValue } from "@data-board-learning-path";
-import { mdiCheck } from "@icons/material";
 import { PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -51,12 +51,16 @@ const isUsed = (color: LearningPathColor) => props.usedColors.includes(color) &&
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
 	border: 2px solid transparent;
-	background: var(--lp-color);
+	background: transparent;
 	cursor: pointer;
+}
+
+.lp-color-picker__option:hover {
+	background: rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .lp-color-picker__option--used {
@@ -64,8 +68,8 @@ const isUsed = (color: LearningPathColor) => props.usedColors.includes(color) &&
 }
 
 .lp-color-picker__option--selected {
-	outline: 2px solid var(--lp-color);
-	outline-offset: 2px;
+	border-color: var(--lp-color);
+	background: rgba(var(--v-theme-on-surface), 0.06);
 }
 
 .lp-color-picker__option:focus-visible {

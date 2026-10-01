@@ -2,12 +2,7 @@
 	<DefaultWireframe max-width="full" :breadcrumbs="breadcrumbs">
 		<template #header>
 			<div class="d-flex align-center">
-				<span
-					class="lp-color-dot mr-3"
-					:style="{ background: pathColor }"
-					:title="colorName"
-					data-testid="learning-path-color-dot"
-				/>
+				<LearningPathMarker :color="color" :size="22" :label="colorName" class="mr-3" />
 				<h1 data-testid="learning-path-title">{{ title }}</h1>
 				<VChip v-if="!isVisible" class="ml-4" data-testid="board-draft-chip">
 					{{ t("common.words.draft") }}
@@ -128,7 +123,7 @@ import {
 	KebabMenuActionRevert,
 } from "@ui-kebab-menu";
 import { DefaultWireframe } from "@ui-layout";
-import { LearningPathColorDialog } from "@ui-room-details";
+import { LearningPathColorDialog, LearningPathMarker } from "@ui-room-details";
 import { useTitle } from "@vueuse/core";
 import { computed, nextTick, onMounted, PropType, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -293,13 +288,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.lp-color-dot {
-	flex: none;
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-}
-
 .lp-layout {
 	display: flex;
 	gap: 16px;

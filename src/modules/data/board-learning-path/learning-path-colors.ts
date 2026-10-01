@@ -21,3 +21,28 @@ const NEUTRAL = "#757575";
 
 export const learningPathColorValue = (color: LearningPathColor | undefined): string =>
 	color ? COLOR_VALUES[color] : NEUTRAL;
+
+// Every color has its own shape, so a learning path can be told apart without seeing the color.
+export type LearningPathShape =
+	| "circle"
+	| "square"
+	| "triangle"
+	| "diamond"
+	| "hexagon"
+	| "pentagon"
+	| "triangle-down"
+	| "plus";
+
+const SHAPES: Record<LearningPathColor, LearningPathShape> = {
+	[LearningPathColor.Blue]: "circle",
+	[LearningPathColor.Green]: "square",
+	[LearningPathColor.Orange]: "triangle",
+	[LearningPathColor.Purple]: "diamond",
+	[LearningPathColor.Red]: "hexagon",
+	[LearningPathColor.Teal]: "pentagon",
+	[LearningPathColor.Yellow]: "triangle-down",
+	[LearningPathColor.Pink]: "plus",
+};
+
+export const learningPathShape = (color: LearningPathColor | undefined): LearningPathShape =>
+	color ? SHAPES[color] : "circle";

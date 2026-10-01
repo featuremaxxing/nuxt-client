@@ -17,7 +17,7 @@
 			:data-testid="`board-grid-item-link-${index}`"
 		>
 			<div class="d-flex align-center flex-wrap ga-2 pr-8">
-				<VIcon size="18" :icon="mdiMapMarkerPath" class="lp-card__icon" />
+				<LearningPathMarker :color="summary?.color" :size="20" />
 				<h3
 					class="grid-item-card-title text-break text-body-1 font-weight-bold ma-0"
 					:class="{ 'opacity-80': isDraft }"
@@ -114,14 +114,8 @@ import {
 	RoomLearningPathStepResponseStatusEnum as StepStatus,
 } from "@api-server";
 import { learningPathColorValue } from "@data-board-learning-path";
-import {
-	mdiArrowRight,
-	mdiCheck,
-	mdiCheckCircle,
-	mdiLockOutline,
-	mdiMapMarker,
-	mdiMapMarkerPath,
-} from "@icons/material";
+import { mdiArrowRight, mdiCheck, mdiCheckCircle, mdiLockOutline, mdiMapMarker } from "@icons/material";
+import { LearningPathMarker } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -216,12 +210,22 @@ const ariaLabel = computed(() =>
 </script>
 
 <style scoped>
+/* an own element: the border of an outlined (draft) card would paint over a border-left */
 .room-learning-path-card {
-	border-left: 6px solid var(--lp-color);
+	position: relative;
+	overflow: hidden;
+	padding-left: 8px;
 }
 
-.lp-card__icon {
-	color: var(--lp-color);
+.room-learning-path-card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 8px;
+	background: var(--lp-color);
+	z-index: 1;
 }
 
 .lp-chain {
