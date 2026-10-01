@@ -1346,6 +1346,27 @@ export default {
 	"pages.dashboard.title": "Панель керування",
 	"pages.dashboard.features.title": "Нові функції",
 	"pages.dashboard.features.intro": "Відкрийте нові можливості для навчання та співпраці в кімнатах.",
+	"pages.dashboard.features.fileArea.title": "Область файлів",
+	"pages.dashboard.features.fileArea.description":
+		"Збирайте файли на окремій дошці з папками в поданні колонок. Переміщуйте файли між папками, зміни одразу з’являються в усіх.",
+	"pages.dashboard.features.fileAreaLink.title": "Посилання на файли",
+	"pages.dashboard.features.fileAreaLink.description":
+		"Додавайте на картки інших дошок посилання на файли й папки з області файлів, з попереднім переглядом і швидким переходом до області файлів.",
+	"pages.dashboard.features.readMore.title": "Розрив «Більше»",
+	"pages.dashboard.features.readMore.description":
+		"Скорочуйте довгі тексти на картках: усе після розриву «Більше» залишається згорнутим, доки хтось не продовжить читати.",
+	"pages.dashboard.features.progress.title": "Прогрес",
+	"pages.dashboard.features.progress.description":
+		"Прапорці, завдання й опитування показують, як далеко ви просунулися на дошці та в кімнаті. Вчителі бачать прогрес кожного учня.",
+	"pages.dashboard.features.model3d.title": "3D-перегляд",
+	"pages.dashboard.features.model3d.description":
+		"Файли STL і glTF відображаються як 3D-модель прямо на картці. Перетягуйте мишею, щоб обертати модель.",
+	"pages.dashboard.features.keyboard.title": "Керування клавіатурою",
+	"pages.dashboard.features.keyboard.description":
+		"У поданні картки використовуйте стрілки вліво та вправо, щоб перейти до попередньої або наступної картки.",
+	"pages.dashboard.features.checkbox.title": "Прапорець",
+	"pages.dashboard.features.checkbox.description":
+		"Додавайте на картки завдання з позначкою. Учні позначають їх, за потреби вчитель підтверджує, а в кімнаті ви бачите прогрес класу.",
 	"pages.dashboard.features.assignments.title": "Завдання",
 	"pages.dashboard.features.assignments.description":
 		"Створюйте завдання безпосередньо на дошках, збирайте роботи та надавайте відгуки з балами, коментарями, аудіо чи виправленнями.",

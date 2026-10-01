@@ -90,6 +90,54 @@ describe("DashboardPage", () => {
 		expect(featureSection.text()).toContain("pages.dashboard.features.polls.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.aiQuestions.title");
 		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.model3d.title");
+		expect(featureSection.text()).toContain("pages.dashboard.features.keyboard.title");
+	});
+
+	it("lists the newest features first", async () => {
+		createTestEnvStore({
+			FEATURE_WEBDAV_ENABLED: true,
+			FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true,
+			FEATURE_BOARD_PROGRESS_ENABLED: true,
+			FEATURE_BOARD_FILE_AREA_ENABLED: true,
+		});
+		const { wrapper } = setup({ roleName: RoleName.TEACHER });
+		await flushPromises();
+
+		const titles = wrapper.findAll("[data-testid='new-features'] .v-card-title").map((title) => title.text());
+		expect(titles).toEqual([
+			"pages.dashboard.features.model3d.title",
+			"pages.dashboard.features.fileAreaLink.title",
+			"pages.dashboard.features.fileArea.title",
+			"pages.dashboard.features.webdav.title",
+			"pages.dashboard.features.keyboard.title",
+			"pages.dashboard.features.readMore.title",
+			"pages.dashboard.features.progress.title",
+			"pages.dashboard.features.checkbox.title",
+			"pages.dashboard.features.assignments.title",
+			"pages.dashboard.features.polls.title",
+			"pages.dashboard.features.aiQuestions.title",
+			"pages.dashboard.features.learningRoom.title",
+		]);
+	});
+
+	describe("features behind a flag", () => {
+		it.each([
+			["FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED", ["checkbox"]],
+			["FEATURE_BOARD_PROGRESS_ENABLED", ["progress"]],
+			["FEATURE_BOARD_FILE_AREA_ENABLED", ["fileArea", "fileAreaLink"]],
+		])("%s should list %s only while it is on", async (flag, keys) => {
+			for (const enabled of [true, false]) {
+				createTestEnvStore({ [flag]: enabled });
+				const { wrapper } = setup();
+				await flushPromises();
+
+				const text = wrapper.get("[data-testid='new-features']").text();
+				keys.forEach((key) => {
+					expect(text.includes(`pages.dashboard.features.${key}.title`)).toBe(enabled);
+				});
+			}
+		});
 	});
 
 	describe("network drive feature", () => {

@@ -1359,6 +1359,27 @@ export default {
 	"pages.dashboard.title": "Übersicht",
 	"pages.dashboard.features.title": "Neue Funktionen",
 	"pages.dashboard.features.intro": "Entdecke die neuen Möglichkeiten für Lernen und Zusammenarbeit in Räumen.",
+	"pages.dashboard.features.fileArea.title": "Datei-Bereich",
+	"pages.dashboard.features.fileArea.description":
+		"Sammle Dateien in einem eigenen Bereich mit Ordnern in der Spaltenansicht. Verschiebe Dateien zwischen Ordnern, Änderungen erscheinen sofort bei allen.",
+	"pages.dashboard.features.fileAreaLink.title": "Dateien verlinken",
+	"pages.dashboard.features.fileAreaLink.description":
+		"Verlinke Dateien und Ordner eines Datei-Bereichs auf Karten in anderen Bereichen, mit Vorschau und direktem Sprung in den Datei-Bereich.",
+	"pages.dashboard.features.readMore.title": "„Mehr“-Umbruch",
+	"pages.dashboard.features.readMore.description":
+		"Kürze lange Texte auf Karten: Alles hinter dem „Mehr“-Umbruch bleibt eingeklappt, bis jemand weiterliest.",
+	"pages.dashboard.features.progress.title": "Fortschritt",
+	"pages.dashboard.features.progress.description":
+		"Checkboxen, Aufgaben und Umfragen zeigen pro Bereich und Raum, wie weit du bist. Lehrkräfte sehen den Fortschritt jeder Schülerin und jedes Schülers.",
+	"pages.dashboard.features.model3d.title": "3D-Ansicht",
+	"pages.dashboard.features.model3d.description":
+		"STL- und glTF-Dateien erscheinen als 3D-Modell direkt auf der Karte. Ziehe mit der Maus, um das Modell zu drehen.",
+	"pages.dashboard.features.keyboard.title": "Tastatursteuerung",
+	"pages.dashboard.features.keyboard.description":
+		"Blättere in der Kartenansicht mit den Pfeiltasten nach links und rechts zur vorherigen oder nächsten Karte.",
+	"pages.dashboard.features.checkbox.title": "Checkbox",
+	"pages.dashboard.features.checkbox.description":
+		"Lege Häkchen-Aufgaben auf Karten an. Schüler:innen haken sie ab, auf Wunsch bestätigt die Lehrkraft, und im Raum siehst du den Fortschritt der Klasse.",
 	"pages.dashboard.features.assignments.title": "Aufgaben",
 	"pages.dashboard.features.assignments.description":
 		"Erstelle Aufgaben direkt auf Boards, sammle Abgaben ein und gib Rückmeldungen mit Punkten, Kommentaren, Audio oder Korrekturen.",

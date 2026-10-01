@@ -84,10 +84,30 @@ const baseFeatures: NewFeature[] = [
 ];
 
 // the network drive is for teachers only for now
+const isCheckboxAvailable = computed(() => useEnvConfig().value.FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED);
+const isProgressAvailable = computed(() => useEnvConfig().value.FEATURE_BOARD_PROGRESS_ENABLED);
+const isFileAreaAvailable = computed(() => useEnvConfig().value.FEATURE_BOARD_FILE_AREA_ENABLED);
+
 const isWebDavAvailable = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && isTeacher.value);
 
+// newest first
 const newFeatures = computed<NewFeature[]>(() => [
-	...baseFeatures,
+	{
+		title: "pages.dashboard.features.model3d.title",
+		description: "pages.dashboard.features.model3d.description",
+	},
+	...(isFileAreaAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.fileAreaLink.title",
+					description: "pages.dashboard.features.fileAreaLink.description",
+				},
+				{
+					title: "pages.dashboard.features.fileArea.title",
+					description: "pages.dashboard.features.fileArea.description",
+				},
+			]
+		: []),
 	...(isWebDavAvailable.value
 		? [
 				{
@@ -98,6 +118,31 @@ const newFeatures = computed<NewFeature[]>(() => [
 				},
 			]
 		: []),
+	{
+		title: "pages.dashboard.features.keyboard.title",
+		description: "pages.dashboard.features.keyboard.description",
+	},
+	{
+		title: "pages.dashboard.features.readMore.title",
+		description: "pages.dashboard.features.readMore.description",
+	},
+	...(isProgressAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.progress.title",
+					description: "pages.dashboard.features.progress.description",
+				},
+			]
+		: []),
+	...(isCheckboxAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.checkbox.title",
+					description: "pages.dashboard.features.checkbox.description",
+				},
+			]
+		: []),
+	...baseFeatures,
 ]);
 
 useTitle(buildPageTitle(t("pages.dashboard.title")));
