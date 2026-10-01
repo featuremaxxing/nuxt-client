@@ -14,6 +14,12 @@
 				</RouterLink>
 				<span v-else>{{ step.title || t("pages.learningPath.tile.unavailable") }}</span>
 				<span class="text-medium-emphasis">– {{ t(`pages.learningPath.status.${step.status}`) }}</span>
+				<template v-if="step.reopened">
+					<LearningPathReworkMark :size="16" />
+					<span class="font-weight-bold" data-testid="learning-path-list-rework">
+						{{ t("pages.learningPath.rework") }}: {{ t("pages.learningPath.reworkHint") }}
+					</span>
+				</template>
 				<span v-if="hints[step.id]" class="text-medium-emphasis">({{ hints[step.id] }})</span>
 			</li>
 		</ol>
@@ -23,6 +29,7 @@
 <script setup lang="ts">
 import { type LearningPathStep, orderedSteps } from "@data-board-learning-path";
 import { mdiCheckCircle, mdiEyeOffOutline, mdiLockOutline, mdiMapMarkerPath } from "@icons/material";
+import { LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 

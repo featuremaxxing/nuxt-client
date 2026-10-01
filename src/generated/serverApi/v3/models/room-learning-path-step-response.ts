@@ -63,6 +63,12 @@ export interface RoomLearningPathStepResponse {
      */
     unlockMode: RoomLearningPathStepResponseUnlockModeEnum;
     /**
+     * Completed before, but something new came up. It still unlocks what follows.
+     * @type {boolean}
+     * @memberof RoomLearningPathStepResponse
+     */
+    reopened?: boolean;
+    /**
      * What keeps a locked step closed for the user.
      * @type {RoomBoardLockResponse}
      * @memberof RoomLearningPathStepResponse

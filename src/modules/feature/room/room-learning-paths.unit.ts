@@ -1,4 +1,4 @@
-import { lockedHintByBoardId, stepInfoByBoardId, visibleChain } from "./room-learning-paths";
+import { lockedHintByBoardId, reworkBoardIds, stepInfoByBoardId, visibleChain } from "./room-learning-paths";
 import { BoardLayout } from "@/types/board/Board";
 import { RoomBoardItem } from "@/types/room/Room";
 import { roomBoardGridItemFactory } from "@@/tests/test-utils";
@@ -129,6 +129,21 @@ describe("room-learning-paths", () => {
 
 		it("should give no hint when the learning path is not in the list", () => {
 			expect(lockedHintByBoardId([locked("board-c", "p1")])).toEqual({});
+		});
+	});
+
+	describe("reworkBoardIds", () => {
+		it("should list the boards a student completed before but has to rework", () => {
+			const path = pathBoard("p1", { steps: [step({ id: "a", reopened: true }), step({ id: "b" })], isEnrolled: true });
+
+			expect(Array.from(reworkBoardIds([path]))).toEqual(["board-a"]);
+		});
+
+		it("should leave out learning paths the student does not go and teacher views", () => {
+			const reopened = [step({ id: "a", reopened: true })];
+
+			expect(reworkBoardIds([pathBoard("p1", { steps: reopened, isEnrolled: false })]).size).toBe(0);
+			expect(reworkBoardIds([pathBoard("p1", { steps: reopened, studentCount: 1 })]).size).toBe(0);
 		});
 	});
 });

@@ -43,6 +43,16 @@
 				</p>
 			</template>
 			<p
+				v-if="isRework && !isLocked"
+				class="mx-4 mb-2 text-body-2 d-flex align-center"
+				:data-testid="`board-grid-item-rework-${index}`"
+			>
+				<LearningPathReworkMark :size="16" class="mr-2" />
+				<span>
+					<strong>{{ t("pages.learningPath.rework") }}:</strong> {{ t("pages.learningPath.reworkHint") }}
+				</span>
+			</p>
+			<p
 				v-if="lockedBy"
 				class="mx-4 mb-0 text-body-2 text-medium-emphasis d-flex align-center"
 				:data-testid="`board-grid-item-locked-${index}`"
@@ -85,7 +95,7 @@ import {
 	mdiViewAgendaOutline,
 	mdiViewDashboardOutline,
 } from "@icons/material";
-import { LearningPathMarker } from "@ui-room-details";
+import { LearningPathMarker, LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -99,6 +109,8 @@ const props = defineProps({
 	learningPathSteps: { type: Array as PropType<LearningPathStepInfo[]>, default: () => [] },
 	// what still has to be completed before a locked board opens
 	lockedHint: { type: String, default: "" },
+	// the student completed the board before, but something new came up
+	isRework: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();

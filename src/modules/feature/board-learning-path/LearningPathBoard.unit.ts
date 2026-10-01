@@ -174,4 +174,11 @@ describe("LearningPathBoard", () => {
 
 		expect(wrapper.findComponent({ name: "LearningPathCanvas" }).props("color")).toBe("#c62828");
 	});
+
+	it("should mark boards for rework in the list", async () => {
+		const wrapper = await setup({ steps: [step("a", { reopened: true }), step("b")] });
+
+		const list = wrapper.findComponent({ name: "LearningPathList" });
+		expect((list.props("steps") as LearningPathStep[]).map((entry) => entry.reopened)).toEqual([true, undefined]);
+	});
 });

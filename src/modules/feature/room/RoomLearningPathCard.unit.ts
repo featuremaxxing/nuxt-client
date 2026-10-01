@@ -158,4 +158,19 @@ describe("@feature-room/RoomLearningPathCard", () => {
 
 		expect(wrapper.get("[data-testid='board-grid-item-0']").attributes("style")).toContain("--lp-color: #6a1b9a");
 	});
+
+	it("should mark a board to rework in the chain, but not for a teacher", () => {
+		const reopened = { ...step("a", Status.Open, 0), reopened: true };
+
+		const student = setup({ steps: [reopened] }).wrapper;
+		expect(
+			student
+				.get("[data-testid='learning-path-card-step-board-a']")
+				.find("[data-testid='learning-path-rework']")
+				.exists()
+		).toBe(true);
+
+		const teacher = setup({ steps: [reopened], studentCount: 2, completedStudentCount: 0 }).wrapper;
+		expect(teacher.find("[data-testid='learning-path-rework']").exists()).toBe(false);
+	});
 });

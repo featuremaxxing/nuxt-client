@@ -7,12 +7,18 @@
 		:aria-disabled="!isEditor && !isOpenable"
 		:aria-pressed="isEditor ? isSelected : undefined"
 		:style="color ? { '--lp-color': color } : undefined"
-		:title="hint || undefined"
+		:title="hint || (isRework ? t('pages.learningPath.reworkHint') : undefined)"
 		:data-testid="`learning-path-tile-${step.id}`"
 	>
 		<span class="lp-tile__head">
 			<VIcon :icon="statusIcon" size="18" class="lp-tile__icon" aria-hidden="true" />
 			<span class="lp-tile__title">{{ displayTitle }}</span>
+			<LearningPathReworkMark
+				v-if="isRework"
+				:size="18"
+				class="lp-tile__rework"
+				data-testid="learning-path-tile-rework"
+			/>
 		</span>
 		<span class="lp-tile__meta">
 			<template v-if="isEditor">
@@ -27,7 +33,7 @@
 					{{ t("pages.learningPath.progress", { done: step.doneCount ?? 0, total: step.studentCount }) }}
 				</span>
 			</template>
-			<template v-else>{{ statusText }}</template>
+			<template v-else>{{ isRework ? t("pages.learningPath.rework") : statusText }}</template>
 		</span>
 		<template v-if="isEditor">
 			<span
@@ -54,6 +60,7 @@ import {
 	mdiMapMarkerPath,
 	mdiViewDashboardOutline,
 } from "@icons/material";
+import { LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -96,9 +103,11 @@ const statusText = computed(() => t(`pages.learningPath.status.${props.step.stat
 
 const displayTitle = computed(() => props.step.title || t("pages.learningPath.tile.unavailable"));
 
+const isRework = computed(() => !props.isEditor && !!props.step.reopened);
+
 const ariaLabel = computed(() => {
 	const parts = [displayTitle.value];
-	if (!props.isEditor) parts.push(statusText.value);
+	if (!props.isEditor) parts.push(isRework.value ? t("pages.learningPath.reworkHint") : statusText.value);
 	if (props.hint) parts.push(props.hint);
 	return parts.join(", ");
 });
@@ -170,6 +179,10 @@ const ariaLabel = computed(() => {
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
+}
+
+.lp-tile__rework {
+	margin-left: auto;
 }
 
 .lp-tile__title {

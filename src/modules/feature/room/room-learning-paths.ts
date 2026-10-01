@@ -71,3 +71,16 @@ export const lockedHintByBoardId = (boards: RoomBoardItem[]): Record<string, Loc
 
 	return result;
 };
+
+// The boards a student completed before but something new came up in, in the learning paths they go.
+export const reworkBoardIds = (boards: RoomBoardItem[]): Set<string> => {
+	const result = new Set<string>();
+	for (const board of boards) {
+		const summary = board.learningPath;
+		if (!summary || isEditorSummary(summary) || !summary.isEnrolled) continue;
+
+		summary.steps.filter((step) => step.reopened).forEach((step) => result.add(step.boardId));
+	}
+
+	return result;
+};

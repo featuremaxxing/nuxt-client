@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { lockedHintByBoardId, stepInfoByBoardId } from "./room-learning-paths";
+import { lockedHintByBoardId, reworkBoardIds, stepInfoByBoardId } from "./room-learning-paths";
 import RoomBoardGridItem from "./RoomBoardGridItem.vue";
 import RoomFileAreaItem from "./RoomFileAreaItem.vue";
 import RoomLearningPathCard from "./RoomLearningPathCard.vue";
@@ -148,6 +148,7 @@ const sections = computed<Section[]>(() => {
 const showHeadings = computed(() => sections.value.length > 1);
 
 const stepInfo = computed(() => stepInfoByBoardId(props.boards));
+const reworkIds = computed(() => reworkBoardIds(props.boards));
 
 const lockedHints = computed(() => {
 	const hints = lockedHintByBoardId(props.boards);
@@ -175,6 +176,7 @@ const itemProps = (board: RoomBoardItem) => {
 		roomId: props.roomId,
 		progress: props.progressByBoardId?.[board.id],
 		learningPathSteps: stepInfo.value[board.id] ?? [],
+		isRework: reworkIds.value.has(board.id),
 		lockedHint: lockedHints.value[board.id] ?? "",
 	};
 };

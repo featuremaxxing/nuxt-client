@@ -2,6 +2,7 @@ import CreateBoardNameDialog from "./CreateBoardNameDialog.vue";
 import LearningPathColorDialog from "./LearningPathColorDialog.vue";
 import LearningPathColorPicker from "./LearningPathColorPicker.vue";
 import LearningPathMarker from "./LearningPathMarker.vue";
+import LearningPathReworkMark from "./LearningPathReworkMark.vue";
 import LeaveRoomProhibitedDialog from "./LeaveRoomProhibitedDialog.vue";
 import RoomBoardCard from "./RoomBoardCard.vue";
 import RoomDotMenu from "./RoomDotMenu.vue";
@@ -14,6 +15,7 @@ export {
 	LearningPathColorDialog,
 	LearningPathColorPicker,
 	LearningPathMarker,
+	LearningPathReworkMark,
 	LeaveRoomProhibitedDialog,
 	RoomBoardCard,
 	RoomDotMenu,

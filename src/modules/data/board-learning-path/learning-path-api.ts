@@ -28,6 +28,8 @@ export type LearningPathStep = {
 	unlockMode: LearningPathUnlockMode;
 	lockUntilPrerequisitesDone: boolean;
 	status: LearningPathStepStatus;
+	// students only: completed before, but something new came up. It still unlocks what follows.
+	reopened?: boolean;
 	// students only
 	lock?: LearningPathLock;
 	// editors only: the students who go this learning path
@@ -70,7 +72,7 @@ export type LearningPathOverview = {
 		firstName?: string;
 		lastName?: string;
 		// the learning paths the student goes
-		paths: { pathId: string; done: number; total: number; nextBoardTitle?: string }[];
+		paths: { pathId: string; done: number; total: number; rework: number; nextBoardTitle?: string }[];
 	}[];
 };
 
@@ -142,6 +144,12 @@ export const useLearningPathApi = () => {
 			await $axios.delete(`/v3/boards/${boardId}/enrollment`, { data: userId ? { userId } : {} });
 		});
 
+	// starts over for the given students (default: all of the room): stored completions and checkbox ticks go
+	const resetProgress = (roomId: string, userIds?: string[]) =>
+		withErrorNotification(async () => {
+			await $axios.post(`/v3/rooms/${roomId}/learning-paths/reset`, userIds ? { userIds } : {});
+		});
+
 	const fetchOverview = async (roomId: string): Promise<LearningPathOverview> => {
 		const response = await $axios.get<LearningPathOverview>(`/v3/rooms/${roomId}/learning-paths/overview`);
 
@@ -174,6 +182,7 @@ export const useLearningPathApi = () => {
 		enroll,
 		unenroll,
 		fetchOverview,
+		resetProgress,
 		deleteStep,
 		fetchCompletion,
 		setCompletion,

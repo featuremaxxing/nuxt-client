@@ -19,15 +19,27 @@
 				{{ canAssign ? t("pages.room.learningPaths.intro") : t("pages.room.learningPaths.introSingle") }}
 			</p>
 
-			<VSelect
-				v-model="filter"
-				:items="filterItems"
-				:label="t('pages.room.learningPaths.filter.label')"
-				density="compact"
-				hide-details
-				class="mb-4 filter"
-				data-testid="room-learning-paths-filter"
-			/>
+			<div class="d-flex align-center flex-wrap ga-4 mb-4">
+				<VSelect
+					v-model="filter"
+					:items="filterItems"
+					:label="t('pages.room.learningPaths.filter.label')"
+					density="compact"
+					hide-details
+					class="filter"
+					data-testid="room-learning-paths-filter"
+				/>
+				<VSpacer />
+				<VBtn
+					variant="outlined"
+					color="error"
+					:prepend-icon="mdiRestore"
+					data-testid="room-learning-paths-reset-all"
+					@click="onResetAll"
+				>
+					{{ t("pages.room.learningPaths.reset.all") }}
+				</VBtn>
+			</div>
 
 			<VTable class="overview" data-testid="room-learning-paths-table">
 				<thead>
@@ -57,6 +69,15 @@
 							>
 								{{ t("pages.room.learningPaths.none") }}
 							</VChip>
+							<VBtn
+								size="x-small"
+								variant="text"
+								class="ml-2"
+								:data-testid="`learning-path-reset-${student.userId}`"
+								@click="onResetStudent(student)"
+							>
+								{{ t("pages.room.learningPaths.reset.student") }}
+							</VBtn>
 						</th>
 						<td v-for="path in overview.paths" :key="path.id">
 							<RoomLearningPathCell
@@ -80,9 +101,11 @@
 
 <script setup lang="ts">
 import RoomLearningPathCell from "./RoomLearningPathCell.vue";
+import { askConfirmation } from "@/utils/confirmation-dialog.utils";
 import { buildPageTitle } from "@/utils/pageTitle";
 import { type LearningPathOverview, useLearningPathApi } from "@data-board-learning-path";
 import { useRoomDetailsStore } from "@data-room";
+import { mdiRestore } from "@icons/material";
 import { EmptyState, LearningContentEmptyStateSvg } from "@ui-empty-state";
 import { Breadcrumb, DefaultWireframe } from "@ui-layout";
 import { LearningPathMarker } from "@ui-room-details";
@@ -153,6 +176,31 @@ const onAssign = async (userId: string, pathId: string) => {
 const onRemove = async (userId: string, pathId: string) => {
 	await api.unenroll(pathId, userId).catch(() => undefined);
 	await load();
+};
+
+// Starting over removes stored completions and checkbox ticks; submissions, votes and the chosen
+// learning paths stay. Nothing of it can be brought back, so it is asked for first.
+const confirmReset = (title: string) =>
+	askConfirmation({
+		title,
+		message: t("pages.room.learningPaths.reset.message"),
+		messageType: "warning",
+		confirmBtnKey: "pages.room.learningPaths.reset.confirm",
+	});
+
+const reset = async (userIds?: string[]) => {
+	await api.resetProgress(roomId, userIds).catch(() => undefined);
+	await load();
+};
+
+const onResetAll = async () => {
+	if (await confirmReset(t("pages.room.learningPaths.reset.titleAll"))) await reset();
+};
+
+const onResetStudent = async (student: OverviewStudent) => {
+	if (await confirmReset(t("pages.room.learningPaths.reset.titleStudent", { name: fullName(student) }))) {
+		await reset([student.userId]);
+	}
 };
 
 const pageTitle = computed(() => t("pages.room.learningPaths.title"));

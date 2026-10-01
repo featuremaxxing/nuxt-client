@@ -8,6 +8,11 @@ import { vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { VSelect } from "vuetify/components";
 
+const askConfirmation = vi.fn();
+vi.mock("@/utils/confirmation-dialog.utils", () => ({
+	askConfirmation: (...args: unknown[]) => askConfirmation(...args),
+}));
+
 vi.mock("@data-board-learning-path", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@data-board-learning-path")>()),
 	useLearningPathApi: vi.fn(),
@@ -23,7 +28,7 @@ const overview = (paths = [blue, green]): LearningPathOverview => ({
 			userId: "anna",
 			firstName: "Anna",
 			lastName: "Adler",
-			paths: [{ pathId: "blue", done: 2, total: 4, nextBoardTitle: "Addieren" }],
+			paths: [{ pathId: "blue", done: 2, total: 4, rework: 1, nextBoardTitle: "Addieren" }],
 		},
 		{ userId: "bob", firstName: "Bob", lastName: "Berg", paths: [] },
 	],
@@ -33,14 +38,20 @@ describe("RoomLearningPathsPage", () => {
 	const fetchOverview = vi.fn();
 	const enroll = vi.fn();
 	const unenroll = vi.fn();
+	const resetProgress = vi.fn();
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		vi.mocked(useLearningPathApi).mockReturnValue({ fetchOverview, enroll, unenroll } as unknown as ReturnType<
-			typeof useLearningPathApi
-		>);
+		vi.mocked(useLearningPathApi).mockReturnValue({
+			fetchOverview,
+			enroll,
+			unenroll,
+			resetProgress,
+		} as unknown as ReturnType<typeof useLearningPathApi>);
 		enroll.mockResolvedValue(undefined);
 		unenroll.mockResolvedValue(undefined);
+		resetProgress.mockResolvedValue(undefined);
+		askConfirmation.mockResolvedValue(true);
 	});
 
 	const setup = async (data: LearningPathOverview | Error) => {
@@ -126,5 +137,46 @@ describe("RoomLearningPathsPage", () => {
 		const wrapper = await setup(new Error("404"));
 
 		expect(wrapper.find("[data-testid='room-learning-paths-empty']").exists()).toBe(true);
+	});
+
+	it("should show how many boards a student has to rework", async () => {
+		const wrapper = await setup(overview());
+
+		expect(wrapper.get("[data-testid='learning-path-rework-anna-blue']").text()).toContain(
+			"pages.room.learningPaths.rework"
+		);
+	});
+
+	describe("resetting the progress", () => {
+		it("should ask first and reset a single student", async () => {
+			const wrapper = await setup(overview());
+
+			await wrapper.get("[data-testid='learning-path-reset-anna']").trigger("click");
+			await flushPromises();
+
+			expect(askConfirmation).toHaveBeenCalledWith(expect.objectContaining({ messageType: "warning" }));
+			expect(resetProgress).toHaveBeenCalledWith("room-1", ["anna"]);
+			expect(fetchOverview).toHaveBeenCalledTimes(2);
+		});
+
+		it("should reset the whole room", async () => {
+			const wrapper = await setup(overview());
+
+			await wrapper.get("[data-testid='room-learning-paths-reset-all']").trigger("click");
+			await flushPromises();
+
+			expect(resetProgress).toHaveBeenCalledWith("room-1", undefined);
+		});
+
+		it("should do nothing when the question is declined", async () => {
+			askConfirmation.mockResolvedValue(false);
+			const wrapper = await setup(overview());
+
+			await wrapper.get("[data-testid='room-learning-paths-reset-all']").trigger("click");
+			await wrapper.get("[data-testid='learning-path-reset-anna']").trigger("click");
+			await flushPromises();
+
+			expect(resetProgress).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -50,6 +50,7 @@
 					<span class="lp-chain__step" :class="`lp-chain__step--${stepState(step)}`">
 						<VIcon v-if="stepIcon(step)" size="16" :icon="stepIcon(step)" aria-hidden="true" />
 						<span class="lp-chain__title">{{ step.title }}</span>
+						<LearningPathReworkMark v-if="isRework(step)" :size="14" />
 						<span class="d-sr-only">{{ stepLabel(step) }}</span>
 					</span>
 					<VIcon
@@ -115,7 +116,7 @@ import {
 } from "@api-server";
 import { learningPathColorValue } from "@data-board-learning-path";
 import { mdiArrowRight, mdiCheck, mdiCheckCircle, mdiLockOutline, mdiMapMarker } from "@icons/material";
-import { LearningPathMarker } from "@ui-room-details";
+import { LearningPathMarker, LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -196,9 +197,12 @@ const stepIcon = (step: RoomLearningPathStepResponse): string | undefined => {
 	}
 };
 
+const isRework = (step: RoomLearningPathStepResponse): boolean => !isEditorView.value && !!step.reopened;
+
 const stepLabel = (step: RoomLearningPathStepResponse): string => {
 	const state = stepState(step);
 	if (state === "draft") return `, ${t("common.words.draft")}`;
+	if (isRework(step)) return `, ${t("pages.learningPath.rework")}`;
 	if (state === "next") return `, ${t("pages.room.learningPathCard.next")}`;
 	if (isEditorView.value) return "";
 	return `, ${t(`pages.learningPath.status.${step.status}`)}`;

@@ -134,6 +134,26 @@ describe("@feature-room/RoomBoardGridItem", () => {
 		});
 	});
 
+	describe("when the student has to rework the board", () => {
+		it("should say so, and still lead to the board", () => {
+			const { wrapper } = setup({
+				board: { ...mockBoard, isVisible: true },
+				index: 0,
+				roomId: "Mathe",
+				isRework: true,
+			});
+
+			expect(wrapper.get("[data-testid='board-grid-item-rework-0']").text()).toContain("pages.learningPath.reworkHint");
+			expect(wrapper.get("[data-testid='board-grid-item-link-0']").attributes("to")).toBe(`/boards/${mockBoard.id}`);
+		});
+
+		it("should say nothing otherwise", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.find("[data-testid='board-grid-item-rework-0']").exists()).toBe(false);
+		});
+	});
+
 	describe("when the board is a learning path", () => {
 		it("should compute the learning path subtitle", () => {
 			const { wrapper } = setup({
