@@ -1,6 +1,6 @@
 <template>
 	<div class="mt-8">
-		<!-- one section per kind of board; each keeps its own order within the room's order -->
+		<!-- one section per kind of board (boards, learning paths, files); each keeps its own order within the room's order -->
 		<section
 			v-for="section in sections"
 			:key="section.kind"
@@ -116,17 +116,17 @@ const kindOf = (board: RoomBoardItem): SectionKind => {
 const sections = computed<Section[]>(() => {
 	const all: Section[] = [
 		{
-			kind: "paths",
-			title: t("pages.room.section.learningPaths"),
-			icon: mdiMapMarkerPath,
-			component: RoomLearningPathCard,
-			boards: [],
-		},
-		{
 			kind: "boards",
 			title: t("pages.room.section.boards"),
 			icon: mdiViewDashboardOutline,
 			component: RoomBoardGridItem,
+			boards: [],
+		},
+		{
+			kind: "paths",
+			title: t("pages.room.section.learningPaths"),
+			icon: mdiMapMarkerPath,
+			component: RoomLearningPathCard,
 			boards: [],
 		},
 		{

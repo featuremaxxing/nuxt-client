@@ -188,16 +188,16 @@ describe("@feature-room/RoomBoardGrid", () => {
 			expect(wrapper.find("[data-testid='room-section-boards'] h2").exists()).toBe(false);
 		});
 
-		it("should group learning paths, boards and files under headings", () => {
+		it("should group boards, learning paths and files under headings, in this order", () => {
 			const { wrapper } = setup({ boards: mixedBoards() });
 
 			const sections = wrapper.findAll("section");
 			expect(sections.map((section) => section.attributes("data-testid"))).toEqual([
-				"room-section-paths",
 				"room-section-boards",
+				"room-section-paths",
 				"room-section-files",
 			]);
-			expect(sections[0].get("h2").text()).toBe("pages.room.section.learningPaths");
+			expect(sections[1].get("h2").text()).toBe("pages.room.section.learningPaths");
 			expect(wrapper.findAllComponents(RoomLearningPathCard)).toHaveLength(1);
 			expect(wrapper.findAllComponents(RoomBoardGridItem)).toHaveLength(2);
 			expect(wrapper.findAllComponents(RoomFileAreaItem)).toHaveLength(1);
