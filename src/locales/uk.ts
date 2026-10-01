@@ -1346,6 +1346,9 @@ export default {
 	"pages.dashboard.title": "Панель керування",
 	"pages.dashboard.features.title": "Нові функції",
 	"pages.dashboard.features.intro": "Відкрийте нові можливості для навчання та співпраці в кімнатах.",
+	"pages.dashboard.features.learningPath.title": "Навчальний шлях",
+	"pages.dashboard.features.learningPath.description":
+		"Розташуйте дошки кімнати на вільному полотні та з’єднайте їх стрілками. Дошки можуть відкриватися, лише коли виконано попередні. З кольорами та окремими шляхами для різних груп.",
 	"pages.dashboard.features.assignments.title": "Завдання",
 	"pages.dashboard.features.assignments.description":
 		"Створюйте завдання безпосередньо на дошках, збирайте роботи та надавайте відгуки з балами, коментарями, аудіо чи виправленнями.",

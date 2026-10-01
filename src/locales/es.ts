@@ -1355,6 +1355,9 @@ export default {
 	"pages.dashboard.title": "Panel",
 	"pages.dashboard.features.title": "Nuevas funciones",
 	"pages.dashboard.features.intro": "Descubre nuevas formas de aprender y colaborar en los espacios.",
+	"pages.dashboard.features.learningPath.title": "Ruta de aprendizaje",
+	"pages.dashboard.features.learningPath.description":
+		"Organiza los tableros de una sala en un lienzo libre y únelos con flechas. Los tableros pueden desbloquearse solo cuando se completan los anteriores. Con colores y rutas propias para distintos grupos.",
 	"pages.dashboard.features.assignments.title": "Tareas",
 	"pages.dashboard.features.assignments.description":
 		"Crea tareas directamente en los tableros, recopila entregas y ofrece comentarios con puntos, texto, audio o correcciones.",

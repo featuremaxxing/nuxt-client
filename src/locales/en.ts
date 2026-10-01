@@ -1329,6 +1329,9 @@ export default {
 	"pages.dashboard.title": "Dashboard",
 	"pages.dashboard.features.title": "New features",
 	"pages.dashboard.features.intro": "Discover new ways to learn and collaborate in rooms.",
+	"pages.dashboard.features.learningPath.title": "Learning path",
+	"pages.dashboard.features.learningPath.description":
+		"Arrange the boards of a room on a free canvas and connect them with arrows. Boards can unlock only once the ones before are done. Colors and separate paths for different groups.",
 	"pages.dashboard.features.assignments.title": "Assignments",
 	"pages.dashboard.features.assignments.description":
 		"Create assignments directly on boards, collect submissions, and provide feedback with points, comments, audio, or corrections.",

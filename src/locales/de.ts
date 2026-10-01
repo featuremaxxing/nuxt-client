@@ -1359,6 +1359,9 @@ export default {
 	"pages.dashboard.title": "Übersicht",
 	"pages.dashboard.features.title": "Neue Funktionen",
 	"pages.dashboard.features.intro": "Entdecke die neuen Möglichkeiten für Lernen und Zusammenarbeit in Räumen.",
+	"pages.dashboard.features.learningPath.title": "Lernweg",
+	"pages.dashboard.features.learningPath.description":
+		"Ordne die Bereiche eines Raums auf einer freien Fläche an und verbinde sie mit Pfeilen. Bereiche können sich erst freischalten, wenn die davor geschafft sind. Mit Farben und eigenen Wegen für verschiedene Gruppen.",
 	"pages.dashboard.features.assignments.title": "Aufgaben",
 	"pages.dashboard.features.assignments.description":
 		"Erstelle Aufgaben direkt auf Boards, sammle Abgaben ein und gib Rückmeldungen mit Punkten, Kommentaren, Audio oder Korrekturen.",
