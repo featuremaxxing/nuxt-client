@@ -11,8 +11,14 @@ describe("SelectBoardLayoutDialog", () => {
 		setActivePinia(createTestingPinia());
 	});
 
-	const setup = (currentLayout?: BoardLayout, options: { allowFileArea?: boolean; flag?: boolean } = {}) => {
-		createTestEnvStore({ FEATURE_BOARD_FILE_AREA_ENABLED: options.flag ?? false });
+	const setup = (
+		currentLayout?: BoardLayout,
+		options: { allowRoomLayouts?: boolean; flag?: boolean; learningPathFlag?: boolean } = {}
+	) => {
+		createTestEnvStore({
+			FEATURE_BOARD_FILE_AREA_ENABLED: options.flag ?? false,
+			FEATURE_BOARD_LEARNING_PATH_ENABLED: options.learningPathFlag ?? false,
+		});
 
 		const wrapper = mount(SelectBoardLayoutDialog, {
 			global: {
@@ -22,7 +28,7 @@ describe("SelectBoardLayoutDialog", () => {
 			props: {
 				modelValue: true,
 				currentLayout,
-				allowFileArea: options.allowFileArea,
+				allowRoomLayouts: options.allowRoomLayouts,
 			},
 		});
 
@@ -63,7 +69,7 @@ describe("SelectBoardLayoutDialog", () => {
 
 	describe("file area option", () => {
 		it("should be offered when creating a board and the feature is enabled", async () => {
-			const { wrapper } = setup(undefined, { allowFileArea: true, flag: true });
+			const { wrapper } = setup(undefined, { allowRoomLayouts: true, flag: true });
 
 			await wrapper.findComponent("[data-testid=dialog-add-file-area-board]").trigger("click");
 
@@ -71,15 +77,37 @@ describe("SelectBoardLayoutDialog", () => {
 		});
 
 		it("should be hidden when the feature is disabled", () => {
-			const { wrapper } = setup(undefined, { allowFileArea: true, flag: false });
+			const { wrapper } = setup(undefined, { allowRoomLayouts: true, flag: false });
 
 			expect(wrapper.find("[data-testid=dialog-add-file-area-board]").exists()).toBe(false);
 		});
 
 		it("should be hidden when changing the layout of an existing board", () => {
-			const { wrapper } = setup(BoardLayout.COLUMNS, { allowFileArea: false, flag: true });
+			const { wrapper } = setup(BoardLayout.COLUMNS, { allowRoomLayouts: false, flag: true });
 
 			expect(wrapper.find("[data-testid=dialog-add-file-area-board]").exists()).toBe(false);
+		});
+	});
+
+	describe("learning path option", () => {
+		it("should be offered when creating a board and the feature is enabled", async () => {
+			const { wrapper } = setup(undefined, { allowRoomLayouts: true, learningPathFlag: true });
+
+			await wrapper.findComponent("[data-testid=dialog-add-learning-path-board]").trigger("click");
+
+			expect(wrapper.emitted("select")).toEqual([[BoardLayout.LEARNING_PATH]]);
+		});
+
+		it("should be hidden when the feature is disabled", () => {
+			const { wrapper } = setup(undefined, { allowRoomLayouts: true, learningPathFlag: false });
+
+			expect(wrapper.find("[data-testid=dialog-add-learning-path-board]").exists()).toBe(false);
+		});
+
+		it("should be hidden when changing the layout of an existing board", () => {
+			const { wrapper } = setup(BoardLayout.COLUMNS, { allowRoomLayouts: false, learningPathFlag: true });
+
+			expect(wrapper.find("[data-testid=dialog-add-learning-path-board]").exists()).toBe(false);
 		});
 	});
 });

@@ -53,6 +53,28 @@ describe("@pages/ColumnBoard.page.vue", () => {
 		expect(boardComponent.vm).toBeDefined();
 	});
 
+	describe("with learning paths enabled", () => {
+		it("should show a learning path in its own view", async () => {
+			createTestEnvStore({ FEATURE_BOARD_LEARNING_PATH_ENABLED: true });
+			fetchBoardCall.mockResolvedValue({
+				id: "test-board-id",
+				title: "Lernweg",
+				layout: BoardLayout.LEARNING_PATH,
+				isVisible: true,
+				columns: [],
+			});
+
+			const wrapper = shallowMount(ColumnBoardPage, {
+				global: { plugins: [createTestingVuetify(), createTestingI18n()] },
+				props: { boardId: "test-board-id" },
+			});
+			await flushPromises();
+
+			expect(wrapper.findComponent({ name: "LearningPathBoard" }).exists()).toBe(true);
+			expect(wrapper.findComponent({ name: "Board" }).exists()).toBe(false);
+		});
+	});
+
 	describe("with file areas enabled", () => {
 		const board = (id: string, layout: BoardLayout) => ({ id, title: id, layout, isVisible: true, columns: [] });
 

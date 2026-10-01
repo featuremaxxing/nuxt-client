@@ -86,7 +86,18 @@ const baseFeatures: NewFeature[] = [
 // the network drive is for teachers only for now
 const isWebDavAvailable = computed(() => useEnvConfig().value.FEATURE_WEBDAV_ENABLED && isTeacher.value);
 
+const isLearningPathAvailable = computed(() => useEnvConfig().value.FEATURE_BOARD_LEARNING_PATH_ENABLED);
+
+// newest first
 const newFeatures = computed<NewFeature[]>(() => [
+	...(isLearningPathAvailable.value
+		? [
+				{
+					title: "pages.dashboard.features.learningPath.title",
+					description: "pages.dashboard.features.learningPath.description",
+				},
+			]
+		: []),
 	...baseFeatures,
 	...(isWebDavAvailable.value
 		? [
