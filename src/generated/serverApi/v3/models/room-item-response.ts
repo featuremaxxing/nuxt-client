@@ -88,6 +88,12 @@ export interface RoomItemResponse {
      * @memberof RoomItemResponse
      */
     totalMembers: number;
+    /**
+     * The personal collection the room is placed in
+     * @type {string}
+     * @memberof RoomItemResponse
+     */
+    collectionId?: string;
 }
 
 

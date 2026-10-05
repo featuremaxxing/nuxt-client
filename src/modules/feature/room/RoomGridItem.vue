@@ -39,6 +39,9 @@
 				</div>
 			</RouterLink>
 		</VCardItem>
+		<div v-if="$slots.menu" class="room-grid-item-menu no-drag">
+			<slot name="menu" />
+		</div>
 		<VCardActions class="justify-end pr-4">
 			<VBtn
 				:data-testid="`room-open-button-${index}`"
@@ -107,6 +110,12 @@ const roomAriaLabel = computed(() => `${t("common.labels.room")} ${props.room.na
 			text-decoration: underline;
 		}
 	}
+}
+
+.room-grid-item-menu {
+	position: absolute;
+	top: 4px;
+	right: 4px;
 }
 
 .room-grid-avatar {

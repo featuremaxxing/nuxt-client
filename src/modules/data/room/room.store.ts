@@ -1,3 +1,4 @@
+import { ArrangementNode, RoomCollection, toArrangeRoomsParams } from "./room-arrangement";
 import { useSafeAxiosTask } from "@/composables/async-tasks.composable";
 import { useI18nGlobal } from "@/plugins/i18n";
 import { RoomCreateParams, RoomItem } from "@/types/room/Room";
@@ -12,6 +13,7 @@ export const useRoomStore = defineStore("room-store", () => {
 	const roomApi = RoomApiFactory(undefined, "/v3", $axios);
 
 	const rooms = ref<RoomItem[]>([]);
+	const collections = ref<RoomCollection[]>([]);
 	const isEmpty = computed(() => rooms.value.length === 0);
 
 	const { execute, isRunning: isLoading } = useSafeAxiosTask();
@@ -28,6 +30,7 @@ export const useRoomStore = defineStore("room-store", () => {
 		const result = await fetchRoomsPlain();
 		if (result) {
 			rooms.value = result?.data.data;
+			collections.value = result?.data.collections ?? [];
 		}
 	};
 
@@ -42,6 +45,33 @@ export const useRoomStore = defineStore("room-store", () => {
 			() => roomApi.roomControllerMoveRoom(params),
 			t("common.notifications.errors.notMoved", { type: t("common.labels.room") })
 		);
+
+	/**
+	 * Stores the personal arrangement (order and collections) of the rooms overview.
+	 * The new arrangement is shown right away; if saving fails, the rooms are reloaded.
+	 */
+	const arrangeRooms = async (nodes: ArrangementNode[]) => {
+		const params = toArrangeRoomsParams(nodes);
+		const roomById = new Map(rooms.value.map((room) => [room.id, room]));
+		const arrangedRooms = params.items
+			.map(({ id, collectionId }) => {
+				const room = roomById.get(id);
+				return room ? { ...room, collectionId } : undefined;
+			})
+			.filter((room) => room !== undefined);
+		const arrangedIds = new Set(arrangedRooms.map((room) => room.id));
+
+		rooms.value = [...arrangedRooms, ...rooms.value.filter((room) => !arrangedIds.has(room.id))];
+		collections.value = params.collections;
+
+		const { success } = await execute(
+			() => roomApi.roomControllerArrangeRooms(params),
+			t("common.notifications.errors.notMoved", { type: t("common.labels.room") })
+		);
+		if (!success) {
+			await fetchRooms();
+		}
+	};
 
 	const deleteRoom = async (roomId: string) =>
 		await execute(
@@ -63,6 +93,7 @@ export const useRoomStore = defineStore("room-store", () => {
 
 	return {
 		rooms,
+		collections,
 		isLoading,
 		isEmpty,
 		fetchRooms,
@@ -70,6 +101,7 @@ export const useRoomStore = defineStore("room-store", () => {
 		createRoom,
 		copyRoom,
 		moveRoom,
+		arrangeRooms,
 		deleteRoom,
 		leaveRoom,
 	};

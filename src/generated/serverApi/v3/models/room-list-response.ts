@@ -13,6 +13,7 @@
  */
 
 
+import { RoomCollectionResponse } from './room-collection-response';
 import { RoomItemResponse } from './room-item-response';
 
 /**
@@ -27,6 +28,12 @@ export interface RoomListResponse {
      * @memberof RoomListResponse
      */
     data: Array<RoomItemResponse>;
+    /**
+     * Personal collections the rooms are grouped in
+     * @type {Array<RoomCollectionResponse>}
+     * @memberof RoomListResponse
+     */
+    collections: Array<RoomCollectionResponse>;
 }
 
 
