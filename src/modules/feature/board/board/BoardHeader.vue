@@ -63,6 +63,7 @@
 			</div>
 		</div>
 		<BoardProgressBar :board-id="boardId" :room-id="roomId" class="mb-2" />
+		<BoardCompletionButton :board-id="boardId" :room-id="roomId" class="mb-2" />
 		<VDivider v-if="isPageScrollMode && hasScrolledInPageMode" class="mx-n6" role="presentation" />
 	</div>
 </template>
@@ -83,6 +84,7 @@ import {
 	useSharedBoardPageInformation,
 } from "@data-board";
 import { useEnvConfig } from "@data-env";
+import { BoardCompletionButton } from "@feature-board-learning-path";
 import { BoardProgressBar } from "@feature-board-progress";
 import { BoardMenu, BoardMenuScope } from "@ui-board";
 import {

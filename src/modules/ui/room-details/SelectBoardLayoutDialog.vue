@@ -20,7 +20,12 @@
 import { PickerOption } from "./types";
 import { BoardLayout } from "@api-server";
 import { useEnvConfig } from "@data-env";
-import { mdiFolderMultipleOutline, mdiViewAgendaOutline, mdiViewDashboardOutline } from "@icons/material";
+import {
+	mdiFolderMultipleOutline,
+	mdiMapMarkerPath,
+	mdiViewAgendaOutline,
+	mdiViewDashboardOutline,
+} from "@icons/material";
 import { SvsDialog } from "@ui-dialog";
 import { ExtendedIconBtn } from "@ui-extended-icon-btn";
 import { computed, PropType } from "vue";
@@ -36,8 +41,8 @@ const props = defineProps({
 		type: String as PropType<BoardLayout>,
 		default: "",
 	},
-	// a file area can only be created (in a room), an existing board never turns into one
-	allowFileArea: {
+	// file areas and learning paths can only be created (in a room), an existing board never turns into one
+	allowRoomLayouts: {
 		type: Boolean,
 		default: false,
 	},
@@ -74,11 +79,24 @@ const fileAreaLayout: PickerOption = {
 	ariaLabel: t("pages.room.dialog.boardLayout.fileArea"),
 };
 
-const boardLayouts = computed<PickerOption[]>(() =>
-	props.allowFileArea && useEnvConfig().value.FEATURE_BOARD_FILE_AREA_ENABLED
-		? [...baseLayouts, fileAreaLayout]
-		: baseLayouts
-);
+const learningPathLayout: PickerOption = {
+	label: t("pages.room.dialog.boardLayout.learningPath"),
+	icon: mdiMapMarkerPath,
+	type: BoardLayout.LEARNING_PATH,
+	dataTestId: "dialog-add-learning-path-board",
+	ariaLabel: t("pages.room.dialog.boardLayout.learningPath"),
+};
+
+const boardLayouts = computed<PickerOption[]>(() => {
+	if (!props.allowRoomLayouts) return baseLayouts;
+
+	const config = useEnvConfig().value;
+	return [
+		...baseLayouts,
+		...(config.FEATURE_BOARD_FILE_AREA_ENABLED ? [fileAreaLayout] : []),
+		...(config.FEATURE_BOARD_LEARNING_PATH_ENABLED ? [learningPathLayout] : []),
+	];
+});
 </script>
 
 <style scoped>

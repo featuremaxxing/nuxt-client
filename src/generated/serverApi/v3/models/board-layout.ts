@@ -23,7 +23,8 @@ export enum BoardLayout {
     COLUMNS = 'columns',
     LIST = 'list',
     GRID = 'grid',
-    FILES = 'files'
+    FILES = 'files',
+    LEARNING_PATH = 'learningPath'
 }
 
 

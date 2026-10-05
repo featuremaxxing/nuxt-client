@@ -15,6 +15,7 @@
 
 import { BoardFeature } from './board-feature';
 import { BoardLayout } from './board-layout';
+import { LearningPathColor } from './learning-path-color';
 import { BoardResponseAllowedOperations } from './board-response-allowed-operations';
 import { ColumnResponse } from './column-response';
 import { TimestampsResponse } from './timestamps-response';
@@ -67,6 +68,12 @@ export interface BoardResponse {
      * @memberof BoardResponse
      */
     layout: BoardLayout;
+    /**
+     * 
+     * @type {LearningPathColor}
+     * @memberof BoardResponse
+     */
+    learningPathColor?: LearningPathColor;
     /**
      * 
      * @type {Array<BoardFeature>}
