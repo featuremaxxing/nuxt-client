@@ -1355,6 +1355,27 @@ export default {
 	"pages.dashboard.title": "Panel",
 	"pages.dashboard.features.title": "Nuevas funciones",
 	"pages.dashboard.features.intro": "Descubre nuevas formas de aprender y colaborar en los espacios.",
+	"pages.dashboard.features.fileArea.title": "Área de archivos",
+	"pages.dashboard.features.fileArea.description":
+		"Reúne archivos en un tablero propio con carpetas en vista de columnas. Mueve archivos entre carpetas, los cambios aparecen al instante para todos.",
+	"pages.dashboard.features.fileAreaLink.title": "Enlazar archivos",
+	"pages.dashboard.features.fileAreaLink.description":
+		"Enlaza archivos y carpetas de un área de archivos en tarjetas de otros tableros, con vista previa y salto directo al área de archivos.",
+	"pages.dashboard.features.readMore.title": "Salto «Más»",
+	"pages.dashboard.features.readMore.description":
+		"Acorta textos largos en las tarjetas: lo que queda tras el salto «Más» permanece plegado hasta que alguien siga leyendo.",
+	"pages.dashboard.features.progress.title": "Progreso",
+	"pages.dashboard.features.progress.description":
+		"Las casillas, las tareas y las encuestas muestran cuánto has avanzado por tablero y espacio. El profesorado ve el progreso de cada estudiante.",
+	"pages.dashboard.features.model3d.title": "Vista 3D",
+	"pages.dashboard.features.model3d.description":
+		"Los archivos STL y glTF aparecen como modelo 3D directamente en la tarjeta. Arrastra con el ratón para girar el modelo.",
+	"pages.dashboard.features.keyboard.title": "Control con el teclado",
+	"pages.dashboard.features.keyboard.description":
+		"En la vista de tarjeta, usa las flechas izquierda y derecha para ir a la tarjeta anterior o siguiente.",
+	"pages.dashboard.features.checkbox.title": "Casilla de verificación",
+	"pages.dashboard.features.checkbox.description":
+		"Añade tareas para marcar en las tarjetas. El alumnado las marca, el profesorado puede confirmarlas si se desea y en el espacio ves el progreso de la clase.",
 	"pages.dashboard.features.learningPath.title": "Ruta de aprendizaje",
 	"pages.dashboard.features.learningPath.description":
 		"Organiza los tableros de una sala en un lienzo libre y únelos con flechas. Los tableros pueden desbloquearse solo cuando se completan los anteriores. Con colores y rutas propias para distintos grupos.",

@@ -1329,6 +1329,27 @@ export default {
 	"pages.dashboard.title": "Dashboard",
 	"pages.dashboard.features.title": "New features",
 	"pages.dashboard.features.intro": "Discover new ways to learn and collaborate in rooms.",
+	"pages.dashboard.features.fileArea.title": "File area",
+	"pages.dashboard.features.fileArea.description":
+		"Collect files in a board of their own, with folders in a column view. Move files between folders, changes show up for everyone right away.",
+	"pages.dashboard.features.fileAreaLink.title": "Link files",
+	"pages.dashboard.features.fileAreaLink.description":
+		"Link files and folders of a file area on cards in other boards, with a preview and a direct jump to the file area.",
+	"pages.dashboard.features.readMore.title": "“More” break",
+	"pages.dashboard.features.readMore.description":
+		"Shorten long texts on cards: everything after the “More” break stays collapsed until someone reads on.",
+	"pages.dashboard.features.progress.title": "Progress",
+	"pages.dashboard.features.progress.description":
+		"Checkboxes, assignments and polls show how far you are per board and room. Teachers see the progress of every student.",
+	"pages.dashboard.features.model3d.title": "3D view",
+	"pages.dashboard.features.model3d.description":
+		"STL and glTF files appear as a 3D model right on the card. Drag with the mouse to rotate the model.",
+	"pages.dashboard.features.keyboard.title": "Keyboard control",
+	"pages.dashboard.features.keyboard.description":
+		"In the card view, use the left and right arrow keys to go to the previous or next card.",
+	"pages.dashboard.features.checkbox.title": "Checkbox",
+	"pages.dashboard.features.checkbox.description":
+		"Add tick-off tasks to cards. Students check them off, teachers can confirm on request, and the room shows the progress of the class.",
 	"pages.dashboard.features.learningPath.title": "Learning path",
 	"pages.dashboard.features.learningPath.description":
 		"Arrange the boards of a room on a free canvas and connect them with arrows. Boards can unlock only once the ones before are done. Colors and separate paths for different groups.",
