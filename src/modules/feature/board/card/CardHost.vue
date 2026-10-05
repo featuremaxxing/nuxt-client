@@ -28,6 +28,14 @@
 					<CardSkeleton :height />
 				</template>
 				<template v-if="card">
+					<PinnedCardHeader
+						v-if="pinned"
+						:origin-route="originRoute"
+						:origin-title="pinned.originTitle"
+						:progress-done="pinned.progressDone"
+						:progress-total="pinned.progressTotal"
+						:next-due-date="pinned.nextDueDate"
+					/>
 					<CardTitle
 						:is-edit-mode="isEditMode"
 						:value="card.title"
@@ -35,14 +43,39 @@
 						:is-focused="isFocusedById"
 						:focus-title-on-edit-start="focusTitleOnEditStart"
 						class="mx-n4 mb-n2"
-						:has-edit-permission="allowedOperations?.updateCardTitle"
+						:has-edit-permission="allowedOperations?.updateCardTitle && !isPinnedCopy"
 						@update:value="onUpdateCardTitle"
 						@enter="onEnter"
 					/>
 
 					<div v-if="!isDetailView" class="board-menu" :class="boardMenuClasses">
+						<PinCardButton v-if="showPinButton" class="mr-1" :is-pinned="isCardPinned" @toggle-pin="onTogglePin" />
 						<DetailViewButton class="mr-1" @open-detail-view="onOpenDetailView" />
-						<BoardMenu v-if="hasMenuItem" :scope="BoardMenuScope.CARD" has-background :data-testid="boardMenuTestId">
+						<BoardMenu v-if="isPinnedCopy" :scope="BoardMenuScope.CARD" has-background :data-testid="boardMenuTestId">
+							<KebabMenuAction
+								:icon="mdiArrowTopRight"
+								data-testid="kebab-menu-action-open-origin"
+								@click="onOpenOrigin"
+							>
+								{{ t("components.board.action.openOrigin") }}
+							</KebabMenuAction>
+							<KebabMenuAction
+								:icon="mdiNoteEditOutline"
+								data-testid="kebab-menu-action-edit-note"
+								@click="isEditingNote = true"
+							>
+								{{ note ? t("pages.learningRoom.note.edit") : t("pages.learningRoom.note.add") }}
+							</KebabMenuAction>
+							<KebabMenuAction :icon="mdiPinOffOutline" data-testid="kebab-menu-action-unpin-card" @click="onTogglePin">
+								{{ t("components.board.action.unpinCard") }}
+							</KebabMenuAction>
+						</BoardMenu>
+						<BoardMenu
+							v-else-if="hasMenuItem"
+							:scope="BoardMenuScope.CARD"
+							has-background
+							:data-testid="boardMenuTestId"
+						>
 							<KebabMenuActionAdd
 								v-if="allowedOperations?.createCard"
 								:text="t('components.board.action.addCard')"
@@ -85,6 +118,7 @@
 						/>
 						<CardAddElementMenu v-if="isEditMode" @add-element="onAddElement" />
 					</div>
+					<PinnedCardNote v-if="pinned" v-model:editing="isEditingNote" :note="note" @save="onSaveNote" />
 				</template>
 			</VCard>
 		</CardHostInteractionHandler>
@@ -98,23 +132,31 @@ import CardHostInteractionHandler from "./CardHostInteractionHandler.vue";
 import CardSkeleton from "./CardSkeleton.vue";
 import CardTitle from "./CardTitle.vue";
 import ContentElementList from "./ContentElementList.vue";
+import PinnedCardHeader from "./PinnedCardHeader.vue";
+import PinnedCardNote from "./PinnedCardNote.vue";
 import { useSafeTaskRunner } from "@/composables/async-tasks.composable";
+import { BoardContextType } from "@/types/board/BoardContext";
 import { ElementMove, verticalCursorKeys } from "@/types/board/DragAndDrop";
 import { colorToHexLighten3, colorToHexLighten5 } from "@/utils/color.utils";
 import { askDeletionForType } from "@/utils/confirmation-dialog.utils";
 import { delay } from "@/utils/helpers";
-import { Colors } from "@api-server";
+import { CardSkeletonResponse, Colors } from "@api-server";
 import {
 	useBoardAllowedOperations,
 	useBoardFocusHandler,
 	useBoardStore,
 	useCardStore,
 	useCourseBoardEditMode,
+	useSharedBoardPageInformation,
 } from "@data-board";
+import { useEnvConfig } from "@data-env";
+import { useLearningRoomApi, usePinnedCardsStore } from "@data-learning-room";
 import { withGlobalLoadingState } from "@feature-dialog";
-import { BoardMenu, BoardMenuScope, DetailViewButton } from "@ui-board";
+import { mdiArrowTopRight, mdiNoteEditOutline, mdiPinOffOutline } from "@icons/material";
+import { BoardMenu, BoardMenuScope, DetailViewButton, PinCardButton } from "@ui-board";
 import { SvsColorPickerMenu } from "@ui-controls";
 import {
+	KebabMenuAction,
 	KebabMenuActionAdd,
 	KebabMenuActionDelete,
 	KebabMenuActionDuplicate,
@@ -125,7 +167,7 @@ import {
 } from "@ui-kebab-menu";
 import { useShareBoardLink } from "@util-board";
 import { useDebounceFn, useElementHover, useElementSize } from "@vueuse/core";
-import { computed, onMounted, ref, toRef } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -135,6 +177,8 @@ type Props = {
 	rowIndex: number;
 	columnIndex: number;
 	focusTitleOnEditStart?: boolean;
+	/** set for cards pinned into the learning room - they live in another board */
+	pinned?: CardSkeletonResponse;
 	isKeyboardMoveDisabled?: boolean;
 };
 
@@ -156,6 +200,23 @@ const cardId = toRef(props, "cardId");
 const { isFocusContained, isFocusedById } = useBoardFocusHandler(cardId.value, cardHost);
 const { isEditMode, startEditMode, stopEditMode } = useCourseBoardEditMode(cardId.value);
 
+// personal learning room: the pin button sits on every card in every board, so
+// pinning is one click away instead of hidden in the kebab menu
+const envConfig = useEnvConfig();
+const isLearningRoomEnabled = computed(() => envConfig.value.FEATURE_PERSONAL_LEARNING_ROOM_ENABLED === true);
+const pinnedCardsStore = usePinnedCardsStore();
+const isCardPinned = computed(() => pinnedCardsStore.isPinned(props.cardId));
+
+const onTogglePin = async () => {
+	await pinnedCardsStore.togglePin(props.cardId);
+};
+
+// Own cards of the learning room already live there - pinning them would show
+// them twice. Pinned copies keep the button, it is how they are unpinned.
+const { contextType } = useSharedBoardPageInformation();
+const isPersonalBoard = computed(() => contextType.value === BoardContextType.USER);
+const showPinButton = computed(() => isLearningRoomEnabled.value && (!isPersonalBoard.value || isPinnedCopy.value));
+
 const isHovered = useElementHover(cardHost);
 const route = useRoute();
 const isDetailView = computed(() => route.params.cardId === props.cardId);
@@ -165,6 +226,53 @@ const router = useRouter();
 const boardStore = useBoardStore();
 
 const card = computed(() => cardStore.getCard(cardId.value));
+
+// A pinned copy is edited where it lives: the learning room grants its owner
+// every board right, but those rights do not reach into the original board -
+// deleting or moving from here would act on the course board of the whole
+// class. So the card stays read-only here and links back to its original.
+const isPinnedCopy = computed(() => props.pinned !== undefined);
+
+const originRoute = computed(() =>
+	props.pinned?.originBoardId
+		? {
+				name: "boards-id",
+				params: { id: props.pinned.originBoardId },
+				hash: `#${getShareLinkId(props.cardId, BoardMenuScope.CARD)}`,
+			}
+		: undefined
+);
+
+// the owner's private note - kept locally so saving shows at once, without
+// waiting for the board to reload
+const note = ref<string>();
+watch(
+	() => props.pinned?.note,
+	(value) => {
+		note.value = value;
+	},
+	{ immediate: true }
+);
+const isEditingNote = ref(false);
+const { updatePinnedCardNote } = useLearningRoomApi();
+
+const onSaveNote = async (value: string) => {
+	const pinnedCardId = props.pinned?.pinnedCardId;
+	if (!pinnedCardId) return;
+
+	const previous = note.value;
+	note.value = value === "" ? undefined : value;
+	const succeeded = await updatePinnedCardNote(pinnedCardId, value);
+	if (!succeeded) {
+		note.value = previous;
+	}
+};
+
+const onOpenOrigin = async () => {
+	if (originRoute.value) {
+		await router.push(originRoute.value);
+	}
+};
 const isLoadingCard = computed(() => card.value === undefined);
 
 const hasCardTitle = computed(() => card.value?.title);
@@ -233,7 +341,10 @@ const onAddElement = () => askType();
 
 const onDeleteElement = (elementId: string) => cardStore.deleteElementRequest({ cardId: cardId.value, elementId });
 
-const onStartEditMode = () => startEditMode();
+const onStartEditMode = () => {
+	if (isPinnedCopy.value) return;
+	startEditMode();
+};
 
 const onEndEditMode = async () => {
 	stopEditMode();
@@ -296,6 +407,10 @@ const onOpenDetailView = () => {
 };
 
 onMounted(async () => {
+	if (isLearningRoomEnabled.value) {
+		// shared promise inside the store, so this is one request per board, not per card
+		void pinnedCardsStore.ensureLoaded();
+	}
 	if (card.value === undefined) {
 		await cardStore.fetchCardRequest({ cardIds: [cardId.value] });
 	}
