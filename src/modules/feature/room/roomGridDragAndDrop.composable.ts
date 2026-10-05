@@ -179,8 +179,9 @@ export const useRoomGridDragAndDrop = (options: {
 		if (result) options.onDrop(result);
 	};
 
-	const sortableOptions = (put: Sortable.GroupOptions["put"]) =>
+	const sortableOptions = (put: Sortable.GroupOptions["put"], sort = true) =>
 		getSortableOptions({
+			sort,
 			draggable: TILE_SELECTOR,
 			filter: ".no-drag",
 			preventOnFilter: false,
@@ -209,11 +210,12 @@ export const useRoomGridDragAndDrop = (options: {
 		options.panelRef,
 		(el) => {
 			panelSortable?.destroy();
-			// collections stay flat: only rooms can be put into the open collection
+			// collections stay flat: only rooms can be put into the open collection.
+			// Rooms inside are listed alphabetically, so there is nothing to sort.
 			panelSortable = el
 				? Sortable.create(
 						el,
-						sortableOptions((_to, _from, dragEl) => (dragEl as HTMLElement).dataset.entryType === "room")
+						sortableOptions((_to, _from, dragEl) => (dragEl as HTMLElement).dataset.entryType === "room", false)
 					)
 				: undefined;
 		},

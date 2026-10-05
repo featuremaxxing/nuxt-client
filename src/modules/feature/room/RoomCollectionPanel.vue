@@ -29,7 +29,7 @@
 			</div>
 		</div>
 		<p class="text-medium-emphasis my-2">{{ t("pages.rooms.collections.hint") }}</p>
-		<div ref="container" class="room-collection-panel-grid" role="application">
+		<div ref="container" class="room-collection-panel-grid">
 			<slot />
 		</div>
 	</section>

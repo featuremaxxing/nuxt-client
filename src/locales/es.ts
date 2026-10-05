@@ -2347,8 +2347,7 @@ export default {
 	"pages.rooms.collections.dissolved": "Colección «{title}» desagrupada",
 	"pages.rooms.collections.drop.add": "Añadir a «{title}»",
 	"pages.rooms.collections.drop.create": "Suelta para crear una colección",
-	"pages.rooms.collections.hint":
-		"Arrastra una sala a la cuadrícula para sacarla de la colección. Aquí se puede cambiar el orden.",
+	"pages.rooms.collections.hint": "Arrastra una sala a la cuadrícula para sacarla de la colección.",
 	"pages.rooms.collections.menu.addTo": "Añadir a «{title}»",
 	"pages.rooms.collections.menu.ariaLabel": "Colecciones para {name}",
 	"pages.rooms.collections.menu.create": "Nueva colección con esta sala",

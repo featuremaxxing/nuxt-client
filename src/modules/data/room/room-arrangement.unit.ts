@@ -8,7 +8,6 @@ import {
 	createCollectionWithRoom,
 	dissolveCollection,
 	moveNode,
-	moveRoomInCollection,
 	normalizeArrangement,
 	renameCollection,
 	suggestCollectionTitle,
@@ -57,6 +56,16 @@ describe("room-arrangement", () => {
 				{ type: "room", room: a },
 				{ type: "collection", collection: mathe, rooms: [b] },
 			]);
+		});
+	});
+
+	describe("buildRoomGridEntries sorting", () => {
+		it("should list the rooms of a collection alphabetically", () => {
+			const rooms = ["Raum 10", "raum 2", "Biologie"].map((name, i) => roomItemFactory.build({ id: `r${i}`, name }));
+
+			const [entry] = buildRoomGridEntries([collection("c1", ["r0", "r1", "r2"])], rooms);
+
+			expect(entry.type === "collection" && entry.rooms.map((r) => r.name)).toEqual(["Biologie", "raum 2", "Raum 10"]);
 		});
 	});
 
@@ -174,10 +183,6 @@ describe("room-arrangement", () => {
 
 		it("moveNode should move an entry of the top level", () => {
 			expect(moveNode(nodes, 0, 2)).toEqual([collection("c1", ["b", "c"]), room("d"), room("a")]);
-		});
-
-		it("moveRoomInCollection should reorder the rooms of a collection", () => {
-			expect(moveRoomInCollection(nodes, "c1", 1, 0)[1]).toEqual(collection("c1", ["c", "b"]));
 		});
 	});
 

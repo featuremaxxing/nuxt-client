@@ -2341,8 +2341,7 @@ export default {
 	"pages.rooms.collections.dissolved": "Sammlung „{title}“ aufgelöst",
 	"pages.rooms.collections.drop.add": "Zu „{title}“ hinzufügen",
 	"pages.rooms.collections.drop.create": "Loslassen: Sammlung bilden",
-	"pages.rooms.collections.hint":
-		"Einen Raum ins Raster ziehen, um ihn aus der Sammlung zu nehmen. Hier drin lässt sich die Reihenfolge ändern.",
+	"pages.rooms.collections.hint": "Einen Raum ins Raster ziehen, um ihn aus der Sammlung zu nehmen.",
 	"pages.rooms.collections.menu.addTo": "Zu „{title}“ hinzufügen",
 	"pages.rooms.collections.menu.ariaLabel": "Sammlungen für {name}",
 	"pages.rooms.collections.menu.create": "Neue Sammlung mit diesem Raum",

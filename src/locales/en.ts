@@ -2298,8 +2298,7 @@ export default {
 	"pages.rooms.collections.dissolved": "Collection “{title}” ungrouped",
 	"pages.rooms.collections.drop.add": "Add to “{title}”",
 	"pages.rooms.collections.drop.create": "Release to create a collection",
-	"pages.rooms.collections.hint":
-		"Drag a room into the grid to take it out of the collection. Rooms can be reordered in here.",
+	"pages.rooms.collections.hint": "Drag a room into the grid to take it out of the collection.",
 	"pages.rooms.collections.menu.addTo": "Add to “{title}”",
 	"pages.rooms.collections.menu.ariaLabel": "Collections for {name}",
 	"pages.rooms.collections.menu.create": "New collection with this room",

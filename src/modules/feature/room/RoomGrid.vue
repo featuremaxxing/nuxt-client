@@ -75,7 +75,6 @@
 							@contextmenu.prevent
 							@click.capture="onItemClick"
 							@focusin="rememberFocus"
-							@keydown.up.down.left.right="onArrowKeyDownInCollection($event, entry.collection.id, roomIndex)"
 						>
 							<template #menu>
 								<RoomCollectionMenu
@@ -121,7 +120,6 @@ import {
 	createCollectionWithRoom,
 	dissolveCollection,
 	moveNode,
-	moveRoomInCollection,
 	normalizeArrangement,
 	renameCollection,
 	RoomCollection,
@@ -131,6 +129,7 @@ import {
 	useRoomStore,
 } from "@data-room";
 import { getGridContainerColumnsCount } from "@util-browser";
+import { useEventListener } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, PropType, reactive, ref, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -276,18 +275,33 @@ const onItemClick = (evt: Event) => {
 
 // ---------- actions without dragging ----------
 
-const toggleCollection = (collectionId: string) => {
-	if (isDragging.value) return;
-	const wasOpen = openCollectionId.value === collectionId;
-	openCollectionId.value = wasOpen ? undefined : collectionId;
+const openCollection = (collectionId: string | undefined) => {
+	const previousId = openCollectionId.value;
+	openCollectionId.value = collectionId;
 	focusTitleOfCollectionId.value = undefined;
 
 	// a collection with a single room dissolves once it is closed
-	const node = arrangement.value.find((n) => n.id === collectionId);
-	if (wasOpen && node?.type === "collection" && node.roomIds.length < 2) {
+	const previous = arrangement.value.find((n) => n.id === previousId);
+	if (previousId !== collectionId && previous?.type === "collection" && previous.roomIds.length < 2) {
 		save(arrangement.value);
 	}
 };
+
+const toggleCollection = (collectionId: string) => {
+	if (isDragging.value) return;
+	openCollection(openCollectionId.value === collectionId ? undefined : collectionId);
+};
+
+// clicking anywhere else closes the open collection; menus and the snackbar live in overlays
+useEventListener(document, "click", (event: MouseEvent) => {
+	if (!openCollectionId.value || isDragging.value) return;
+	const target = event.target as Element | null;
+	if (!target?.isConnected) return;
+	const isInside = target.closest(
+		`.room-collection-panel, .v-overlay-container, [data-entry-id="${openCollectionId.value}"]`
+	);
+	if (!isInside) openCollection(undefined);
+});
 
 const addToCollection = (room: RoomItem, collectionId: string) => {
 	const collection = collections.value.find((c) => c.id === collectionId);
@@ -331,15 +345,15 @@ const restoreFocus = async () => {
 	focusedElement.value?.focus();
 };
 
-const targetIndex = (e: KeyboardEvent, index: number, count: number, container?: HTMLElement | null) => {
-	const cols = getGridContainerColumnsCount(container ?? undefined);
+const targetIndex = (e: KeyboardEvent, index: number, count: number) => {
+	const cols = getGridContainerColumnsCount(gridRef.value);
 	const step = { ArrowUp: -cols, ArrowDown: cols, ArrowLeft: -1, ArrowRight: 1 }[e.key] ?? 0;
 	return Math.min(count - 1, Math.max(0, index + step));
 };
 
 const onArrowKeyDown = async (e: KeyboardEvent, index: number) => {
 	if ((e.target as HTMLElement).closest(".no-drag")) return;
-	const newIndex = targetIndex(e, index, arrangement.value.length, gridRef.value);
+	const newIndex = targetIndex(e, index, arrangement.value.length);
 	if (newIndex === index) return;
 
 	const entry = entries.value[index];
@@ -347,23 +361,6 @@ const onArrowKeyDown = async (e: KeyboardEvent, index: number) => {
 	notifyOnScreenReader(
 		t("common.actions.moved", {
 			elementName: entry.type === "room" ? entry.room.name : collectionTitle(entry.collection),
-			position: newIndex + 1,
-		})
-	);
-	await restoreFocus();
-};
-
-const onArrowKeyDownInCollection = async (e: KeyboardEvent, collectionId: string, index: number) => {
-	if ((e.target as HTMLElement).closest(".no-drag")) return;
-	const node = arrangement.value.find((n) => n.id === collectionId);
-	if (node?.type !== "collection") return;
-	const newIndex = targetIndex(e, index, node.roomIds.length, panelRef.value);
-	if (newIndex === index) return;
-
-	await save(moveRoomInCollection(arrangement.value, collectionId, index, newIndex));
-	notifyOnScreenReader(
-		t("common.actions.moved", {
-			elementName: roomById.value.get(node.roomIds[index])?.name ?? "",
 			position: newIndex + 1,
 		})
 	);

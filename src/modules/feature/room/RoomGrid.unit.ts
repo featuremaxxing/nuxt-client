@@ -8,9 +8,9 @@ import { roomItemFactory } from "@@/tests/test-utils";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { ArrangementNode, useRoomStore } from "@data-room";
 import { createTestingPinia } from "@pinia/testing";
-import { flushPromises, mount } from "@vue/test-utils";
+import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
 import { setActivePinia } from "pinia";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 
 const drag = vi.hoisted(() => ({
@@ -39,6 +39,8 @@ const RoomGridItemStub = defineComponent({
 const room = (id: string): ArrangementNode => ({ type: "room", id });
 
 describe("@feature-room/RoomGrid", () => {
+	enableAutoUnmount(afterEach);
+
 	beforeEach(() => {
 		setActivePinia(createTestingPinia({ stubActions: true }));
 	});
@@ -53,6 +55,7 @@ describe("@feature-room/RoomGrid", () => {
 		store.collections = options.grouped ? [collection] : [];
 
 		const wrapper = mount(RoomGrid, {
+			attachTo: document.body,
 			global: {
 				plugins: [createTestingVuetify(), createTestingI18n()],
 				stubs: { RoomGridItem: RoomGridItemStub, RoomCollectionGridItem: true, KebabMenu: true },
@@ -97,6 +100,28 @@ describe("@feature-room/RoomGrid", () => {
 			await stack.vm.$emit("toggle");
 
 			expect(wrapper.findComponent(RoomCollectionPanel).exists()).toBe(false);
+		});
+	});
+
+	describe("when clicking outside of an open collection", () => {
+		it("should close it", async () => {
+			const { wrapper } = setup({ grouped: 2 });
+			await wrapper.findComponent(RoomCollectionGridItem).vm.$emit("toggle");
+
+			document.body.click();
+			await flushPromises();
+
+			expect(wrapper.findComponent(RoomCollectionPanel).exists()).toBe(false);
+		});
+
+		it("should keep it open for clicks inside", async () => {
+			const { wrapper } = setup({ grouped: 2 });
+			await wrapper.findComponent(RoomCollectionGridItem).vm.$emit("toggle");
+
+			(wrapper.findComponent(RoomCollectionPanel).element as HTMLElement).click();
+			await flushPromises();
+
+			expect(wrapper.findComponent(RoomCollectionPanel).exists()).toBe(true);
 		});
 	});
 

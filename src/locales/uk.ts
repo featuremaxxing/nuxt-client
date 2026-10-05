@@ -2315,7 +2315,7 @@ export default {
 	"pages.rooms.collections.dissolved": "Збірку «{title}» розгруповано",
 	"pages.rooms.collections.drop.add": "Додати до «{title}»",
 	"pages.rooms.collections.drop.create": "Відпустіть, щоб створити збірку",
-	"pages.rooms.collections.hint": "Перетягніть кімнату в сітку, щоб вилучити її зі збірки. Тут можна змінити порядок.",
+	"pages.rooms.collections.hint": "Перетягніть кімнату в сітку, щоб вилучити її зі збірки.",
 	"pages.rooms.collections.menu.addTo": "Додати до «{title}»",
 	"pages.rooms.collections.menu.ariaLabel": "Збірки для {name}",
 	"pages.rooms.collections.menu.create": "Нова збірка з цією кімнатою",

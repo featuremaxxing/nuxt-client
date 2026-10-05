@@ -40,6 +40,10 @@ export const buildArrangement = (rooms: RoomItem[], collections: RoomCollection[
 	return nodes;
 };
 
+/** Rooms inside a collection are always listed alphabetically, "Raum 2" before "Raum 10". */
+const byRoomName = (a: RoomItem, b: RoomItem) =>
+	a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+
 export const buildRoomGridEntries = (nodes: ArrangementNode[], rooms: RoomItem[]): RoomGridEntry[] => {
 	const roomById = new Map(rooms.map((room) => [room.id, room]));
 	const entries: RoomGridEntry[] = [];
@@ -50,7 +54,10 @@ export const buildRoomGridEntries = (nodes: ArrangementNode[], rooms: RoomItem[]
 			if (room) entries.push({ type: "room", room });
 			continue;
 		}
-		const collectionRooms = node.roomIds.map((id) => roomById.get(id)).filter((room) => room !== undefined);
+		const collectionRooms = node.roomIds
+			.map((id) => roomById.get(id))
+			.filter((room) => room !== undefined)
+			.sort(byRoomName);
 		if (collectionRooms.length > 0) {
 			entries.push({ type: "collection", collection: { id: node.id, title: node.title }, rooms: collectionRooms });
 		}
@@ -101,7 +108,7 @@ export const normalizeArrangement = (nodes: ArrangementNode[], keepCollectionId?
 
 /**
  * Applies the order the user produced by dragging. `mainOrder` is the top level as rendered in the grid,
- * `panelRoomIds` the room order of the open collection.
+ * `panelRoomIds` the rooms rendered in the open collection.
  */
 export const applyDraggedOrder = (
 	nodes: ArrangementNode[],
@@ -189,20 +196,6 @@ export const moveNode = (nodes: ArrangementNode[], fromIndex: number, toIndex: n
 	result.splice(toIndex, 0, node);
 	return result;
 };
-
-export const moveRoomInCollection = (
-	nodes: ArrangementNode[],
-	collectionId: string,
-	fromIndex: number,
-	toIndex: number
-): ArrangementNode[] =>
-	nodes.map((node) => {
-		if (node.type !== "collection" || node.id !== collectionId) return node;
-		const roomIds = [...node.roomIds];
-		const [roomId] = roomIds.splice(fromIndex, 1);
-		roomIds.splice(toIndex, 0, roomId);
-		return { ...node, roomIds };
-	});
 
 /** Suggests a title from the words two room names start with, e.g. "Mathe 7a" + "Mathe 7b" → "Mathe". */
 export const suggestCollectionTitle = (nameA: string, nameB: string, fallback: string): string => {
