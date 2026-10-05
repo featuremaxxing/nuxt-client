@@ -1,6 +1,17 @@
 <template>
 	<!-- keyed by board: switching between boards (e.g. from a link on a card) starts each view afresh -->
-	<FileAreaBoard v-if="fileAreaBoard" :key="boardId" :board-id="boardId" :board="fileAreaBoard" />
+	<FileAreaBoard
+		v-if="specialBoard?.layout === BoardLayout.FILES"
+		:key="boardId"
+		:board-id="boardId"
+		:board="specialBoard"
+	/>
+	<LearningPathBoard
+		v-else-if="specialBoard?.layout === BoardLayout.LEARNING_PATH"
+		:key="boardId"
+		:board-id="boardId"
+		:board="specialBoard"
+	/>
 	<Board v-else-if="isResolved" :key="boardId" :board-id="boardId" />
 </template>
 
@@ -10,6 +21,7 @@ import { useBoardApi, useSharedBoardPageInformation } from "@data-board";
 import { useEnvConfig } from "@data-env";
 import { Board } from "@feature-board";
 import { FileAreaBoard } from "@feature-board-file-area";
+import { LearningPathBoard } from "@feature-board-learning-path";
 import { useTitle } from "@vueuse/core";
 import { ref, watch } from "vue";
 
@@ -25,15 +37,18 @@ const { fetchBoardCall } = useBoardApi();
 
 useTitle(pageTitle);
 
-const fileAreaBoard = ref<BoardResponse>();
+const specialBoard = ref<BoardResponse>();
 const isResolved = ref(false);
 
-// Only file areas are looked up up front, they have their own view. Every other board is
-// loaded by the board itself. The page stays mounted when the route switches to another
-// board, so this runs for every board id.
+const SPECIAL_LAYOUTS: BoardLayout[] = [BoardLayout.FILES, BoardLayout.LEARNING_PATH];
+
+// Only file areas and learning paths are looked up up front, they have their own views. Every
+// other board is loaded by the board itself. The page stays mounted when the route switches to
+// another board, so this runs for every board id.
 const resolveBoard = async (boardId: string) => {
-	fileAreaBoard.value = undefined;
-	if (!useEnvConfig().value.FEATURE_BOARD_FILE_AREA_ENABLED) {
+	specialBoard.value = undefined;
+	const config = useEnvConfig().value;
+	if (!config.FEATURE_BOARD_FILE_AREA_ENABLED && !config.FEATURE_BOARD_LEARNING_PATH_ENABLED) {
 		isResolved.value = true;
 		return;
 	}
@@ -43,7 +58,7 @@ const resolveBoard = async (boardId: string) => {
 		const board = await fetchBoardCall(boardId);
 		// a later navigation may have overtaken this request
 		if (boardId !== props.boardId) return;
-		if (board.layout === BoardLayout.FILES) fileAreaBoard.value = board;
+		if (SPECIAL_LAYOUTS.includes(board.layout)) specialBoard.value = board;
 	} catch {
 		// the board reports the problem (missing rights, unknown board) itself
 	} finally {

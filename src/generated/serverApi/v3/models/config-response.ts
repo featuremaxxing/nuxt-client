@@ -246,6 +246,12 @@ export interface ConfigResponse {
      * @type {boolean}
      * @memberof ConfigResponse
      */
+    FEATURE_BOARD_LEARNING_PATH_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
     FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: boolean;
     /**
      * 

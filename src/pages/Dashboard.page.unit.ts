@@ -92,6 +92,21 @@ describe("DashboardPage", () => {
 		expect(featureSection.text()).toContain("pages.dashboard.features.learningRoom.title");
 	});
 
+	describe("learning path feature", () => {
+		it.each([
+			[true, true],
+			[false, false],
+		])("with FEATURE_BOARD_LEARNING_PATH_ENABLED=%s it should be listed: %s", async (enabled, expected) => {
+			createTestEnvStore({ FEATURE_BOARD_LEARNING_PATH_ENABLED: enabled });
+			const { wrapper } = setup();
+			await flushPromises();
+
+			const titles = wrapper.findAll("[data-testid='new-features'] .v-card-title").map((title) => title.text());
+			expect(titles.includes("pages.dashboard.features.learningPath.title")).toBe(expected);
+			if (expected) expect(titles[0]).toBe("pages.dashboard.features.learningPath.title");
+		});
+	});
+
 	describe("network drive feature", () => {
 		it.each([
 			[RoleName.TEACHER, true, true],
