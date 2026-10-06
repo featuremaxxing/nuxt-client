@@ -87,6 +87,7 @@
 					@connect="onConnect"
 					@drop-board="addStep"
 					@drop-card="onDropCard"
+					@disconnect="disconnect"
 				/>
 				<LearningPathStepPanel
 					v-if="isEditor && selectedStep"

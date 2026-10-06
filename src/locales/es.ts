@@ -2574,6 +2574,7 @@ export default {
 	"components.board.completion.markDone": "Marcar como hecho",
 	"pages.learningPath.addBoard": "Añadir «{title}» a la ruta de aprendizaje",
 	"pages.learningPath.allAdded": "Todas las áreas de la sala están en la ruta de aprendizaje.",
+	"pages.learningPath.edge.remove": "Eliminar conexión",
 	"pages.learningPath.links.label": "Pegar un enlace a una tarjeta o área",
 	"pages.learningPath.links.hint": "«Copiar enlace» en una tarjeta; también funcionan varios enlaces a la vez.",
 	"pages.learningPath.links.add": "Añadir a la ruta de aprendizaje",

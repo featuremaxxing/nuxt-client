@@ -4,7 +4,9 @@
 		class="lp-canvas"
 		:class="{ 'lp-canvas--panning': interaction?.kind === 'pan', 'lp-canvas--drop': isDropTarget }"
 		data-testid="learning-path-canvas"
+		tabindex="-1"
 		@pointerdown="onBackgroundPointerDown"
+		@keydown="onCanvasKeydown"
 		@wheel="onWheel"
 		@dragover="onDragOver"
 		@dragleave="isDropTarget = false"
@@ -30,10 +32,25 @@
 					:key="edge.key"
 					:d="edge.d"
 					class="lp-canvas__edge"
-					:class="{ 'lp-canvas__edge--active': edge.isActive, 'lp-canvas__edge--locked': edge.isLocked }"
+					:class="{
+						'lp-canvas__edge--active': edge.isActive,
+						'lp-canvas__edge--locked': edge.isLocked,
+						'lp-canvas__edge--selected': edge.key === selectedEdgeKey,
+					}"
 					:marker-end="`url(#${markerId})`"
 					data-testid="learning-path-edge"
 				/>
+				<!-- editors click an arrow on a wider, invisible line to select it -->
+				<template v-if="isEditor">
+					<path
+						v-for="edge in edgePaths"
+						:key="`hit-${edge.key}`"
+						:d="edge.d"
+						class="lp-canvas__edge-hit"
+						:data-testid="`learning-path-edge-hit-${edge.key}`"
+						@pointerdown.stop="onEdgePointerDown($event, edge.key)"
+					/>
+				</template>
 				<path
 					v-if="draftEdge"
 					:d="draftEdge"
@@ -41,6 +58,18 @@
 					:marker-end="`url(#${markerId})`"
 				/>
 			</svg>
+			<VBtn
+				v-if="selectedEdge"
+				:icon="mdiClose"
+				size="x-small"
+				color="error"
+				class="lp-canvas__edge-remove"
+				:style="{ left: `${selectedEdge.middle.x}px`, top: `${selectedEdge.middle.y}px` }"
+				:aria-label="t('pages.learningPath.edge.remove')"
+				data-testid="learning-path-edge-remove"
+				@pointerdown.stop
+				@click="removeSelectedEdge"
+			/>
 			<LearningPathTile
 				v-for="step in steps"
 				:key="step.id"
@@ -93,13 +122,14 @@ import {
 	CARD_DRAG_TYPE,
 	curveBetween,
 	edgeBetween,
+	edgeMiddle,
 	type Side,
 	TILE_HEIGHT,
 	TILE_WIDTH,
 } from "./canvas";
 import LearningPathTile from "./LearningPathTile.vue";
 import { edgesOf, type LearningPathStep } from "@data-board-learning-path";
-import { mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
+import { mdiClose, mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
 import { computed, onBeforeUnmount, PropType, ref, useId } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -123,6 +153,7 @@ const emit = defineEmits<{
 	(e: "open", step: LearningPathStep): void;
 	(e: "move", stepId: string, positionX: number, positionY: number): void;
 	(e: "connect", fromId: string, toId: string): void;
+	(e: "disconnect", fromId: string, toId: string): void;
 	(e: "drop-board", boardId: string, positionX: number, positionY: number): void;
 	(e: "drop-card", boardId: string, cardId: string, positionX: number, positionY: number): void;
 }>();
@@ -162,14 +193,46 @@ const edgePaths = computed(() => {
 
 	return edgesOf(props.steps).map(({ fromId, toId }) => {
 		const to = byId.get(toId) as LearningPathStep;
+		const from = positionOf(byId.get(fromId) as LearningPathStep);
 		return {
 			key: `${fromId}-${toId}`,
-			d: edgeBetween(positionOf(byId.get(fromId) as LearningPathStep), positionOf(to)),
+			fromId,
+			toId,
+			d: edgeBetween(from, positionOf(to)),
+			middle: edgeMiddle(from, positionOf(to)),
 			isActive: props.selectedStepId === toId || props.selectedStepId === fromId,
 			isLocked: !props.isEditor && to.status === "locked",
 		};
 	});
 });
+
+// an arrow selected by an editor, to remove it
+const selectedEdgeKey = ref<string>();
+const selectedEdge = computed(() => edgePaths.value.find((edge) => edge.key === selectedEdgeKey.value));
+
+const onEdgePointerDown = (event: PointerEvent, key: string) => {
+	if (event.button !== 0) return;
+	selectedEdgeKey.value = key;
+	// for the delete key
+	viewport.value?.focus({ preventScroll: true });
+};
+
+const removeSelectedEdge = () => {
+	const edge = selectedEdge.value;
+	if (!edge) return;
+	selectedEdgeKey.value = undefined;
+	emit("disconnect", edge.fromId, edge.toId);
+};
+
+const onCanvasKeydown = (event: KeyboardEvent) => {
+	if (!selectedEdge.value) return;
+	if (event.key === "Delete" || event.key === "Backspace") {
+		event.preventDefault();
+		removeSelectedEdge();
+	} else if (event.key === "Escape") {
+		selectedEdgeKey.value = undefined;
+	}
+};
 
 const draftEdge = computed(() => {
 	const current = interaction.value;
@@ -267,11 +330,17 @@ const onPointerUp = (event: PointerEvent) => {
 	const current = interaction.value;
 	if (current?.kind === "pan") {
 		const moved = Math.hypot(event.clientX - current.startX, event.clientY - current.startY) >= CLICK_TOLERANCE;
-		if (!moved) emit("select", undefined);
+		if (!moved) {
+			selectedEdgeKey.value = undefined;
+			emit("select", undefined);
+		}
 	} else if (current?.kind === "drag") {
 		// an editor's click on a tile is a drag that did not move: it opens the settings
 		if (current.moved) emit("move", current.step.id, current.x, current.y);
-		else emit("select", current.step.id);
+		else {
+			selectedEdgeKey.value = undefined;
+			emit("select", current.step.id);
+		}
 	} else if (current?.kind === "connect") {
 		const { x, y } = toCanvas(event.clientX, event.clientY);
 		const target = stepAt(x, y);
@@ -455,5 +524,29 @@ defineExpose({ fitView, freePosition });
 	background: rgb(var(--v-theme-surface));
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 	cursor: default;
+}
+
+/* the wide, invisible line an editor clicks to select an arrow */
+.lp-canvas__edge-hit {
+	fill: none;
+	stroke: transparent;
+	stroke-width: 16;
+	pointer-events: stroke;
+	cursor: pointer;
+}
+
+.lp-canvas__edge--selected {
+	stroke: rgb(var(--v-theme-error));
+	stroke-width: 3;
+}
+
+.lp-canvas__edge-remove {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	z-index: 2;
+}
+
+.lp-canvas:focus {
+	outline: none;
 }
 </style>

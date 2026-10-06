@@ -2538,6 +2538,7 @@ export default {
 	"components.board.completion.markDone": "Позначити як виконане",
 	"pages.learningPath.addBoard": "Додати «{title}» до навчального шляху",
 	"pages.learningPath.allAdded": "Усі розділи кімнати вже є в навчальному шляху.",
+	"pages.learningPath.edge.remove": "Видалити зв’язок",
 	"pages.learningPath.links.label": "Вставте посилання на картку або розділ",
 	"pages.learningPath.links.hint": "«Копіювати посилання» на картці; можна кілька посилань одразу.",
 	"pages.learningPath.links.add": "Додати до навчального шляху",

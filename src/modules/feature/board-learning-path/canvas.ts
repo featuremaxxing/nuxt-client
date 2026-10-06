@@ -44,16 +44,31 @@ export const sidesBetween = (from: Point, to: Point): [Side, Side] => {
 };
 
 // a smooth curve that leaves the start side straight out and enters the end side straight in
-export const curveBetween = (start: Point, startSide: Side, end: Point, endSide?: Side): string => {
+const controlPoints = (start: Point, startSide: Side, end: Point, endSide?: Side): [Point, Point] => {
 	const bend = Math.max(40, Math.hypot(end.x - start.x, end.y - start.y) / 3);
 	const out = NORMAL[startSide];
 	const into = endSide ? NORMAL[endSide] : { x: 0, y: 0 };
-	const c1 = { x: start.x + out.x * bend, y: start.y + out.y * bend };
-	const c2 = { x: end.x + into.x * bend, y: end.y + into.y * bend };
+	return [
+		{ x: start.x + out.x * bend, y: start.y + out.y * bend },
+		{ x: end.x + into.x * bend, y: end.y + into.y * bend },
+	];
+};
+
+export const curveBetween = (start: Point, startSide: Side, end: Point, endSide?: Side): string => {
+	const [c1, c2] = controlPoints(start, startSide, end, endSide);
 	return `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
 };
 
 export const edgeBetween = (from: Point, to: Point): string => {
 	const [startSide, endSide] = sidesBetween(from, to);
 	return curveBetween(anchorOf(from, startSide), startSide, anchorOf(to, endSide), endSide);
+};
+
+// the middle of the arrow between two tiles (the curve at t = 0.5), e.g. for a button on it
+export const edgeMiddle = (from: Point, to: Point): Point => {
+	const [startSide, endSide] = sidesBetween(from, to);
+	const start = anchorOf(from, startSide);
+	const end = anchorOf(to, endSide);
+	const [c1, c2] = controlPoints(start, startSide, end, endSide);
+	return { x: (start.x + 3 * c1.x + 3 * c2.x + end.x) / 8, y: (start.y + 3 * c1.y + 3 * c2.y + end.y) / 8 };
 };

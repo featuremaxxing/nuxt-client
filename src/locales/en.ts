@@ -2516,6 +2516,7 @@ export default {
 	"components.board.completion.markDone": "Mark as done",
 	"pages.learningPath.addBoard": "Add “{title}” to the learning path",
 	"pages.learningPath.allAdded": "All boards of the room are part of the learning path.",
+	"pages.learningPath.edge.remove": "Remove connection",
 	"pages.learningPath.links.label": "Paste a link to a card or board",
 	"pages.learningPath.links.hint": "“Copy link” on a card; several links at once work too.",
 	"pages.learningPath.links.add": "Add to the learning path",
