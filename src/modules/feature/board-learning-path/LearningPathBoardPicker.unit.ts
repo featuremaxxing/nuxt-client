@@ -3,7 +3,8 @@ import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/set
 import { flushPromises, mount } from "@vue/test-utils";
 
 const fetchPickableCards = vi.fn();
-vi.mock("@data-board-learning-path", () => ({
+vi.mock("@data-board-learning-path", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@data-board-learning-path")>()),
 	fetchPickableCards: (...args: unknown[]) => fetchPickableCards(...args),
 }));
 
@@ -78,5 +79,49 @@ describe("LearningPathBoardPicker", () => {
 		await toggle.trigger("click");
 
 		expect(wrapper.find("[data-testid=learning-path-picker-card-card-k]").exists()).toBe(false);
+	});
+
+	it("should name an untitled column by its number", async () => {
+		fetchPickableCards.mockResolvedValue([
+			{ id: "col-1", title: "", cards: [] },
+			{ id: "col-2", title: "", cards: [{ id: "card-k", title: "K" }] },
+		]);
+		const wrapper = setup();
+
+		await wrapper.get("[data-testid=learning-path-picker-expand-board-b]").trigger("click");
+		await flushPromises();
+
+		expect(wrapper.get("[data-testid=learning-path-picker-column-col-2]").text()).toBe(
+			"pages.learningPath.cards.column"
+		);
+	});
+
+	describe("pasting links", () => {
+		const board = "6ac4c0a0a8195598eb6d5f44";
+		const card = "6ac4c0b3a8195598eb6d5f78";
+
+		it("should add the cards and boards of the pasted links", async () => {
+			const wrapper = setup();
+
+			await wrapper
+				.get("[data-testid=learning-path-picker-links] textarea")
+				.setValue(`https://x/boards/${board}#card-${card}\nhttps://x/boards/${board}`);
+			await wrapper.get("[data-testid=learning-path-picker-links-add]").trigger("click");
+
+			expect(wrapper.emitted("add-links")).toEqual([[[{ boardId: board, cardId: card }, { boardId: board }]]]);
+			expect(
+				(wrapper.get("[data-testid=learning-path-picker-links] textarea").element as HTMLTextAreaElement).value
+			).toBe("");
+		});
+
+		it("should say so when there is no link in it", async () => {
+			const wrapper = setup();
+
+			await wrapper.get("[data-testid=learning-path-picker-links] textarea").setValue("Modul 2");
+			await wrapper.get("[data-testid=learning-path-picker-links-add]").trigger("click");
+
+			expect(wrapper.emitted("add-links")).toBeUndefined();
+			expect(wrapper.text()).toContain("pages.learningPath.links.none");
+		});
 	});
 });

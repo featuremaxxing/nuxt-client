@@ -53,6 +53,29 @@ export const fetchPickableCards = async (boardId: string): Promise<LearningPathP
 	}));
 };
 
+export type LearningPathStepLink = { boardId: string; cardId?: string };
+
+const ID = "[0-9a-f]{24}";
+const BOARD_LINK = new RegExp(`/boards/(${ID})(?:/cards/(${ID})|(?:#|%23)card-(${ID}))?`, "gi");
+
+// The boards and cards that the pasted text links to, in order and each once: a board's link
+// (/boards/<id>), a card's share link (/boards/<id>#card-<id>, also with an encoded #) or the
+// card's detail view (/boards/<id>/cards/<id>). Whether they belong to the room is up to the server.
+export const parseStepLinks = (text: string): LearningPathStepLink[] => {
+	const links: LearningPathStepLink[] = [];
+	const seen = new Set<string>();
+	for (const match of text.matchAll(BOARD_LINK)) {
+		const boardId = match[1].toLowerCase();
+		const cardId = (match[2] ?? match[3])?.toLowerCase();
+		const key = cardId ?? boardId;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		links.push(cardId ? { boardId, cardId } : { boardId });
+	}
+
+	return links;
+};
+
 // Where a step leads: the board, or a card step's card in the detail view, shown as part of the learning path.
 export const stepRoute = (
 	step: Pick<LearningPathStep, "linkedBoardId" | "linkedCardId">,

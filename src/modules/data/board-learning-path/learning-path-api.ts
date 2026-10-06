@@ -156,7 +156,7 @@ export const useLearningPathApi = () => {
 			});
 
 			return response.data;
-		});
+		}, "pages.learningPath.error.addStep");
 
 	const createTextStep = (boardId: string, title: string, text: string, positionX: number, positionY: number) =>
 		withErrorNotification(async () => {

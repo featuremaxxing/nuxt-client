@@ -1,5 +1,5 @@
 import type { LearningPathStep } from "./learning-path-api";
-import { cardDisplayTitle, fetchPickableCards, stepRoute } from "./learning-path-cards";
+import { cardDisplayTitle, fetchPickableCards, parseStepLinks, stepRoute } from "./learning-path-cards";
 import type { CardResponse } from "@api-server";
 
 const get = vi.fn();
@@ -75,6 +75,39 @@ describe("learning-path-cards", () => {
 			expect(columns[0].cards).toHaveLength(21);
 			expect(columns[0].cards[20]).toEqual({ id: "card-20", title: "CARD-20" });
 			expect(columns[1].cards).toEqual([]);
+		});
+	});
+
+	describe("parseStepLinks", () => {
+		const board = "6ac4c0a0a8195598eb6d5f44";
+		const card = "6ac4c0b3a8195598eb6d5f78";
+
+		it("should read the links of boards and cards in every form", () => {
+			expect(parseStepLinks(`https://staging.kibox.online/boards/${board}`)).toEqual([{ boardId: board }]);
+			expect(parseStepLinks(`https://kibox.online/boards/${board}#card-${card}`)).toEqual([
+				{ boardId: board, cardId: card },
+			]);
+			expect(parseStepLinks(`https://kibox.online/boards/${board}/cards/${card}`)).toEqual([
+				{ boardId: board, cardId: card },
+			]);
+			expect(parseStepLinks(`https://kibox.online/boards/${board}%23card-${card}`)).toEqual([
+				{ boardId: board, cardId: card },
+			]);
+		});
+
+		it("should read several links in order, each once", () => {
+			const other = "6ac4c0b3a8195598eb6d5f79";
+			const text = `https://x/boards/${board}#card-${other}\n https://x/boards/${board}#card-${card} https://x/boards/${board}#card-${other}`;
+
+			expect(parseStepLinks(text)).toEqual([
+				{ boardId: board, cardId: other },
+				{ boardId: board, cardId: card },
+			]);
+		});
+
+		it("should find nothing in text without a link", () => {
+			expect(parseStepLinks("Modul 2, Karte 3")).toEqual([]);
+			expect(parseStepLinks("https://example.org/rooms/123")).toEqual([]);
 		});
 	});
 });

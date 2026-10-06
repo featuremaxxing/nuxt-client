@@ -71,6 +71,7 @@
 					@add="onAddBoard"
 					@add-card="onAddCard"
 					@add-text="onAddText"
+					@add-links="onAddLinks"
 				/>
 				<LearningPathCanvas
 					ref="canvas"
@@ -130,6 +131,7 @@ import {
 	type LearningPathColor,
 	learningPathColorValue,
 	type LearningPathStep,
+	type LearningPathStepLink,
 	stepRoute,
 	useLearningPathSocket,
 	useLearningPathState,
@@ -291,6 +293,16 @@ const onAddBoard = async (linkedBoardId: string) => {
 const onAddCard = async (linkedBoardId: string, cardId: string) => {
 	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
 	await addStep(linkedBoardId, position.x, position.y, cardId);
+};
+
+// pasted links are added one after the other, each right of the tiles so far; cards that are
+// already part of the learning path are left out
+const onAddLinks = async (links: LearningPathStepLink[]) => {
+	for (const link of links) {
+		if (link.cardId && cardIdsInPath.value.has(link.cardId)) continue;
+		const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+		await addStep(link.boardId, position.x, position.y, link.cardId);
+	}
 };
 
 const onDropCard = (linkedBoardId: string, cardId: string, positionX: number, positionY: number) =>

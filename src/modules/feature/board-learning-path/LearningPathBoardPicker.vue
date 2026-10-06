@@ -15,6 +15,32 @@
 		>
 			{{ t("pages.learningPath.text.add") }}
 		</VBtn>
+		<!-- the quick way: paste the copied link of a card (or board), several at once are fine -->
+		<VTextarea
+			v-model="linkText"
+			:label="t('pages.learningPath.links.label')"
+			:hint="t('pages.learningPath.links.hint')"
+			:error-messages="linkError"
+			rows="1"
+			auto-grow
+			density="compact"
+			class="mb-1"
+			data-testid="learning-path-picker-links"
+			@keydown.enter.exact.prevent="onAddLinks"
+			@update:model-value="linkError = ''"
+		/>
+		<VBtn
+			block
+			size="small"
+			variant="flat"
+			color="primary"
+			:disabled="!linkText.trim()"
+			class="mb-4"
+			data-testid="learning-path-picker-links-add"
+			@click="onAddLinks"
+		>
+			{{ t("pages.learningPath.links.add") }}
+		</VBtn>
 		<h2 class="text-subtitle-1 font-weight-bold mb-1">{{ t("pages.learningPath.availableBoards") }}</h2>
 		<p class="text-body-2 text-medium-emphasis mb-2">{{ t("pages.learningPath.availableBoardsHint") }}</p>
 		<p v-if="boards.length === 0" class="text-body-2" data-testid="learning-path-picker-empty">
@@ -66,7 +92,12 @@
 							{{ t("pages.learningPath.cards.empty") }}
 						</p>
 						<div v-for="column in columns" v-else :key="column.id" class="ml-6">
-							<p v-if="column.title" class="text-caption text-medium-emphasis mt-1 mb-0">{{ column.title }}</p>
+							<p
+								class="text-caption font-weight-bold mt-2 mb-0"
+								:data-testid="`learning-path-picker-column-${column.id}`"
+							>
+								{{ column.title }}
+							</p>
 							<ul class="lp-picker__list">
 								<li
 									v-for="card in column.cards"
@@ -109,6 +140,8 @@ import {
 	fetchPickableCards,
 	type LearningPathAvailableBoard,
 	type LearningPathPickableColumn,
+	type LearningPathStepLink,
+	parseStepLinks,
 } from "@data-board-learning-path";
 import {
 	mdiCardTextOutline,
@@ -134,9 +167,24 @@ const emit = defineEmits<{
 	(e: "add", boardId: string): void;
 	(e: "add-card", boardId: string, cardId: string): void;
 	(e: "add-text"): void;
+	(e: "add-links", links: LearningPathStepLink[]): void;
 }>();
 
 const { t } = useI18n();
+
+const linkText = ref("");
+const linkError = ref("");
+
+const onAddLinks = () => {
+	if (!linkText.value.trim()) return;
+	const links = parseStepLinks(linkText.value);
+	if (links.length === 0) {
+		linkError.value = t("pages.learningPath.links.none");
+		return;
+	}
+	emit("add-links", links);
+	linkText.value = "";
+};
 
 const onDragStart = (event: DragEvent, board: LearningPathAvailableBoard) => {
 	event.dataTransfer?.setData(BOARD_DRAG_TYPE, board.id);
@@ -164,7 +212,13 @@ const toggle = async (boardId: string) => {
 	try {
 		const loaded = await fetchPickableCards(boardId);
 		if (expandedBoardId.value === boardId) {
-			columns.value = loaded.filter((column) => column.cards.length > 0);
+			// the columns in their order, an untitled one by its number
+			columns.value = loaded
+				.map((column, index) => ({
+					...column,
+					title: column.title || t("pages.learningPath.cards.column", { position: index + 1 }),
+				}))
+				.filter((column) => column.cards.length > 0);
 		}
 	} catch {
 		columns.value = [];

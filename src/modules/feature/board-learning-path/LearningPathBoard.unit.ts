@@ -226,6 +226,41 @@ describe("LearningPathBoard", () => {
 		});
 	});
 
+	describe("pasted links", () => {
+		beforeEach(() => {
+			post.mockClear();
+			post.mockResolvedValue({ data: {} });
+		});
+
+		it("should add every linked card and board, but not a card that is already a step", async () => {
+			const wrapper = await setup({
+				isEditor: true,
+				steps: [step("k", { linkedBoardId: "board-b", linkedCardId: "card-k" })],
+			});
+
+			wrapper
+				.findComponent({ name: "LearningPathBoardPicker" })
+				.vm.$emit("add-links", [
+					{ boardId: "board-b", cardId: "card-k" },
+					{ boardId: "board-b", cardId: "card-l" },
+					{ boardId: "board-c" },
+				]);
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledTimes(2);
+			expect(post).toHaveBeenNthCalledWith(
+				1,
+				"/v3/learning-path-steps",
+				expect.objectContaining({ linkedCardId: "card-l" })
+			);
+			expect(post).toHaveBeenNthCalledWith(
+				2,
+				"/v3/learning-path-steps",
+				expect.not.objectContaining({ linkedCardId: expect.anything() })
+			);
+		});
+	});
+
 	describe("text tiles", () => {
 		beforeEach(() => {
 			push.mockClear();
