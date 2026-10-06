@@ -5,7 +5,7 @@ import { type LearningPath, type LearningPathStep } from "@data-board-learning-p
 import { createTestingPinia } from "@pinia/testing";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { setActivePinia } from "pinia";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 
 const fetchLearningPath = vi.fn();
 const post = vi.fn();
@@ -27,7 +27,9 @@ vi.mock("@data-board", () => ({
 }));
 
 const push = vi.fn();
-vi.mock("vue-router", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
+const replace = vi.fn();
+const route = reactive<{ query: Record<string, string> }>({ query: {} });
+vi.mock("vue-router", () => ({ useRouter: () => ({ push, replace }), useRoute: () => route }));
 
 const step = (id: string, overrides: Partial<LearningPathStep> = {}): LearningPathStep => ({
 	id,
@@ -269,15 +271,47 @@ describe("LearningPathBoard", () => {
 
 		const text = step("t", { linkedBoardId: "", isText: true, title: "Teil 2", text: "Lest die Karten." });
 
-		it("should let a student read an open text tile", async () => {
-			const wrapper = await setup({ steps: [text] });
+		// a card step, then the text tile, then a locked card step
+		const chain = [
+			step("k", { linkedBoardId: "board-b", linkedCardId: "card-k", status: "done", positionY: 0 }),
+			{ ...text, positionY: 100, prerequisiteStepIds: ["k"] },
+			step("l", { linkedBoardId: "board-b", linkedCardId: "card-l", status: "locked", positionY: 200 }),
+		];
 
-			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", text);
+		it("should open a text tile as a step of the learning path, numbered with the others", async () => {
+			const wrapper = await setup({ steps: chain });
+
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", chain[1]);
 			await flushPromises();
 
 			expect(push).not.toHaveBeenCalled();
+			expect(wrapper.findComponent({ name: "VDialog" }).props("modelValue")).toBe(true);
+			expect(wrapper.findComponent({ name: "VDialog" }).text()).toContain("Lest die Karten.");
+		});
+
+		it("should open the text tile a link from a card's full view leads to, and page back to the card", async () => {
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: chain });
+
 			const dialog = wrapper.findComponent({ name: "VDialog" });
 			expect(dialog.props("modelValue")).toBe(true);
+			expect(dialog.find("[data-testid='learning-path-text-next']").attributes("disabled")).toBeDefined();
+			await dialog.get("[data-testid='learning-path-text-previous']").trigger("click");
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-b", cardId: "card-k" },
+				query: { learningPath: "path" },
+			});
+			route.query = {};
+		});
+
+		it("should not open a locked text tile from a link", async () => {
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: [{ ...text, status: "locked", title: "", text: undefined }] });
+
+			expect(wrapper.findComponent({ name: "VDialog" }).props("modelValue")).toBe(false);
+			route.query = {};
 		});
 
 		it("should add a text tile for editors", async () => {

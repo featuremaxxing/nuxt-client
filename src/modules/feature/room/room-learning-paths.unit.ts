@@ -77,6 +77,16 @@ describe("room-learning-paths", () => {
 			expect(info).toEqual({});
 		});
 
+		it("should count text tiles when numbering, but not show them in the room", () => {
+			const summary = {
+				steps: [step({ id: "t", boardId: "", isText: true, positionY: 0 }), step({ id: "a", positionY: 100 })],
+				isEnrolled: true,
+			};
+
+			expect(stepInfoByBoardId([pathBoard("p1", summary)])["board-a"][0].position).toBe(2);
+			expect(visibleChain(summary).map((entry) => entry.id)).toEqual(["a"]);
+		});
+
 		it("should list every learning path a board is part of", () => {
 			const info = stepInfoByBoardId([
 				pathBoard("p1", { steps: [step({ id: "a" })], isEnrolled: true }),

@@ -105,14 +105,54 @@
 	</DefaultWireframe>
 	<LearningPathTitleDialog v-model:is-dialog-open="isTitleDialogOpen" :name="title" @confirm="onRename" />
 	<LearningPathColorDialog v-model="isColorDialogOpen" :color="color" @confirm="onChangeColor" />
-	<VDialog v-model="isTextOpen" max-width="640" data-testid="learning-path-text-dialog">
+	<!-- a text tile, read as a step of the learning path: in the same full view as a card step -->
+	<VDialog
+		:model-value="!!openText"
+		fullscreen
+		scrollable
+		:transition="false"
+		data-testid="learning-path-text-dialog"
+		@update:model-value="(open: boolean) => !open && closeText()"
+		@keydown.escape="closeText"
+	>
 		<VCard v-if="openText">
-			<VCardTitle class="text-h4 text-wrap">{{ openText.title || t("pages.learningPath.text.label") }}</VCardTitle>
-			<VCardText class="lp-text" data-testid="learning-path-text-dialog-body">{{ openText.text }}</VCardText>
-			<VCardActions>
-				<VSpacer />
-				<VBtn variant="text" @click="isTextOpen = false">{{ t("common.labels.close") }}</VBtn>
-			</VCardActions>
+			<VToolbar class="border-b-thin" color="surface">
+				<VBtn
+					:icon="mdiClose"
+					:aria-label="t('common.labels.close')"
+					data-testid="learning-path-text-close"
+					@click="closeText"
+				/>
+				<VToolbarTitle data-testid="learning-path-text-position">
+					{{
+						t("pages.learningPath.cards.stepOf", {
+							title,
+							position: textNavigation.position,
+							total: textNavigation.total,
+						})
+					}}
+				</VToolbarTitle>
+				<VBtn
+					:icon="mdiChevronLeft"
+					:aria-label="t('components.board.action.prev-detail-view')"
+					:disabled="!textNavigation.previous"
+					data-testid="learning-path-text-previous"
+					@click="goTo(textNavigation.previous)"
+				/>
+				<VBtn
+					:icon="mdiChevronRight"
+					:aria-label="t('components.board.action.next-detail-view')"
+					:disabled="!textNavigation.next"
+					data-testid="learning-path-text-next"
+					@click="goTo(textNavigation.next)"
+				/>
+			</VToolbar>
+			<VCardText>
+				<div class="lp-text-view mx-auto mt-4 pa-8 elevation-3 rounded-lg">
+					<h2 class="text-h3 mb-4">{{ openText.title || t("pages.learningPath.text.label") }}</h2>
+					<p class="lp-text text-body-1" data-testid="learning-path-text-dialog-body">{{ openText.text }}</p>
+				</div>
+			</VCardText>
 		</VCard>
 	</VDialog>
 </template>
@@ -132,11 +172,12 @@ import {
 	learningPathColorValue,
 	type LearningPathStep,
 	type LearningPathStepLink,
+	stepNavigation,
 	stepRoute,
 	useLearningPathSocket,
 	useLearningPathState,
 } from "@data-board-learning-path";
-import { mdiPalette } from "@icons/material";
+import { mdiChevronLeft, mdiChevronRight, mdiClose, mdiPalette } from "@icons/material";
 import {
 	KebabMenu,
 	KebabMenuAction,
@@ -150,7 +191,7 @@ import { LearningPathColorDialog, LearningPathMarker } from "@ui-room-details";
 import { useTitle } from "@vueuse/core";
 import { computed, nextTick, onMounted, PropType, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const props = defineProps({
 	boardId: { type: String, required: true },
@@ -160,6 +201,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 const boardApi = useBoardApi();
 const { createPageInformation, breadcrumbs: sharedBreadcrumbs } = useSharedBoardPageInformation();
 
@@ -264,12 +306,38 @@ const hints = computed<Record<string, string>>(() => {
 });
 
 // a card step opens the card on its own, as part of the learning path; a text tile is read right here
-const openText = ref<LearningPathStep>();
-const isTextOpen = ref(false);
+// the open text tile follows ?step=<id>, so paging from a card's full view can land on it
+const openTextId = ref<string>();
+const openText = computed(() => steps.value.find((step) => step.id === openTextId.value && step.isText));
+const textNavigation = computed(() =>
+	stepNavigation(path.value, boardId.value, (step) => step.id === openTextId.value)
+);
+watch(
+	[() => route.query.step, steps],
+	([stepId]) => {
+		const target = steps.value.find((step) => step.id === stepId);
+		if (target?.isText && target.status !== "locked") openTextId.value = target.id;
+	},
+	{ immediate: true }
+);
+
+const closeText = () => {
+	openTextId.value = undefined;
+	if (route.query.step) router.replace({ query: {} });
+};
+
+const goTo = (step: LearningPathStep | undefined) => {
+	if (!step) return;
+	if (step.isText) {
+		openTextId.value = step.id;
+		return;
+	}
+	router.push(stepRoute(step, boardId.value));
+};
+
 const openStep = (step: LearningPathStep) => {
 	if (step.isText) {
-		openText.value = step;
-		isTextOpen.value = true;
+		openTextId.value = step.id;
 		return;
 	}
 	router.push(stepRoute(step, boardId.value));
@@ -358,6 +426,11 @@ onMounted(async () => {
 <style scoped>
 .lp-text {
 	white-space: pre-wrap;
+}
+
+.lp-text-view {
+	max-width: 860px;
+	background: rgb(var(--v-theme-surface));
 }
 
 .lp-layout {

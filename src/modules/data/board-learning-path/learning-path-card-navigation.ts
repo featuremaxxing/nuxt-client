@@ -6,6 +6,44 @@ import type { RouteLocationRaw } from "vue-router";
 
 const isOpenable = (step: LearningPathStep) => step.status === "open" || step.status === "done";
 
+export type LearningPathStepNavigation = {
+	step?: LearningPathStep;
+	// counted over every step a student sees, text tiles included
+	position: number;
+	total: number;
+	// the steps around it, when they can be opened
+	previous?: LearningPathStep;
+	next?: LearningPathStep;
+	previousRoute?: RouteLocationRaw;
+	nextRoute?: RouteLocationRaw;
+};
+
+// Where a step stands in its learning path and where paging leads from it - for a card opened in
+// the detail view as well as for a text tile read on the learning path.
+export const stepNavigation = (
+	path: LearningPath | undefined,
+	pathId: string,
+	isCurrent: (step: LearningPathStep) => boolean
+): LearningPathStepNavigation => {
+	// students only see the published steps, as in the list of the learning path
+	const chain = orderedSteps(path?.steps ?? []).filter((step) => path?.isEditor || step.status !== "unavailable");
+	const index = chain.findIndex(isCurrent);
+	const openable = (candidate: LearningPathStep | undefined) =>
+		candidate && (path?.isEditor || isOpenable(candidate)) ? candidate : undefined;
+	const previous = openable(index > 0 ? chain[index - 1] : undefined);
+	const next = openable(index >= 0 && index < chain.length - 1 ? chain[index + 1] : undefined);
+
+	return {
+		step: index >= 0 ? chain[index] : undefined,
+		position: index + 1,
+		total: chain.length,
+		previous,
+		next,
+		previousRoute: previous ? stepRoute(previous, pathId) : undefined,
+		nextRoute: next ? stepRoute(next, pathId) : undefined,
+	};
+};
+
 /**
  * A card opened as a step of a learning path (detail view with ?learningPath=<id>): which step it
  * is, the steps before and after it that can be opened, and the way back to the learning path.
@@ -30,24 +68,8 @@ export const useLearningPathCardNavigation = (pathId: Ref<string | undefined>, c
 
 	const isActive = computed(() => !!pathId.value);
 
-	// students only see the published steps, as in the list of the learning path
-	// text tiles are read on the learning path itself, paging skips them
-	const chain = computed(() =>
-		orderedSteps(path.value?.steps ?? []).filter(
-			(step) => !step.isText && (path.value?.isEditor || step.status !== "unavailable")
-		)
-	);
-	const index = computed(() => chain.value.findIndex((step) => step.linkedCardId === cardId.value));
-	const step = computed(() => (index.value >= 0 ? chain.value[index.value] : undefined));
-
-	const routeOf = (candidate: LearningPathStep | undefined): RouteLocationRaw | undefined =>
-		candidate && pathId.value && (path.value?.isEditor || isOpenable(candidate))
-			? stepRoute(candidate, pathId.value)
-			: undefined;
-
-	const previousRoute = computed(() => routeOf(index.value > 0 ? chain.value[index.value - 1] : undefined));
-	const nextRoute = computed(() =>
-		routeOf(index.value >= 0 && index.value < chain.value.length - 1 ? chain.value[index.value + 1] : undefined)
+	const navigation = computed(() =>
+		stepNavigation(path.value, pathId.value ?? "", (step) => !!cardId.value && step.linkedCardId === cardId.value)
 	);
 	const pathRoute = computed<RouteLocationRaw | undefined>(() =>
 		pathId.value ? `/boards/${pathId.value}` : undefined
@@ -56,11 +78,11 @@ export const useLearningPathCardNavigation = (pathId: Ref<string | undefined>, c
 	return {
 		isActive,
 		path,
-		step,
-		position: computed(() => index.value + 1),
-		total: computed(() => chain.value.length),
-		previousRoute,
-		nextRoute,
+		step: computed(() => navigation.value.step),
+		position: computed(() => navigation.value.position),
+		total: computed(() => navigation.value.total),
+		previousRoute: computed(() => (pathId.value ? navigation.value.previousRoute : undefined)),
+		nextRoute: computed(() => (pathId.value ? navigation.value.nextRoute : undefined)),
 		pathRoute,
 		reload: load,
 	};

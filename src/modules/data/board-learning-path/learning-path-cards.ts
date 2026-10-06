@@ -76,18 +76,23 @@ export const parseStepLinks = (text: string): LearningPathStepLink[] => {
 	return links;
 };
 
-// Where a step leads: the board, or a card step's card in the detail view, shown as part of the learning path.
+// Where a step leads: the board, a card step's card in the detail view (shown as part of the
+// learning path), or a text tile opened on the learning path itself.
 export const stepRoute = (
-	step: Pick<LearningPathStep, "linkedBoardId" | "linkedCardId">,
+	step: Pick<LearningPathStep, "linkedBoardId" | "linkedCardId"> & Partial<Pick<LearningPathStep, "id" | "isText">>,
 	pathId: string
-): RouteLocationRaw =>
-	step.linkedCardId
-		? {
-				name: "boards-card-detail",
-				params: { boardId: step.linkedBoardId, cardId: step.linkedCardId },
-				query: { learningPath: pathId },
-			}
-		: `/boards/${step.linkedBoardId}`;
+): RouteLocationRaw => {
+	if (step.isText && step.id) return { path: `/boards/${pathId}`, query: { step: step.id } };
+	if (step.linkedCardId) {
+		return {
+			name: "boards-card-detail",
+			params: { boardId: step.linkedBoardId, cardId: step.linkedCardId },
+			query: { learningPath: pathId },
+		};
+	}
+
+	return `/boards/${step.linkedBoardId}`;
+};
 
 // per card of the open board: the learning paths it is a step of (see useBoardLearningPathCards)
 export const LEARNING_PATH_CARD_STEPS_KEY: InjectionKey<Ref<Record<string, LearningPathCardStep["paths"]>>> =

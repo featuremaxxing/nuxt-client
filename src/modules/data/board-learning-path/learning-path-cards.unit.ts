@@ -47,6 +47,10 @@ describe("learning-path-cards", () => {
 				query: { learningPath: "path" },
 			});
 			expect(stepRoute({ linkedBoardId: "board-b" }, "path")).toBe("/boards/board-b");
+			expect(stepRoute({ id: "t", linkedBoardId: "", isText: true }, "path")).toEqual({
+				path: "/boards/path",
+				query: { step: "t" },
+			});
 		});
 	});
 

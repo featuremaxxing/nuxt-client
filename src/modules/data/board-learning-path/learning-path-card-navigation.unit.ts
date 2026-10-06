@@ -76,4 +76,19 @@ describe("useLearningPathCardNavigation", () => {
 		expect(current.value).toBeUndefined();
 		expect(fetchLearningPath).not.toHaveBeenCalled();
 	});
+
+	it("should count and reach text tiles like the other steps", async () => {
+		fetchLearningPath.mockResolvedValue({
+			...learningPath(),
+			steps: [
+				step("a", { status: "done" }),
+				step("t", { linkedCardId: undefined, linkedBoardId: "", isText: true, prerequisiteStepIds: ["a"] }),
+			],
+		});
+
+		const { position, total, nextRoute } = await setup("card-a", "path");
+
+		expect([position.value, total.value]).toEqual([1, 2]);
+		expect(nextRoute.value).toEqual({ path: "/boards/path", query: { step: "t" } });
+	});
 });
