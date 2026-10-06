@@ -306,6 +306,24 @@ describe("LearningPathBoard", () => {
 			route.query = {};
 		});
 
+		it("should page with the arrow keys like the buttons", async () => {
+			const unlocked = chain.map((entry) => (entry.id === "l" ? { ...entry, status: "open" as const } : entry));
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: unlocked });
+			const card = wrapper.findComponent({ name: "VDialog" }).findComponent({ name: "VCard" });
+
+			await card.trigger("keydown", { key: "ArrowRight", shiftKey: true });
+			expect(push).not.toHaveBeenCalled();
+			await card.trigger("keydown", { key: "ArrowRight" });
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-b", cardId: "card-l" },
+				query: { learningPath: "path" },
+			});
+			route.query = {};
+		});
+
 		it("should not open a locked text tile from a link", async () => {
 			route.query = { step: "t" };
 			const wrapper = await setup({ steps: [{ ...text, status: "locked", title: "", text: undefined }] });

@@ -114,8 +114,9 @@
 		data-testid="learning-path-text-dialog"
 		@update:model-value="(open: boolean) => !open && closeText()"
 		@keydown.escape="closeText"
+		@keydown="onTextArrowKey"
 	>
-		<VCard v-if="openText">
+		<VCard v-if="openText" ref="textView" tabindex="-1" class="lp-text-card">
 			<VToolbar class="border-b-thin" color="surface">
 				<VBtn
 					:icon="mdiClose"
@@ -146,6 +147,8 @@
 					data-testid="learning-path-text-next"
 					@click="goTo(textNavigation.next)"
 				/>
+				<!-- as in a card's full view, where the "done" button follows: the arrows stay in the middle -->
+				<VSpacer />
 			</VToolbar>
 			<VCardText>
 				<div class="lp-text-view mx-auto mt-4 pa-8 elevation-3 rounded-lg">
@@ -321,6 +324,14 @@ watch(
 	{ immediate: true }
 );
 
+// the focus moves into the full view, so the arrow keys work right away
+const textView = ref<{ $el?: HTMLElement }>();
+watch(openTextId, async (id) => {
+	if (!id) return;
+	await nextTick();
+	textView.value?.$el?.focus();
+});
+
 const closeText = () => {
 	openTextId.value = undefined;
 	if (route.query.step) router.replace({ query: {} });
@@ -333,6 +344,16 @@ const goTo = (step: LearningPathStep | undefined) => {
 		return;
 	}
 	router.push(stepRoute(step, boardId.value));
+};
+
+// the arrow keys page like the buttons, as in a card's full view
+const onTextArrowKey = (event: KeyboardEvent) => {
+	if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+	if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+	const target = event.key === "ArrowLeft" ? textNavigation.value.previous : textNavigation.value.next;
+	if (!target) return;
+	event.preventDefault();
+	goTo(target);
 };
 
 const openStep = (step: LearningPathStep) => {
@@ -426,6 +447,10 @@ onMounted(async () => {
 <style scoped>
 .lp-text {
 	white-space: pre-wrap;
+}
+
+.lp-text-card:focus {
+	outline: none;
 }
 
 .lp-text-view {
