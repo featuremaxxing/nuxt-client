@@ -2,7 +2,7 @@
 	<DefaultWireframe max-width="full" :fab-items="fabAction" main-with-bottom-padding>
 		<template #header>
 			<!-- the view toggle sits next to the title: the right side belongs to the "create room" button -->
-			<div class="d-flex align-center flex-wrap column-gap-6">
+			<div class="d-flex align-center flex-wrap gc-6">
 				<h1>{{ t("pages.rooms.title") }}</h1>
 				<VBtnToggle
 					v-if="!isEmpty"
