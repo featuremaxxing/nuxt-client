@@ -12,9 +12,12 @@
 			/>
 		</div>
 
+		<p v-if="step.linkedCardId && step.boardTitle" class="text-body-2 text-medium-emphasis mb-2">
+			{{ t("pages.learningPath.cards.from", { title: step.boardTitle }) }}
+		</p>
 		<VBtn
 			v-if="step.status !== 'unavailable'"
-			:to="`/boards/${step.linkedBoardId}`"
+			:to="stepRoute(step, pathId)"
 			variant="outlined"
 			size="small"
 			:prepend-icon="mdiOpenInNew"
@@ -101,6 +104,7 @@ import {
 	type LearningPathStep,
 	type LearningPathStepUpdate,
 	type LearningPathUnlockMode,
+	stepRoute,
 	wouldCreateCycle,
 } from "@data-board-learning-path";
 import { mdiClose, mdiDeleteOutline, mdiOpenInNew } from "@icons/material";
@@ -110,6 +114,8 @@ import { useI18n } from "vue-i18n";
 const props = defineProps({
 	step: { type: Object as PropType<LearningPathStep>, required: true },
 	steps: { type: Array as PropType<LearningPathStep[]>, required: true },
+	// the learning path board, card steps open as part of it
+	pathId: { type: String, default: "" },
 });
 
 const emit = defineEmits<{

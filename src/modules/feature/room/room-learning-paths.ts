@@ -22,7 +22,8 @@ export const visibleChain = (summary: RoomLearningPathResponse): RoomLearningPat
 	orderedSteps(summary.steps).filter((step) => isEditorSummary(summary) || step.status !== StepStatus.Unavailable);
 
 // For every board of the room that is part of a learning path: the paths and its step number in
-// each. Students only see the paths they go, teachers all of them.
+// each. Students only see the paths they go, teachers all of them. A card step does not make its
+// board a step, the card carries the hint.
 export const stepInfoByBoardId = (boards: RoomBoardItem[]): Record<string, LearningPathStepInfo[]> => {
 	const result: Record<string, LearningPathStepInfo[]> = {};
 	for (const board of boards) {
@@ -30,6 +31,7 @@ export const stepInfoByBoardId = (boards: RoomBoardItem[]): Record<string, Learn
 		if (!summary || !(isEditorSummary(summary) || summary.isEnrolled)) continue;
 
 		visibleChain(summary).forEach((step, index) => {
+			if (step.cardId) return;
 			(result[step.boardId] ??= []).push({ title: board.title, position: index + 1, color: summary.color });
 		});
 	}
@@ -53,7 +55,7 @@ export const lockedHintByBoardId = (boards: RoomBoardItem[]): Record<string, Loc
 		if (!summary) continue;
 
 		const stepsById = new Map(summary.steps.map((step) => [step.id, step]));
-		const step = summary.steps.find((candidate) => candidate.boardId === board.id);
+		const step = summary.steps.find((candidate) => candidate.boardId === board.id && !candidate.cardId);
 		if (!step) continue;
 
 		const titles = step.prerequisiteStepIds
@@ -79,7 +81,7 @@ export const reworkBoardIds = (boards: RoomBoardItem[]): Set<string> => {
 		const summary = board.learningPath;
 		if (!summary || isEditorSummary(summary) || !summary.isEnrolled) continue;
 
-		summary.steps.filter((step) => step.reopened).forEach((step) => result.add(step.boardId));
+		summary.steps.filter((step) => step.reopened && !step.cardId).forEach((step) => result.add(step.boardId));
 	}
 
 	return result;

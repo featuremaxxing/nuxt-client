@@ -15,7 +15,7 @@
 				:aria-label="t('common.labels.close')"
 				@click="onDialogClose"
 			/>
-			<VToolbarTitle>{{ $t("components.board.dialog.detail-view.title") }}</VToolbarTitle>
+			<VToolbarTitle>{{ toolbarTitle || $t("components.board.dialog.detail-view.title") }}</VToolbarTitle>
 			<VBtn
 				:icon="mdiChevronLeft"
 				data-testid="prev-detail-view-button"
@@ -33,6 +33,8 @@
 				:disabled="!nextCardRoute"
 			/>
 			<VSpacer />
+			<!-- e.g. the "done" button of a card that is a step of a learning path -->
+			<slot name="toolbar-actions" />
 			<VBtn
 				v-if="allowedOperations?.deleteCard && !isEditMode"
 				class="mr-4 keep-inline-edit-mode"
@@ -92,6 +94,8 @@ const props = defineProps<{
 	cardId: string;
 	previousCardRoute?: RouteLocationRaw;
 	nextCardRoute?: RouteLocationRaw;
+	// replaces the default title, e.g. with the learning path the card is a step of
+	toolbarTitle?: string;
 }>();
 const cardRef = toRef(props, "cardId");
 

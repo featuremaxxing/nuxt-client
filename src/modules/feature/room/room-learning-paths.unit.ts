@@ -69,6 +69,14 @@ describe("room-learning-paths", () => {
 			expect(Object.keys(info)).toEqual(["board-a", "board-c", "board-d"]);
 		});
 
+		it("should not make a board a step because one of its cards is", () => {
+			const info = stepInfoByBoardId([
+				pathBoard("p1", { steps: [step({ id: "k", boardId: "board-a", cardId: "card-k" })], isEnrolled: true }),
+			]);
+
+			expect(info).toEqual({});
+		});
+
 		it("should list every learning path a board is part of", () => {
 			const info = stepInfoByBoardId([
 				pathBoard("p1", { steps: [step({ id: "a" })], isEnrolled: true }),

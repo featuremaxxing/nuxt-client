@@ -87,7 +87,16 @@
 </template>
 
 <script setup lang="ts">
-import { anchorOf, BOARD_DRAG_TYPE, curveBetween, edgeBetween, type Side, TILE_HEIGHT, TILE_WIDTH } from "./canvas";
+import {
+	anchorOf,
+	BOARD_DRAG_TYPE,
+	CARD_DRAG_TYPE,
+	curveBetween,
+	edgeBetween,
+	type Side,
+	TILE_HEIGHT,
+	TILE_WIDTH,
+} from "./canvas";
 import LearningPathTile from "./LearningPathTile.vue";
 import { edgesOf, type LearningPathStep } from "@data-board-learning-path";
 import { mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
@@ -115,6 +124,7 @@ const emit = defineEmits<{
 	(e: "move", stepId: string, positionX: number, positionY: number): void;
 	(e: "connect", fromId: string, toId: string): void;
 	(e: "drop-board", boardId: string, positionX: number, positionY: number): void;
+	(e: "drop-card", boardId: string, cardId: string, positionX: number, positionY: number): void;
 }>();
 
 const { t } = useI18n();
@@ -350,19 +360,22 @@ const fitView = () => {
 // --- boards dragged in from the list next to the canvas ---
 
 const onDragOver = (event: DragEvent) => {
-	if (!props.isEditor || !event.dataTransfer?.types.includes(BOARD_DRAG_TYPE)) return;
+	const types = event.dataTransfer?.types ?? [];
+	if (!props.isEditor || !(types.includes(BOARD_DRAG_TYPE) || types.includes(CARD_DRAG_TYPE))) return;
 	event.preventDefault();
-	event.dataTransfer.dropEffect = "copy";
+	if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
 	isDropTarget.value = true;
 };
 
 const onDrop = (event: DragEvent) => {
 	isDropTarget.value = false;
 	const boardId = event.dataTransfer?.getData(BOARD_DRAG_TYPE);
-	if (!props.isEditor || !boardId) return;
+	const [cardBoardId, cardId] = (event.dataTransfer?.getData(CARD_DRAG_TYPE) ?? "").split(":");
+	if (!props.isEditor || !(boardId || cardId)) return;
 	event.preventDefault();
 	const { x, y } = toCanvas(event.clientX, event.clientY);
-	emit("drop-board", boardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
+	if (cardId) emit("drop-card", cardBoardId, cardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
+	else if (boardId) emit("drop-board", boardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
 };
 
 // a free spot for a board added with the button: right of the right-most tile in the top row

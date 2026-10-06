@@ -29,9 +29,17 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 	const color = computed(() => path.value?.color);
 	const isEnrolled = computed(() => path.value?.isEnrolled ?? false);
 	const canChoose = computed(() => path.value?.canChoose ?? false);
-	// boards of the room that are not part of the path yet
+	// boards of the room that are not part of the path yet (as a whole)
 	const availableBoards = computed(() =>
-		(path.value?.availableBoards ?? []).filter((board) => !steps.value.some((step) => step.linkedBoardId === board.id))
+		(path.value?.availableBoards ?? []).filter(
+			(board) => !steps.value.some((step) => step.linkedBoardId === board.id && !step.linkedCardId)
+		)
+	);
+	// every board of the room, to pick single cards from
+	const roomBoards = computed(() => path.value?.availableBoards ?? []);
+	// the cards that are already a step of the path
+	const cardIdsInPath = computed(
+		() => new Set(steps.value.map((step) => step.linkedCardId).filter((id): id is string => !!id))
 	);
 
 	const load = async (): Promise<void> => {
@@ -62,8 +70,9 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 		}
 	};
 
-	const addStep = (linkedBoardId: string, positionX: number, positionY: number) =>
-		change(() => api.createStep(boardId.value, linkedBoardId, positionX, positionY));
+	// with linkedCardId the step is that card of the board
+	const addStep = (linkedBoardId: string, positionX: number, positionY: number, linkedCardId?: string) =>
+		change(() => api.createStep(boardId.value, linkedBoardId, positionX, positionY, linkedCardId));
 
 	const moveStep = async (stepId: string, positionX: number, positionY: number): Promise<void> => {
 		const step = findStep(stepId);
@@ -113,6 +122,8 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 		isEnrolled,
 		canChoose,
 		availableBoards,
+		roomBoards,
+		cardIdsInPath,
 		isLoading,
 		hasError,
 		load,

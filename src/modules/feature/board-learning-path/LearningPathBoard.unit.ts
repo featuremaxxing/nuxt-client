@@ -8,8 +8,12 @@ import { setActivePinia } from "pinia";
 import { ref } from "vue";
 
 const fetchLearningPath = vi.fn();
+const post = vi.fn();
 vi.mock("@/utils/api", () => ({
-	$axios: { get: () => fetchLearningPath().then((data: unknown) => ({ data })) },
+	$axios: {
+		get: () => fetchLearningPath().then((data: unknown) => ({ data })),
+		post: (...args: unknown[]) => post(...args),
+	},
 	mapAxiosErrorToResponseError: vi.fn(),
 }));
 vi.mock("@data-board-learning-path", async (importOriginal) => ({
@@ -22,7 +26,8 @@ vi.mock("@data-board", () => ({
 	useSharedBoardPageInformation: () => ({ createPageInformation: vi.fn(), breadcrumbs: ref([]) }),
 }));
 
-vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+const push = vi.fn();
+vi.mock("vue-router", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
 
 const step = (id: string, overrides: Partial<LearningPathStep> = {}): LearningPathStep => ({
 	id,
@@ -180,5 +185,44 @@ describe("LearningPathBoard", () => {
 
 		const list = wrapper.findComponent({ name: "LearningPathList" });
 		expect((list.props("steps") as LearningPathStep[]).map((entry) => entry.reopened)).toEqual([true, undefined]);
+	});
+
+	describe("card steps", () => {
+		it("should open a card step as part of the learning path", async () => {
+			const wrapper = await setup({ steps: [step("k", { linkedCardId: "card-k" })] });
+
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", step("k", { linkedCardId: "card-k" }));
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-k", cardId: "card-k" },
+				query: { learningPath: "path" },
+			});
+		});
+
+		it("should add a card picked from the list or dropped on the canvas", async () => {
+			post.mockResolvedValue({ data: {} });
+			const wrapper = await setup({ isEditor: true });
+
+			wrapper.findComponent({ name: "LearningPathBoardPicker" }).vm.$emit("add-card", "board-b", "card-k");
+			await flushPromises();
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("drop-card", "board-b", "card-l", 40, 60);
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				linkedBoardId: "board-b",
+				linkedCardId: "card-k",
+				positionX: 0,
+				positionY: 0,
+			});
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				linkedBoardId: "board-b",
+				linkedCardId: "card-l",
+				positionX: 40,
+				positionY: 60,
+			});
+		});
 	});
 });

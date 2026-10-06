@@ -29,6 +29,9 @@
 					<VIcon :icon="mdiLockOutline" size="12" aria-hidden="true" />
 					{{ t("pages.learningPath.tile.locks") }}
 				</span>
+				<span v-if="step.linkedCardId" class="lp-tile__chip" data-testid="learning-path-tile-card">
+					{{ t("components.boardCard") }}
+				</span>
 				<span v-if="step.studentCount" data-testid="learning-path-tile-progress">
 					{{ t("pages.learningPath.progress", { done: step.doneCount ?? 0, total: step.studentCount }) }}
 				</span>
@@ -54,6 +57,7 @@
 import { type Side, SIDES } from "./canvas";
 import { type LearningPathStep } from "@data-board-learning-path";
 import {
+	mdiCardTextOutline,
 	mdiCheckCircle,
 	mdiEyeOffOutline,
 	mdiLockOutline,
@@ -86,7 +90,7 @@ const isOpenable = computed(() => props.step.status === "open" || props.step.sta
 const visualState = computed(() => (props.isEditor ? (props.step.isVisible ? "open" : "draft") : props.step.status));
 
 const statusIcon = computed(() => {
-	if (props.isEditor) return mdiViewDashboardOutline;
+	if (props.isEditor) return props.step.linkedCardId ? mdiCardTextOutline : mdiViewDashboardOutline;
 	switch (props.step.status) {
 		case "done":
 			return mdiCheckCircle;
@@ -107,6 +111,9 @@ const isRework = computed(() => !props.isEditor && !!props.step.reopened);
 
 const ariaLabel = computed(() => {
 	const parts = [displayTitle.value];
+	if (props.step.linkedCardId && props.step.boardTitle) {
+		parts.push(t("pages.learningPath.cards.from", { title: props.step.boardTitle }));
+	}
 	if (!props.isEditor) parts.push(isRework.value ? t("pages.learningPath.reworkHint") : statusText.value);
 	if (props.hint) parts.push(props.hint);
 	return parts.join(", ");

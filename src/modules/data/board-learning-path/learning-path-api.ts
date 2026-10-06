@@ -18,9 +18,14 @@ export type LearningPathLock = {
 
 export type LearningPathStep = {
 	id: string;
+	// for a card step the board the card lies on
 	linkedBoardId: string;
-	// empty when the board is not available to the user
+	// set when the step is a single card
+	linkedCardId?: string;
+	// empty when the board or card is not available to the user
 	title: string;
+	// card steps: title of the board the card lies on
+	boardTitle?: string;
 	isVisible: boolean;
 	positionX: number;
 	positionY: number;
@@ -45,6 +50,7 @@ export type LearningPathAvailableBoard = {
 
 export type LearningPath = {
 	boardId: string;
+	title?: string;
 	isEditor: boolean;
 	color?: LearningPathColor;
 	// students only: whether they go this learning path
@@ -73,6 +79,18 @@ export type LearningPathOverview = {
 		lastName?: string;
 		// the learning paths the student goes
 		paths: { pathId: string; done: number; total: number; rework: number; nextBoardTitle?: string }[];
+	}[];
+};
+
+// a card of a board that is a step of learning paths: per learning path the step's number and state
+export type LearningPathCardStep = {
+	cardId: string;
+	paths: {
+		pathId: string;
+		pathTitle: string;
+		color?: LearningPathColor;
+		position: number;
+		status: LearningPathStepStatus;
 	}[];
 };
 
@@ -105,11 +123,19 @@ export const useLearningPathApi = () => {
 		return response.data;
 	};
 
-	const createStep = (boardId: string, linkedBoardId: string, positionX: number, positionY: number) =>
+	// with linkedCardId the step is that card of the board linkedBoardId
+	const createStep = (
+		boardId: string,
+		linkedBoardId: string,
+		positionX: number,
+		positionY: number,
+		linkedCardId?: string
+	) =>
 		withErrorNotification(async () => {
 			const response = await $axios.post<LearningPathStep>("/v3/learning-path-steps", {
 				boardId,
 				linkedBoardId,
+				...(linkedCardId ? { linkedCardId } : {}),
 				positionX: Math.round(positionX),
 				positionY: Math.round(positionY),
 			});
@@ -174,6 +200,25 @@ export const useLearningPathApi = () => {
 			return response.data;
 		});
 
+	const fetchCardCompletion = async (cardId: string): Promise<BoardCompletion> => {
+		const response = await $axios.get<BoardCompletion>(`/v3/cards/${cardId}/completion`);
+
+		return response.data;
+	};
+
+	const setCardCompletion = (cardId: string, completed: boolean) =>
+		withErrorNotification(async () => {
+			const response = await $axios.put<BoardCompletion>(`/v3/cards/${cardId}/completion`, { completed });
+
+			return response.data;
+		});
+
+	const fetchBoardCardSteps = async (boardId: string): Promise<LearningPathCardStep[]> => {
+		const response = await $axios.get<{ data: LearningPathCardStep[] }>(`/v3/boards/${boardId}/learning-path-cards`);
+
+		return response.data.data;
+	};
+
 	return {
 		fetchLearningPath,
 		createStep,
@@ -186,5 +231,8 @@ export const useLearningPathApi = () => {
 		deleteStep,
 		fetchCompletion,
 		setCompletion,
+		fetchCardCompletion,
+		setCardCompletion,
+		fetchBoardCardSteps,
 	};
 };

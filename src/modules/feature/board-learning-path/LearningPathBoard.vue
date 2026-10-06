@@ -63,7 +63,14 @@
 				{{ isEditor ? t("pages.learningPath.empty.editor") : t("pages.learningPath.empty.student") }}
 			</VAlert>
 			<div class="lp-layout">
-				<LearningPathBoardPicker v-if="isEditor" :boards="availableBoards" @add="onAddBoard" />
+				<LearningPathBoardPicker
+					v-if="isEditor"
+					:boards="availableBoards"
+					:room-boards="roomBoards"
+					:card-ids-in-path="cardIdsInPath"
+					@add="onAddBoard"
+					@add-card="onAddCard"
+				/>
 				<LearningPathCanvas
 					ref="canvas"
 					class="flex-grow-1"
@@ -77,11 +84,13 @@
 					@move="moveStep"
 					@connect="onConnect"
 					@drop-board="addStep"
+					@drop-card="onDropCard"
 				/>
 				<LearningPathStepPanel
 					v-if="isEditor && selectedStep"
 					:step="selectedStep"
 					:steps="steps"
+					:path-id="boardId"
 					@update="updateStep(selectedStep.id, $event)"
 					@connect="onConnect($event, selectedStep.id)"
 					@disconnect="disconnect($event, selectedStep.id)"
@@ -89,7 +98,7 @@
 					@close="selectedStepId = undefined"
 				/>
 			</div>
-			<LearningPathList v-if="steps.length > 0" class="mt-6" :steps="steps" :hints="hints" />
+			<LearningPathList v-if="steps.length > 0" class="mt-6" :steps="steps" :hints="hints" :path-id="boardId" />
 		</template>
 	</DefaultWireframe>
 	<LearningPathTitleDialog v-model:is-dialog-open="isTitleDialogOpen" :name="title" @confirm="onRename" />
@@ -110,6 +119,7 @@ import {
 	type LearningPathColor,
 	learningPathColorValue,
 	type LearningPathStep,
+	stepRoute,
 	useLearningPathSocket,
 	useLearningPathState,
 } from "@data-board-learning-path";
@@ -161,6 +171,8 @@ const {
 	isEnrolled,
 	canChoose,
 	availableBoards,
+	roomBoards,
+	cardIdsInPath,
 	isLoading,
 	hasError,
 	load,
@@ -236,12 +248,21 @@ const hints = computed<Record<string, string>>(() => {
 	);
 });
 
-const openStep = (step: LearningPathStep) => router.push(`/boards/${step.linkedBoardId}`);
+// a card step opens the card on its own, as part of the learning path
+const openStep = (step: LearningPathStep) => router.push(stepRoute(step, boardId.value));
 
 const onAddBoard = async (linkedBoardId: string) => {
 	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
 	await addStep(linkedBoardId, position.x, position.y);
 };
+
+const onAddCard = async (linkedBoardId: string, cardId: string) => {
+	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+	await addStep(linkedBoardId, position.x, position.y, cardId);
+};
+
+const onDropCard = (linkedBoardId: string, cardId: string, positionX: number, positionY: number) =>
+	addStep(linkedBoardId, positionX, positionY, cardId);
 
 const onConnect = async (fromId: string, toId: string) => {
 	const connected = await connect(fromId, toId);
@@ -249,7 +270,10 @@ const onConnect = async (fromId: string, toId: string) => {
 };
 
 const onRemoveStep = async (step: LearningPathStep) => {
-	const shouldRemove = await askDeletionForItem(step.title, "common.words.board");
+	const shouldRemove = await askDeletionForItem(
+		step.title,
+		step.linkedCardId ? "components.boardCard" : "common.words.board"
+	);
 	if (!shouldRemove) return;
 	selectedStepId.value = undefined;
 	await removeStep(step.id);

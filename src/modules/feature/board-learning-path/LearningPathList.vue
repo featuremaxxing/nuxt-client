@@ -9,10 +9,13 @@
 				:data-testid="`learning-path-list-item-${step.id}`"
 			>
 				<VIcon :icon="iconOf(step)" size="18" :class="`lp-list__icon--${step.status}`" aria-hidden="true" />
-				<RouterLink v-if="isOpenable(step)" :to="`/boards/${step.linkedBoardId}`">
+				<RouterLink v-if="isOpenable(step)" :to="stepRoute(step, pathId)">
 					{{ step.title }}
 				</RouterLink>
 				<span v-else>{{ step.title || t("pages.learningPath.tile.unavailable") }}</span>
+				<span v-if="step.linkedCardId && step.boardTitle" class="text-medium-emphasis">
+					({{ t("pages.learningPath.cards.from", { title: step.boardTitle }) }})
+				</span>
 				<span class="text-medium-emphasis">– {{ t(`pages.learningPath.status.${step.status}`) }}</span>
 				<template v-if="step.reopened">
 					<LearningPathReworkMark :size="16" />
@@ -27,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { type LearningPathStep, orderedSteps } from "@data-board-learning-path";
+import { type LearningPathStep, orderedSteps, stepRoute } from "@data-board-learning-path";
 import { mdiCheckCircle, mdiEyeOffOutline, mdiLockOutline, mdiMapMarkerPath } from "@icons/material";
 import { LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
@@ -36,6 +39,8 @@ import { useI18n } from "vue-i18n";
 const props = defineProps({
 	steps: { type: Array as PropType<LearningPathStep[]>, required: true },
 	hints: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
+	// the learning path board, card steps open as part of it
+	pathId: { type: String, default: "" },
 });
 
 const { t } = useI18n();
