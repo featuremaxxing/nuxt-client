@@ -2563,6 +2563,12 @@ export default {
 	"components.board.completion.markDone": "Als erledigt markieren",
 	"pages.learningPath.addBoard": "„{title}“ zum Lernweg hinzufügen",
 	"pages.learningPath.allAdded": "Alle Bereiche des Raums sind im Lernweg.",
+	"pages.learningPath.picker.hint":
+		"Klick öffnet die Karten, + fügt den ganzen Bereich hinzu. Bereiche und Karten lassen sich auch auf die Fläche ziehen.",
+	"pages.learningPath.picker.search": "Bereiche und Karten durchsuchen",
+	"pages.learningPath.picker.noMatch": "Nichts gefunden",
+	"pages.learningPath.picker.noBoards": "Der Raum hat noch keine Bereiche.",
+	"pages.learningPath.picker.boardAdded": "Schon im Lernweg",
 	"pages.learningPath.edge.remove": "Verbindung löschen",
 	"pages.learningPath.links.label": "Link zu Karte oder Bereich einfügen",
 	"pages.learningPath.links.hint": "„Link kopieren“ an einer Karte, mehrere Links auf einmal gehen auch.",

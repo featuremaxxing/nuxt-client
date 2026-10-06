@@ -96,6 +96,43 @@ describe("LearningPathBoardPicker", () => {
 		);
 	});
 
+	it("should list every board once and mark the ones that are already in the learning path", () => {
+		const wrapper = setup();
+
+		expect(wrapper.findAll("[data-testid^=learning-path-picker-board-board]")).toHaveLength(2);
+		expect(wrapper.find("[data-testid=learning-path-picker-add-board-a]").exists()).toBe(true);
+		expect(wrapper.find("[data-testid=learning-path-picker-add-board-b]").exists()).toBe(false);
+		expect(wrapper.find("[data-testid=learning-path-picker-board-added-board-b]").exists()).toBe(true);
+	});
+
+	describe("searching", () => {
+		const typeSearch = async (wrapper: ReturnType<typeof setup>, text: string) => {
+			await wrapper.get("[data-testid=learning-path-picker-search] input").setValue(text);
+			vi.advanceTimersByTime(300);
+			await flushPromises();
+		};
+
+		it("should look into the cards of every board and open the boards with matching cards", async () => {
+			const wrapper = setup();
+
+			await typeSearch(wrapper, "was ist");
+
+			expect(fetchPickableCards).toHaveBeenCalledWith("board-a");
+			expect(fetchPickableCards).toHaveBeenCalledWith("board-b");
+			expect(wrapper.find("[data-testid=learning-path-picker-card-card-k]").exists()).toBe(true);
+			// the untitled card does not match
+			expect(wrapper.find("[data-testid=learning-path-picker-card-card-l]").exists()).toBe(false);
+		});
+
+		it("should say so when nothing matches", async () => {
+			const wrapper = setup();
+
+			await typeSearch(wrapper, "gibt es nicht");
+
+			expect(wrapper.get("[data-testid=learning-path-picker-empty]").text()).toBe("pages.learningPath.picker.noMatch");
+		});
+	});
+
 	describe("pasting links", () => {
 		const board = "6ac4c0a0a8195598eb6d5f44";
 		const card = "6ac4c0b3a8195598eb6d5f78";

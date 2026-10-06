@@ -2538,6 +2538,12 @@ export default {
 	"components.board.completion.markDone": "Позначити як виконане",
 	"pages.learningPath.addBoard": "Додати «{title}» до навчального шляху",
 	"pages.learningPath.allAdded": "Усі розділи кімнати вже є в навчальному шляху.",
+	"pages.learningPath.picker.hint":
+		"Клік відкриває картки, + додає весь розділ. Розділи й картки можна також перетягнути на полотно.",
+	"pages.learningPath.picker.search": "Шукати розділи та картки",
+	"pages.learningPath.picker.noMatch": "Нічого не знайдено",
+	"pages.learningPath.picker.noBoards": "У кімнаті ще немає розділів.",
+	"pages.learningPath.picker.boardAdded": "Уже в навчальному шляху",
 	"pages.learningPath.edge.remove": "Видалити зв’язок",
 	"pages.learningPath.links.label": "Вставте посилання на картку або розділ",
 	"pages.learningPath.links.hint": "«Копіювати посилання» на картці; можна кілька посилань одразу.",

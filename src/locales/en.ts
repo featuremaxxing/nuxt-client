@@ -2516,6 +2516,12 @@ export default {
 	"components.board.completion.markDone": "Mark as done",
 	"pages.learningPath.addBoard": "Add “{title}” to the learning path",
 	"pages.learningPath.allAdded": "All boards of the room are part of the learning path.",
+	"pages.learningPath.picker.hint":
+		"Click to see the cards, + adds the whole board. Boards and cards can also be dragged onto the canvas.",
+	"pages.learningPath.picker.search": "Search boards and cards",
+	"pages.learningPath.picker.noMatch": "Nothing found",
+	"pages.learningPath.picker.noBoards": "The room has no boards yet.",
+	"pages.learningPath.picker.boardAdded": "Already in the learning path",
 	"pages.learningPath.edge.remove": "Remove connection",
 	"pages.learningPath.links.label": "Paste a link to a card or board",
 	"pages.learningPath.links.hint": "“Copy link” on a card; several links at once work too.",
