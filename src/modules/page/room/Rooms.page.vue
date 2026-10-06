@@ -1,7 +1,8 @@
 <template>
 	<DefaultWireframe max-width="full" :fab-items="fabAction" main-with-bottom-padding>
 		<template #header>
-			<div class="d-flex align-center flex-wrap ga-4">
+			<!-- the view toggle sits next to the title: the right side belongs to the "create room" button -->
+			<div class="d-flex align-center flex-wrap column-gap-6">
 				<h1>{{ t("pages.rooms.title") }}</h1>
 				<VBtnToggle
 					v-if="!isEmpty"
@@ -11,7 +12,7 @@
 					variant="outlined"
 					divided
 					color="primary"
-					class="ml-auto"
+					class="mb-4"
 					:aria-label="t('pages.rooms.view.ariaLabel')"
 					data-testid="rooms-view-toggle"
 				>
