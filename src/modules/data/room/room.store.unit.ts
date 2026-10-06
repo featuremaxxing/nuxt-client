@@ -29,7 +29,7 @@ describe("useRoomStore", () => {
 		it("should load rooms successfully", async () => {
 			const mockRooms = roomItemResponseFactory.buildList(2);
 			roomApiMock.roomControllerGetRooms.mockResolvedValue(
-				mockApiResponse<RoomListResponse>({ data: { data: mockRooms } })
+				mockApiResponse<RoomListResponse>({ data: { data: mockRooms, tags: [] } })
 			);
 
 			const store = useRoomStore();
@@ -80,6 +80,72 @@ describe("useRoomStore", () => {
 			roomApiMock.roomControllerDeleteRoom.mockRejectedValue(new Error("Delete failed"));
 			await useRoomStore().deleteRoom("room-123");
 			expectNotification("error");
+		});
+	});
+
+	describe("tags", () => {
+		const mathe = { id: "t1", name: "Mathe" };
+		const physik = { id: "t2", name: "Physik" };
+
+		const setup = () => {
+			const store = useRoomStore();
+			const rooms = [
+				roomItemResponseFactory.build({ tagIds: [mathe.id, physik.id] }),
+				roomItemResponseFactory.build({ tagIds: [mathe.id] }),
+			];
+			store.rooms = rooms;
+			store.tags = [mathe, physik];
+			return { store, rooms };
+		};
+
+		it("setRoomTags should store the tags of a room", async () => {
+			const { store, rooms } = setup();
+			const klasse = { id: "t3", name: "Klasse 7a" };
+			roomApiMock.roomControllerSetRoomTags.mockResolvedValue(
+				mockApiResponse({ data: { tagIds: [klasse.id], tags: [mathe, physik, klasse] } })
+			);
+
+			const success = await store.setRoomTags(rooms[1].id, ["Klasse 7a"]);
+
+			expect(success).toBe(true);
+			expect(roomApiMock.roomControllerSetRoomTags).toHaveBeenCalledWith(rooms[1].id, { names: ["Klasse 7a"] });
+			expect(store.rooms[1].tagIds).toEqual([klasse.id]);
+			expect(store.tags).toEqual([mathe, physik, klasse]);
+		});
+
+		it("setRoomTags should notify when saving fails", async () => {
+			const { store, rooms } = setup();
+			vi.spyOn(logger, "error").mockImplementation(vi.fn());
+			roomApiMock.roomControllerSetRoomTags.mockRejectedValue(new Error("failed"));
+
+			const success = await store.setRoomTags(rooms[0].id, []);
+
+			expect(success).toBe(false);
+			expectNotification("error");
+			expect(store.rooms[0].tagIds).toEqual([mathe.id, physik.id]);
+		});
+
+		it("renameTag should rename and reload the rooms", async () => {
+			const { store } = setup();
+			roomApiMock.roomControllerRenameRoomTag.mockResolvedValue(mockApiResponse({ data: undefined }));
+			roomApiMock.roomControllerGetRooms.mockResolvedValue(
+				mockApiResponse<RoomListResponse>({ data: { data: [], tags: [] } })
+			);
+
+			await store.renameTag(mathe.id, "Mathematik");
+
+			expect(roomApiMock.roomControllerRenameRoomTag).toHaveBeenCalledWith(mathe.id, { name: "Mathematik" });
+			expect(roomApiMock.roomControllerGetRooms).toHaveBeenCalled();
+		});
+
+		it("deleteTag should remove the tag from the rooms", async () => {
+			const { store } = setup();
+			roomApiMock.roomControllerDeleteRoomTag.mockResolvedValue(mockApiResponse({ data: undefined }));
+
+			await store.deleteTag(mathe.id);
+
+			expect(store.tags).toEqual([physik]);
+			expect(store.rooms.map((room) => room.tagIds)).toEqual([[physik.id], []]);
 		});
 	});
 

@@ -39,6 +39,8 @@ import { MoveItemBodyParams } from '../models';
 // @ts-ignore
 import { PassOwnershipBodyParams } from '../models';
 // @ts-ignore
+import { RenameRoomTagBodyParams } from '../models';
+// @ts-ignore
 import { RemoveRoomMembersBodyParams } from '../models';
 // @ts-ignore
 import { RoomBoardListResponse } from '../models';
@@ -56,6 +58,10 @@ import { RoomMemberListResponse } from '../models';
 import { RoomRoleResponse } from '../models';
 // @ts-ignore
 import { RoomStatsListResponse } from '../models';
+// @ts-ignore
+import { RoomTagsBodyParams } from '../models';
+// @ts-ignore
+import { RoomTagsResponse } from '../models';
 // @ts-ignore
 import { UpdateRoomBodyParams } from '../models';
 /**
@@ -356,6 +362,44 @@ export const RoomApiAxiosParamCreator = function (configuration?: Configuration)
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(createRoomBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete a personal room tag. The rooms are kept.
+         * @param {string} tagId The id of the tag.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerDeleteRoomTag: async (tagId: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tagId' is not null or undefined
+            assertParamExists('roomControllerDeleteRoomTag', 'tagId', tagId)
+            const localVarPath = `/rooms/tags/{tagId}`
+                .replace(`{${"tagId"}}`, encodeURIComponent(String(tagId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -746,6 +790,50 @@ export const RoomApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Rename a personal room tag. Renaming to the name of another tag merges both.
+         * @param {string} tagId The id of the tag.
+         * @param {RenameRoomTagBodyParams} renameRoomTagBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerRenameRoomTag: async (tagId: string, renameRoomTagBodyParams: RenameRoomTagBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tagId' is not null or undefined
+            assertParamExists('roomControllerRenameRoomTag', 'tagId', tagId)
+            // verify required parameter 'renameRoomTagBodyParams' is not null or undefined
+            assertParamExists('roomControllerRenameRoomTag', 'renameRoomTagBodyParams', renameRoomTagBodyParams)
+            const localVarPath = `/rooms/tags/{tagId}`
+                .replace(`{${"tagId"}}`, encodeURIComponent(String(tagId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(renameRoomTagBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Move a single board item.
          * @param {string} roomId The id of the room.
          * @param {MoveItemBodyParams} moveItemBodyParams 
@@ -918,6 +1006,50 @@ export const RoomApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Set the personal tags of a room.
+         * @param {string} roomId The id of the room.
+         * @param {RoomTagsBodyParams} roomTagsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerSetRoomTags: async (roomId: string, roomTagsBodyParams: RoomTagsBodyParams, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomId' is not null or undefined
+            assertParamExists('roomControllerSetRoomTags', 'roomId', roomId)
+            // verify required parameter 'roomTagsBodyParams' is not null or undefined
+            assertParamExists('roomControllerSetRoomTags', 'roomTagsBodyParams', roomTagsBodyParams)
+            const localVarPath = `/rooms/{roomId}/tags`
+                .replace(`{${"roomId"}}`, encodeURIComponent(String(roomId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(roomTagsBodyParams, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Update an existing room
          * @param {string} roomId The id of the room.
          * @param {UpdateRoomBodyParams} updateRoomBodyParams 
@@ -1054,6 +1186,17 @@ export const RoomApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Delete a personal room tag. The rooms are kept.
+         * @param {string} tagId The id of the tag.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomControllerDeleteRoomTag(tagId: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomControllerDeleteRoomTag(tagId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary Delete a room
          * @param {string} roomId The id of the room.
          * @param {*} [options] Override http request option.
@@ -1164,6 +1307,18 @@ export const RoomApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Rename a personal room tag. Renaming to the name of another tag merges both.
+         * @param {string} tagId The id of the tag.
+         * @param {RenameRoomTagBodyParams} renameRoomTagBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomControllerRenameRoomTag(tagId: string, renameRoomTagBodyParams: RenameRoomTagBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomControllerRenameRoomTag(tagId, renameRoomTagBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary Move a single board item.
          * @param {string} roomId The id of the room.
          * @param {MoveItemBodyParams} moveItemBodyParams 
@@ -1207,6 +1362,18 @@ export const RoomApiFp = function(configuration?: Configuration) {
          */
         async roomControllerRemoveMembers(roomId: string, removeRoomMembersBodyParams: RemoveRoomMembersBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.roomControllerRemoveMembers(roomId, removeRoomMembersBodyParams, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Set the personal tags of a room.
+         * @param {string} roomId The id of the room.
+         * @param {RoomTagsBodyParams} roomTagsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomControllerSetRoomTags(roomId: string, roomTagsBodyParams: RoomTagsBodyParams, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoomTagsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomControllerSetRoomTags(roomId, roomTagsBodyParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1305,6 +1472,16 @@ export const RoomApiFactory = function (configuration?: Configuration, basePath?
          */
         roomControllerCreateRoom(createRoomBodyParams: CreateRoomBodyParams, options?: any): AxiosPromise<RoomCreatedResponse> {
             return localVarFp.roomControllerCreateRoom(createRoomBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete a personal room tag. The rooms are kept.
+         * @param {string} tagId The id of the tag.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerDeleteRoomTag(tagId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.roomControllerDeleteRoomTag(tagId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1408,6 +1585,17 @@ export const RoomApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
+         * @summary Rename a personal room tag. Renaming to the name of another tag merges both.
+         * @param {string} tagId The id of the tag.
+         * @param {RenameRoomTagBodyParams} renameRoomTagBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerRenameRoomTag(tagId: string, renameRoomTagBodyParams: RenameRoomTagBodyParams, options?: any): AxiosPromise<void> {
+            return localVarFp.roomControllerRenameRoomTag(tagId, renameRoomTagBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Move a single board item.
          * @param {string} roomId The id of the room.
          * @param {MoveItemBodyParams} moveItemBodyParams 
@@ -1448,6 +1636,17 @@ export const RoomApiFactory = function (configuration?: Configuration, basePath?
          */
         roomControllerRemoveMembers(roomId: string, removeRoomMembersBodyParams: RemoveRoomMembersBodyParams, options?: any): AxiosPromise<string> {
             return localVarFp.roomControllerRemoveMembers(roomId, removeRoomMembersBodyParams, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Set the personal tags of a room.
+         * @param {string} roomId The id of the room.
+         * @param {RoomTagsBodyParams} roomTagsBodyParams 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomControllerSetRoomTags(roomId: string, roomTagsBodyParams: RoomTagsBodyParams, options?: any): AxiosPromise<RoomTagsResponse> {
+            return localVarFp.roomControllerSetRoomTags(roomId, roomTagsBodyParams, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1544,6 +1743,15 @@ export interface RoomApiInterface {
      */
     roomControllerCreateRoom(createRoomBodyParams: CreateRoomBodyParams, options?: any): AxiosPromise<RoomCreatedResponse>;
 
+    /**
+     * 
+     * @summary Delete a personal room tag. The rooms are kept.
+     * @param {string} tagId The id of the tag.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApiInterface
+     */
+    roomControllerDeleteRoomTag(tagId: string, options?: any): AxiosPromise<void>;
     /**
      * 
      * @summary Delete a room
@@ -1646,6 +1854,16 @@ export interface RoomApiInterface {
 
     /**
      * 
+     * @summary Rename a personal room tag. Renaming to the name of another tag merges both.
+     * @param {string} tagId The id of the tag.
+     * @param {RenameRoomTagBodyParams} renameRoomTagBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApiInterface
+     */
+    roomControllerRenameRoomTag(tagId: string, renameRoomTagBodyParams: RenameRoomTagBodyParams, options?: any): AxiosPromise<void>;
+    /**
+     * 
      * @summary Move a single board item.
      * @param {string} roomId The id of the room.
      * @param {MoveItemBodyParams} moveItemBodyParams 
@@ -1687,6 +1905,16 @@ export interface RoomApiInterface {
      */
     roomControllerRemoveMembers(roomId: string, removeRoomMembersBodyParams: RemoveRoomMembersBodyParams, options?: any): AxiosPromise<string>;
 
+    /**
+     * 
+     * @summary Set the personal tags of a room.
+     * @param {string} roomId The id of the room.
+     * @param {RoomTagsBodyParams} roomTagsBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApiInterface
+     */
+    roomControllerSetRoomTags(roomId: string, roomTagsBodyParams: RoomTagsBodyParams, options?: any): AxiosPromise<RoomTagsResponse>;
     /**
      * 
      * @summary Update an existing room
@@ -1796,6 +2024,17 @@ export class RoomApi extends BaseAPI implements RoomApiInterface {
         return RoomApiFp(this.configuration).roomControllerCreateRoom(createRoomBodyParams, options).then((request) => request(this.axios, this.basePath));
     }
 
+    /**
+     * 
+     * @summary Delete a personal room tag. The rooms are kept.
+     * @param {string} tagId The id of the tag.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApi
+     */
+    public roomControllerDeleteRoomTag(tagId: string, options?: any) {
+        return RoomApiFp(this.configuration).roomControllerDeleteRoomTag(tagId, options).then((request) => request(this.axios, this.basePath));
+    }
     /**
      * 
      * @summary Delete a room
@@ -1918,6 +2157,18 @@ export class RoomApi extends BaseAPI implements RoomApiInterface {
 
     /**
      * 
+     * @summary Rename a personal room tag. Renaming to the name of another tag merges both.
+     * @param {string} tagId The id of the tag.
+     * @param {RenameRoomTagBodyParams} renameRoomTagBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApi
+     */
+    public roomControllerRenameRoomTag(tagId: string, renameRoomTagBodyParams: RenameRoomTagBodyParams, options?: any) {
+        return RoomApiFp(this.configuration).roomControllerRenameRoomTag(tagId, renameRoomTagBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     * 
      * @summary Move a single board item.
      * @param {string} roomId The id of the room.
      * @param {MoveItemBodyParams} moveItemBodyParams 
@@ -1967,6 +2218,18 @@ export class RoomApi extends BaseAPI implements RoomApiInterface {
         return RoomApiFp(this.configuration).roomControllerRemoveMembers(roomId, removeRoomMembersBodyParams, options).then((request) => request(this.axios, this.basePath));
     }
 
+    /**
+     * 
+     * @summary Set the personal tags of a room.
+     * @param {string} roomId The id of the room.
+     * @param {RoomTagsBodyParams} roomTagsBodyParams 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RoomApi
+     */
+    public roomControllerSetRoomTags(roomId: string, roomTagsBodyParams: RoomTagsBodyParams, options?: any) {
+        return RoomApiFp(this.configuration).roomControllerSetRoomTags(roomId, roomTagsBodyParams, options).then((request) => request(this.axios, this.basePath));
+    }
     /**
      * 
      * @summary Update an existing room

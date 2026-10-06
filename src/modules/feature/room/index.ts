@@ -15,7 +15,10 @@ import Confirmations from "./roomMembers/tabs/Confirmations.vue";
 import Invitations from "./roomMembers/tabs/Invitations.vue";
 import Members from "./roomMembers/tabs/Members.vue";
 import RoomMenu from "./RoomMenu.vue";
+import { type RoomsViewMode, useRoomsView } from "./roomsView.composable";
 import RoomsWelcomeInfo from "./RoomsWelcomeInfo.vue";
+import RoomTagsDialog from "./RoomTagsDialog.vue";
+import RoomTagView from "./RoomTagView.vue";
 
 export {
 	AddExternalPersonDialog,
@@ -35,5 +38,9 @@ export {
 	RoomForm,
 	RoomGrid,
 	RoomMenu,
+	type RoomsViewMode,
 	RoomsWelcomeInfo,
+	RoomTagsDialog,
+	RoomTagView,
+	useRoomsView,
 };

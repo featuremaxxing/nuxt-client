@@ -48,7 +48,7 @@ describe("MoveCardDialog", () => {
 
 	const setup = (props = {}, rooms = mockRooms) => {
 		const roomStore = mockedPiniaStoreTyping(useRoomStore);
-		roomStore.fetchRoomsPlain.mockResolvedValue(mockApiResponse({ data: { data: rooms } }));
+		roomStore.fetchRoomsPlain.mockResolvedValue(mockApiResponse({ data: { data: rooms, tags: [] } }));
 
 		const wrapper = mount(MoveCardDialog, {
 			props: {

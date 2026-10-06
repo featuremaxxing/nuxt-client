@@ -17,7 +17,7 @@ import {
 	RoomItemResponseAllowedOperations,
 } from "@api-server";
 import { useImportFlow } from "@feature-import";
-import { RoomGrid } from "@feature-room";
+import { RoomGrid, RoomTagView, useRoomsView } from "@feature-room";
 import { createTestingPinia } from "@pinia/testing";
 import { InfoAlert } from "@ui-alert";
 import { EmptyState } from "@ui-empty-state";
@@ -106,6 +106,35 @@ describe("RoomsPage", () => {
 			const expectedInfoText = `${expectedListHeaderTexts} ${expectedListText}`;
 
 			expect(alert.text()).toBe(expectedInfoText);
+		});
+	});
+
+	describe("view toggle", () => {
+		beforeEach(() => {
+			useRoomsView().viewMode.value = "all";
+		});
+
+		it("should show all rooms by default", () => {
+			const { wrapper } = setup();
+
+			expect(wrapper.findComponent(RoomGrid).exists()).toBe(true);
+			expect(wrapper.findComponent(RoomTagView).exists()).toBe(false);
+		});
+
+		it("should switch to the rooms by tags", async () => {
+			const { wrapper } = setup();
+
+			await wrapper.find("[data-testid=rooms-view-tags]").trigger("click");
+
+			expect(useRoomsView().viewMode.value).toBe("tags");
+			expect(wrapper.findComponent(RoomTagView).exists()).toBe(true);
+			expect(wrapper.findComponent(RoomGrid).exists()).toBe(false);
+		});
+
+		it("should not be shown without rooms", () => {
+			const { wrapper } = setup([]);
+
+			expect(wrapper.find("[data-testid=rooms-view-toggle]").exists()).toBe(false);
 		});
 	});
 
