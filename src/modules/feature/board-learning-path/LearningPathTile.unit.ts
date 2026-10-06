@@ -40,4 +40,30 @@ describe("LearningPathTile", () => {
 
 		expect(wrapper.find("[data-testid='learning-path-tile-rework']").exists()).toBe(false);
 	});
+
+	describe("a text tile", () => {
+		const text = (overrides: Partial<LearningPathStep> = {}) =>
+			step({ linkedBoardId: "", isText: true, title: "Teil 2", text: "Lest  die\nKarten.", ...overrides });
+
+		it("should show the heading and the start of the text once it is open", () => {
+			const wrapper = setup({ step: text() });
+
+			expect(wrapper.classes()).toContain("lp-tile--text");
+			expect(wrapper.text()).toContain("Teil 2");
+			expect(wrapper.get(".lp-tile__snippet").text()).toBe("Lest die Karten.");
+		});
+
+		it("should not show anything of a locked text to a student", () => {
+			const wrapper = setup({ step: text({ status: "locked", title: "", text: undefined }) });
+
+			expect(wrapper.text()).toContain("pages.learningPath.text.locked");
+			expect(wrapper.find(".lp-tile__snippet").exists()).toBe(false);
+		});
+
+		it("should mark it as a text tile for editors", () => {
+			const wrapper = setup({ step: text(), isEditor: true });
+
+			expect(wrapper.find("[data-testid='learning-path-tile-text']").exists()).toBe(true);
+		});
+	});
 });

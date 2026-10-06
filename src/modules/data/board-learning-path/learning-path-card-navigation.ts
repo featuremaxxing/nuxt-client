@@ -31,8 +31,11 @@ export const useLearningPathCardNavigation = (pathId: Ref<string | undefined>, c
 	const isActive = computed(() => !!pathId.value);
 
 	// students only see the published steps, as in the list of the learning path
+	// text tiles are read on the learning path itself, paging skips them
 	const chain = computed(() =>
-		orderedSteps(path.value?.steps ?? []).filter((step) => path.value?.isEditor || step.status !== "unavailable")
+		orderedSteps(path.value?.steps ?? []).filter(
+			(step) => !step.isText && (path.value?.isEditor || step.status !== "unavailable")
+		)
 	);
 	const index = computed(() => chain.value.findIndex((step) => step.linkedCardId === cardId.value));
 	const step = computed(() => (index.value >= 0 ? chain.value[index.value] : undefined));

@@ -225,4 +225,40 @@ describe("LearningPathBoard", () => {
 			});
 		});
 	});
+
+	describe("text tiles", () => {
+		beforeEach(() => {
+			push.mockClear();
+			post.mockClear();
+		});
+
+		const text = step("t", { linkedBoardId: "", isText: true, title: "Teil 2", text: "Lest die Karten." });
+
+		it("should let a student read an open text tile", async () => {
+			const wrapper = await setup({ steps: [text] });
+
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", text);
+			await flushPromises();
+
+			expect(push).not.toHaveBeenCalled();
+			const dialog = wrapper.findComponent({ name: "VDialog" });
+			expect(dialog.props("modelValue")).toBe(true);
+		});
+
+		it("should add a text tile for editors", async () => {
+			post.mockResolvedValue({ data: {} });
+			const wrapper = await setup({ isEditor: true });
+
+			wrapper.findComponent({ name: "LearningPathBoardPicker" }).vm.$emit("add-text");
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				title: "pages.learningPath.text.label",
+				text: "",
+				positionX: 0,
+				positionY: 0,
+			});
+		});
+	});
 });

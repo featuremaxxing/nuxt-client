@@ -2563,6 +2563,12 @@ export default {
 	"components.board.completion.markDone": "Als erledigt markieren",
 	"pages.learningPath.addBoard": "„{title}“ zum Lernweg hinzufügen",
 	"pages.learningPath.allAdded": "Alle Bereiche des Raums sind im Lernweg.",
+	"pages.learningPath.text.add": "Textkarte hinzufügen",
+	"pages.learningPath.text.label": "Textkarte",
+	"pages.learningPath.text.title": "Überschrift",
+	"pages.learningPath.text.text": "Text, z. B. ein Arbeitsauftrag",
+	"pages.learningPath.text.hint": "Mit Sperre sehen Schüler:innen den Text erst, wenn die Karten davor fertig sind.",
+	"pages.learningPath.text.locked": "Gesperrter Text",
 	"pages.learningPath.cards.title": "Einzelne Karten",
 	"pages.learningPath.cards.pickerHint":
 		"Klappe einen Bereich auf und ziehe Karten in den Lernweg oder füge sie mit + hinzu.",
@@ -2680,7 +2686,8 @@ export default {
 	"pages.room.learningPaths.completed": "Geschafft",
 	"pages.room.learningPaths.redo.action": "Erneut machen lassen",
 	"pages.room.learningPaths.redo.title": "{name} geht „{title}“ noch einmal",
-	"pages.room.learningPaths.redo.message": "Die Abschlüsse und Checkbox-Haken in diesem Lernweg werden für diese Person zurückgesetzt. Abgaben und Umfrage-Stimmen bleiben erhalten.",
+	"pages.room.learningPaths.redo.message":
+		"Die Abschlüsse und Checkbox-Haken in diesem Lernweg werden für diese Person zurückgesetzt. Abgaben und Umfrage-Stimmen bleiben erhalten.",
 	"pages.room.learningPaths.redo.confirm": "Erneut machen lassen",
 	"pages.room.learningPaths.assign": "Zuweisen",
 	"pages.room.learningPaths.noStudents": "Keine Schüler:innen in dieser Auswahl.",

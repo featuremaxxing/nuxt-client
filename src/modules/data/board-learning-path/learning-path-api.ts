@@ -26,6 +26,10 @@ export type LearningPathStep = {
 	title: string;
 	// card steps: title of the board the card lies on
 	boardTitle?: string;
+	// a text tile (heading, work instructions): links nothing, has nothing to complete
+	isText?: boolean;
+	// text tiles: what they say - left out for students while the tile is locked
+	text?: string;
 	isVisible: boolean;
 	positionX: number;
 	positionY: number;
@@ -67,7 +71,7 @@ export type LearningPath = {
 export type LearningPathStepUpdate = Partial<
 	Pick<
 		LearningPathStep,
-		"positionX" | "positionY" | "prerequisiteStepIds" | "unlockMode" | "lockUntilPrerequisitesDone"
+		"positionX" | "positionY" | "prerequisiteStepIds" | "unlockMode" | "lockUntilPrerequisitesDone" | "title" | "text"
 	>
 >;
 
@@ -147,6 +151,19 @@ export const useLearningPathApi = () => {
 				boardId,
 				linkedBoardId,
 				...(linkedCardId ? { linkedCardId } : {}),
+				positionX: Math.round(positionX),
+				positionY: Math.round(positionY),
+			});
+
+			return response.data;
+		});
+
+	const createTextStep = (boardId: string, title: string, text: string, positionX: number, positionY: number) =>
+		withErrorNotification(async () => {
+			const response = await $axios.post<LearningPathStep>("/v3/learning-path-steps", {
+				boardId,
+				title,
+				text,
 				positionX: Math.round(positionX),
 				positionY: Math.round(positionY),
 			});
@@ -237,6 +254,7 @@ export const useLearningPathApi = () => {
 	return {
 		fetchLearningPath,
 		createStep,
+		createTextStep,
 		updateStep,
 		updateColor,
 		enroll,

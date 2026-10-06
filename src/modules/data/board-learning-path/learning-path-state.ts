@@ -74,6 +74,9 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 	const addStep = (linkedBoardId: string, positionX: number, positionY: number, linkedCardId?: string) =>
 		change(() => api.createStep(boardId.value, linkedBoardId, positionX, positionY, linkedCardId));
 
+	const addTextStep = (title: string, positionX: number, positionY: number) =>
+		change(() => api.createTextStep(boardId.value, title, "", positionX, positionY));
+
 	const moveStep = async (stepId: string, positionX: number, positionY: number): Promise<void> => {
 		const step = findStep(stepId);
 		if (!step) return;
@@ -129,6 +132,7 @@ export const useLearningPathState = (boardId: Ref<string>) => {
 		load,
 		reloadSoon,
 		addStep,
+		addTextStep,
 		moveStep,
 		updateStep,
 		connect,

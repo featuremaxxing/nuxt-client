@@ -70,6 +70,7 @@
 					:card-ids-in-path="cardIdsInPath"
 					@add="onAddBoard"
 					@add-card="onAddCard"
+					@add-text="onAddText"
 				/>
 				<LearningPathCanvas
 					ref="canvas"
@@ -103,6 +104,16 @@
 	</DefaultWireframe>
 	<LearningPathTitleDialog v-model:is-dialog-open="isTitleDialogOpen" :name="title" @confirm="onRename" />
 	<LearningPathColorDialog v-model="isColorDialogOpen" :color="color" @confirm="onChangeColor" />
+	<VDialog v-model="isTextOpen" max-width="640" data-testid="learning-path-text-dialog">
+		<VCard v-if="openText">
+			<VCardTitle class="text-h4 text-wrap">{{ openText.title || t("pages.learningPath.text.label") }}</VCardTitle>
+			<VCardText class="lp-text" data-testid="learning-path-text-dialog-body">{{ openText.text }}</VCardText>
+			<VCardActions>
+				<VSpacer />
+				<VBtn variant="text" @click="isTextOpen = false">{{ t("common.labels.close") }}</VBtn>
+			</VCardActions>
+		</VCard>
+	</VDialog>
 </template>
 
 <script setup lang="ts">
@@ -178,6 +189,7 @@ const {
 	load,
 	reloadSoon,
 	addStep,
+	addTextStep,
 	moveStep,
 	updateStep,
 	connect,
@@ -219,8 +231,9 @@ const onChangeColor = async (newColor: LearningPathColor) => {
 
 // what a student still has to do before a locked step opens
 const hints = computed<Record<string, string>>(() => {
+	// text tiles have nothing to complete, they are never what is missing
 	const isMissing = (step: LearningPathStep | undefined): step is LearningPathStep =>
-		!!step && step.status !== "done" && step.status !== "unavailable";
+		!!step && !step.isText && step.status !== "done" && step.status !== "unavailable";
 
 	return Object.fromEntries(
 		steps.value
@@ -248,8 +261,27 @@ const hints = computed<Record<string, string>>(() => {
 	);
 });
 
-// a card step opens the card on its own, as part of the learning path
-const openStep = (step: LearningPathStep) => router.push(stepRoute(step, boardId.value));
+// a card step opens the card on its own, as part of the learning path; a text tile is read right here
+const openText = ref<LearningPathStep>();
+const isTextOpen = ref(false);
+const openStep = (step: LearningPathStep) => {
+	if (step.isText) {
+		openText.value = step;
+		isTextOpen.value = true;
+		return;
+	}
+	router.push(stepRoute(step, boardId.value));
+};
+
+const onAddText = async () => {
+	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+	const added = await addTextStep(t("pages.learningPath.text.label"), position.x, position.y);
+	// the new tile is selected, so its text can be written right away
+	const created = steps.value.find(
+		(step) => step.isText && step.positionX === Math.round(position.x) && step.positionY === Math.round(position.y)
+	);
+	if (added && created) selectedStepId.value = created.id;
+};
 
 const onAddBoard = async (linkedBoardId: string) => {
 	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
@@ -272,7 +304,7 @@ const onConnect = async (fromId: string, toId: string) => {
 const onRemoveStep = async (step: LearningPathStep) => {
 	const shouldRemove = await askDeletionForItem(
 		step.title,
-		step.linkedCardId ? "components.boardCard" : "common.words.board"
+		step.isText ? "pages.learningPath.text.label" : step.linkedCardId ? "components.boardCard" : "common.words.board"
 	);
 	if (!shouldRemove) return;
 	selectedStepId.value = undefined;
@@ -312,6 +344,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.lp-text {
+	white-space: pre-wrap;
+}
+
 .lp-layout {
 	display: flex;
 	gap: 16px;

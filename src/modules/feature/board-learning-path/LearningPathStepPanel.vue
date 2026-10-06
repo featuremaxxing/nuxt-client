@@ -1,7 +1,9 @@
 <template>
 	<section class="lp-panel" :aria-label="t('pages.learningPath.step.settings')" data-testid="learning-path-step-panel">
 		<div class="d-flex align-start">
-			<h2 class="text-h4 flex-grow-1 mb-2">{{ step.title || t("pages.learningPath.tile.unavailable") }}</h2>
+			<h2 class="text-h4 flex-grow-1 mb-2">
+				{{ step.title || t(step.isText ? "pages.learningPath.text.label" : "pages.learningPath.tile.unavailable") }}
+			</h2>
 			<VBtn
 				:icon="mdiClose"
 				size="small"
@@ -15,8 +17,31 @@
 		<p v-if="step.linkedCardId && step.boardTitle" class="text-body-2 text-medium-emphasis mb-2">
 			{{ t("pages.learningPath.cards.from", { title: step.boardTitle }) }}
 		</p>
+		<template v-if="step.isText">
+			<VTextField
+				v-model="textTitle"
+				:label="t('pages.learningPath.text.title')"
+				:maxlength="200"
+				density="compact"
+				class="mb-2"
+				data-testid="learning-path-panel-text-title"
+				@blur="saveText"
+			/>
+			<VTextarea
+				v-model="textBody"
+				:label="t('pages.learningPath.text.text')"
+				:maxlength="5000"
+				auto-grow
+				rows="4"
+				density="compact"
+				class="mb-2"
+				data-testid="learning-path-panel-text-body"
+				@blur="saveText"
+			/>
+			<p class="text-caption text-medium-emphasis mb-4">{{ t("pages.learningPath.text.hint") }}</p>
+		</template>
 		<VBtn
-			v-if="step.status !== 'unavailable'"
+			v-else-if="step.status !== 'unavailable'"
 			:to="stepRoute(step, pathId)"
 			variant="outlined"
 			size="small"
@@ -108,7 +133,7 @@ import {
 	wouldCreateCycle,
 } from "@data-board-learning-path";
 import { mdiClose, mdiDeleteOutline, mdiOpenInNew } from "@icons/material";
-import { computed, PropType } from "vue";
+import { computed, PropType, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps({
@@ -148,6 +173,22 @@ const candidates = computed(() =>
 			title: candidate.title || t("pages.learningPath.tile.unavailable"),
 		}))
 );
+
+// a text tile is edited right here and saved when a field is left
+const textTitle = ref("");
+const textBody = ref("");
+watch(
+	() => [props.step.id, props.step.title, props.step.text],
+	() => {
+		textTitle.value = props.step.title;
+		textBody.value = props.step.text ?? "";
+	},
+	{ immediate: true }
+);
+const saveText = () => {
+	if (textTitle.value === props.step.title && textBody.value === (props.step.text ?? "")) return;
+	emit("update", { title: textTitle.value, text: textBody.value });
+};
 
 const onAddPrerequisite = (fromId: string | null) => {
 	if (fromId) emit("connect", fromId);

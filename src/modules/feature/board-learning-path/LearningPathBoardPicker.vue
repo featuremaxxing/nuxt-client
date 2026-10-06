@@ -4,6 +4,17 @@
 		:aria-label="t('pages.learningPath.availableBoards')"
 		data-testid="learning-path-board-picker"
 	>
+		<VBtn
+			block
+			variant="outlined"
+			size="small"
+			:prepend-icon="mdiFormatText"
+			class="mb-4"
+			data-testid="learning-path-picker-add-text"
+			@click="emit('add-text')"
+		>
+			{{ t("pages.learningPath.text.add") }}
+		</VBtn>
 		<h2 class="text-subtitle-1 font-weight-bold mb-1">{{ t("pages.learningPath.availableBoards") }}</h2>
 		<p class="text-body-2 text-medium-emphasis mb-2">{{ t("pages.learningPath.availableBoardsHint") }}</p>
 		<p v-if="boards.length === 0" class="text-body-2" data-testid="learning-path-picker-empty">
@@ -99,7 +110,15 @@ import {
 	type LearningPathAvailableBoard,
 	type LearningPathPickableColumn,
 } from "@data-board-learning-path";
-import { mdiCardTextOutline, mdiCheck, mdiChevronDown, mdiChevronRight, mdiDrag, mdiPlus } from "@icons/material";
+import {
+	mdiCardTextOutline,
+	mdiCheck,
+	mdiChevronDown,
+	mdiChevronRight,
+	mdiDrag,
+	mdiFormatText,
+	mdiPlus,
+} from "@icons/material";
 import { PropType, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -114,6 +133,7 @@ defineProps({
 const emit = defineEmits<{
 	(e: "add", boardId: string): void;
 	(e: "add-card", boardId: string, cardId: string): void;
+	(e: "add-text"): void;
 }>();
 
 const { t } = useI18n();

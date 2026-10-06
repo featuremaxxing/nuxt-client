@@ -72,4 +72,27 @@ describe("LearningPathStepPanel", () => {
 
 		expect(wrapper.emitted("update")).toEqual([[{ unlockMode: "any" }]]);
 	});
+
+	describe("a text tile", () => {
+		const text = () => step("t", { linkedBoardId: "", isText: true, title: "Teil 2", text: "Alt" });
+
+		it("should edit heading and text and save them when a field is left", async () => {
+			const wrapper = setup(text(), []);
+
+			expect(wrapper.find("[data-testid='learning-path-panel-open']").exists()).toBe(false);
+			const body = wrapper.get("[data-testid='learning-path-panel-text-body'] textarea");
+			await body.setValue("Lest die Karten.");
+			await body.trigger("blur");
+
+			expect(wrapper.emitted("update")).toEqual([[{ title: "Teil 2", text: "Lest die Karten." }]]);
+		});
+
+		it("should not save when nothing changed", async () => {
+			const wrapper = setup(text(), []);
+
+			await wrapper.get("[data-testid='learning-path-panel-text-title'] input").trigger("blur");
+
+			expect(wrapper.emitted("update")).toBeUndefined();
+		});
+	});
 });

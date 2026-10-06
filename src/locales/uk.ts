@@ -2538,6 +2538,12 @@ export default {
 	"components.board.completion.markDone": "Позначити як виконане",
 	"pages.learningPath.addBoard": "Додати «{title}» до навчального шляху",
 	"pages.learningPath.allAdded": "Усі розділи кімнати вже є в навчальному шляху.",
+	"pages.learningPath.text.add": "Додати текстову картку",
+	"pages.learningPath.text.label": "Текстова картка",
+	"pages.learningPath.text.title": "Заголовок",
+	"pages.learningPath.text.text": "Текст, напр. завдання",
+	"pages.learningPath.text.hint": "Із блокуванням учні бачать текст лише після завершення попередніх карток.",
+	"pages.learningPath.text.locked": "Заблокований текст",
 	"pages.learningPath.cards.title": "Окремі картки",
 	"pages.learningPath.cards.pickerHint":
 		"Відкрийте розділ і перетягніть картки в навчальний шлях або додайте їх за допомогою +.",
@@ -2654,7 +2660,8 @@ export default {
 	"pages.room.learningPaths.completed": "Пройдено",
 	"pages.room.learningPaths.redo.action": "Пройти ще раз",
 	"pages.room.learningPaths.redo.title": "{name} проходить «{title}» ще раз",
-	"pages.room.learningPaths.redo.message": "Завершення та позначки чекбоксів у цьому навчальному шляху буде скинуто для цієї особи. Здані роботи та голоси в опитуваннях збережуться.",
+	"pages.room.learningPaths.redo.message":
+		"Завершення та позначки чекбоксів у цьому навчальному шляху буде скинуто для цієї особи. Здані роботи та голоси в опитуваннях збережуться.",
 	"pages.room.learningPaths.redo.confirm": "Пройти ще раз",
 	"pages.room.learningPaths.assign": "Призначити",
 	"pages.room.learningPaths.noStudents": "У цьому виборі немає учнів.",

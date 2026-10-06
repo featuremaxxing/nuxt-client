@@ -2574,6 +2574,13 @@ export default {
 	"components.board.completion.markDone": "Marcar como hecho",
 	"pages.learningPath.addBoard": "Añadir «{title}» a la ruta de aprendizaje",
 	"pages.learningPath.allAdded": "Todas las áreas de la sala están en la ruta de aprendizaje.",
+	"pages.learningPath.text.add": "Añadir tarjeta de texto",
+	"pages.learningPath.text.label": "Tarjeta de texto",
+	"pages.learningPath.text.title": "Título",
+	"pages.learningPath.text.text": "Texto, p. ej. una consigna",
+	"pages.learningPath.text.hint":
+		"Con bloqueo, el alumnado solo ve el texto cuando las tarjetas anteriores están terminadas.",
+	"pages.learningPath.text.locked": "Texto bloqueado",
 	"pages.learningPath.cards.title": "Tarjetas individuales",
 	"pages.learningPath.cards.pickerHint": "Abre un área y arrastra tarjetas a la ruta de aprendizaje o añádelas con +.",
 	"pages.learningPath.cards.empty": "Esta área no tiene tarjetas.",
@@ -2690,7 +2697,8 @@ export default {
 	"pages.room.learningPaths.completed": "Completado",
 	"pages.room.learningPaths.redo.action": "Hacerlo de nuevo",
 	"pages.room.learningPaths.redo.title": "{name} recorre «{title}» otra vez",
-	"pages.room.learningPaths.redo.message": "Se restablecen para esta persona las finalizaciones y las marcas de casillas de esta ruta de aprendizaje. Las entregas y los votos de encuestas se conservan.",
+	"pages.room.learningPaths.redo.message":
+		"Se restablecen para esta persona las finalizaciones y las marcas de casillas de esta ruta de aprendizaje. Las entregas y los votos de encuestas se conservan.",
 	"pages.room.learningPaths.redo.confirm": "Hacerlo de nuevo",
 	"pages.room.learningPaths.assign": "Asignar",
 	"pages.room.learningPaths.noStudents": "No hay estudiantes en esta selección.",
