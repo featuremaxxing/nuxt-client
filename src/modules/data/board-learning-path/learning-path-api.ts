@@ -71,14 +71,25 @@ export type LearningPathStepUpdate = Partial<
 	>
 >;
 
+export type LearningPathOverviewProgress = {
+	pathId: string;
+	isEnrolled: boolean;
+	// every published step done - completed boards count in every learning path, gone or not
+	completed: boolean;
+	done: number;
+	total: number;
+	rework: number;
+	nextBoardTitle?: string;
+};
+
 export type LearningPathOverview = {
 	paths: { id: string; title: string; color?: LearningPathColor; total: number }[];
 	students: {
 		userId: string;
 		firstName?: string;
 		lastName?: string;
-		// the learning paths the student goes
-		paths: { pathId: string; done: number; total: number; rework: number; nextBoardTitle?: string }[];
+		// every learning path of the room: whether the student goes it and how far they got
+		paths: LearningPathOverviewProgress[];
 	}[];
 };
 
@@ -170,10 +181,14 @@ export const useLearningPathApi = () => {
 			await $axios.delete(`/v3/boards/${boardId}/enrollment`, { data: userId ? { userId } : {} });
 		});
 
-	// starts over for the given students (default: all of the room): stored completions and checkbox ticks go
-	const resetProgress = (roomId: string, userIds?: string[]) =>
+	// starts over for the given students (default: all of the room): stored completions and checkbox ticks go.
+	// With a pathId only the boards and cards of that learning path start over.
+	const resetProgress = (roomId: string, userIds?: string[], pathId?: string) =>
 		withErrorNotification(async () => {
-			await $axios.post(`/v3/rooms/${roomId}/learning-paths/reset`, userIds ? { userIds } : {});
+			await $axios.post(`/v3/rooms/${roomId}/learning-paths/reset`, {
+				...(userIds ? { userIds } : {}),
+				...(pathId ? { pathId } : {}),
+			});
 		});
 
 	const fetchOverview = async (roomId: string): Promise<LearningPathOverview> => {

@@ -2629,6 +2629,11 @@ export default {
 	"pages.room.learningPaths.none": "No learning path",
 	"pages.room.learningPaths.next": "Next: {title}",
 	"pages.room.learningPaths.remove": "Remove",
+	"pages.room.learningPaths.completed": "Completed",
+	"pages.room.learningPaths.redo.action": "Have them do it again",
+	"pages.room.learningPaths.redo.title": "{name} goes “{title}” once more",
+	"pages.room.learningPaths.redo.message": "The completions and checkbox ticks in this learning path are reset for this person. Submissions and poll votes are kept.",
+	"pages.room.learningPaths.redo.confirm": "Do it again",
 	"pages.room.learningPaths.assign": "Assign",
 	"pages.room.learningPaths.noStudents": "No students in this selection.",
 };

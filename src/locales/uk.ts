@@ -2651,6 +2651,11 @@ export default {
 	"pages.room.learningPaths.none": "Немає шляху",
 	"pages.room.learningPaths.next": "Далі: {title}",
 	"pages.room.learningPaths.remove": "Прибрати",
+	"pages.room.learningPaths.completed": "Пройдено",
+	"pages.room.learningPaths.redo.action": "Пройти ще раз",
+	"pages.room.learningPaths.redo.title": "{name} проходить «{title}» ще раз",
+	"pages.room.learningPaths.redo.message": "Завершення та позначки чекбоксів у цьому навчальному шляху буде скинуто для цієї особи. Здані роботи та голоси в опитуваннях збережуться.",
+	"pages.room.learningPaths.redo.confirm": "Пройти ще раз",
 	"pages.room.learningPaths.assign": "Призначити",
 	"pages.room.learningPaths.noStudents": "У цьому виборі немає учнів.",
 };

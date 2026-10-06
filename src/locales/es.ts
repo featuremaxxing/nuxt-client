@@ -2687,6 +2687,11 @@ export default {
 	"pages.room.learningPaths.none": "Sin ruta",
 	"pages.room.learningPaths.next": "Siguiente: {title}",
 	"pages.room.learningPaths.remove": "Quitar",
+	"pages.room.learningPaths.completed": "Completado",
+	"pages.room.learningPaths.redo.action": "Hacerlo de nuevo",
+	"pages.room.learningPaths.redo.title": "{name} recorre «{title}» otra vez",
+	"pages.room.learningPaths.redo.message": "Se restablecen para esta persona las finalizaciones y las marcas de casillas de esta ruta de aprendizaje. Las entregas y los votos de encuestas se conservan.",
+	"pages.room.learningPaths.redo.confirm": "Hacerlo de nuevo",
 	"pages.room.learningPaths.assign": "Asignar",
 	"pages.room.learningPaths.noStudents": "No hay estudiantes en esta selección.",
 };

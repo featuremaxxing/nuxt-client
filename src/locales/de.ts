@@ -2677,6 +2677,11 @@ export default {
 	"pages.room.learningPaths.none": "Kein Lernweg",
 	"pages.room.learningPaths.next": "Weiter mit: {title}",
 	"pages.room.learningPaths.remove": "Entfernen",
+	"pages.room.learningPaths.completed": "Geschafft",
+	"pages.room.learningPaths.redo.action": "Erneut machen lassen",
+	"pages.room.learningPaths.redo.title": "{name} geht „{title}“ noch einmal",
+	"pages.room.learningPaths.redo.message": "Die Abschlüsse und Checkbox-Haken in diesem Lernweg werden für diese Person zurückgesetzt. Abgaben und Umfrage-Stimmen bleiben erhalten.",
+	"pages.room.learningPaths.redo.confirm": "Erneut machen lassen",
 	"pages.room.learningPaths.assign": "Zuweisen",
 	"pages.room.learningPaths.noStudents": "Keine Schüler:innen in dieser Auswahl.",
 };

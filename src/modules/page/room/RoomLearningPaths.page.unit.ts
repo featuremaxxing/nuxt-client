@@ -1,7 +1,11 @@
 import RoomLearningPathsPage from "./RoomLearningPaths.page.vue";
 import { createTestingI18n, createTestingVuetify } from "@@/tests/test-utils/setup";
 import { LearningPathColor } from "@api-server";
-import { type LearningPathOverview, useLearningPathApi } from "@data-board-learning-path";
+import {
+	type LearningPathOverview,
+	type LearningPathOverviewProgress,
+	useLearningPathApi,
+} from "@data-board-learning-path";
 import { createTestingPinia } from "@pinia/testing";
 import { flushPromises, mount } from "@vue/test-utils";
 import { vi } from "vitest";
@@ -21,6 +25,17 @@ vi.mock("@data-board-learning-path", async (importOriginal) => ({
 const blue = { id: "blue", title: "Blau", color: LearningPathColor.Blue, total: 4 };
 const green = { id: "green", title: "Grün", color: LearningPathColor.Green, total: 3 };
 
+const progress = (pathId: string, props: Partial<LearningPathOverviewProgress> = {}): LearningPathOverviewProgress => ({
+	pathId,
+	isEnrolled: false,
+	completed: false,
+	done: 0,
+	total: pathId === "blue" ? 4 : 3,
+	rework: 0,
+	...props,
+});
+
+// anna goes blue; bob goes nothing; carla completed green and does not go it any more
 const overview = (paths = [blue, green]): LearningPathOverview => ({
 	paths,
 	students: [
@@ -28,9 +43,18 @@ const overview = (paths = [blue, green]): LearningPathOverview => ({
 			userId: "anna",
 			firstName: "Anna",
 			lastName: "Adler",
-			paths: [{ pathId: "blue", done: 2, total: 4, rework: 1, nextBoardTitle: "Addieren" }],
+			paths: [
+				progress("blue", { isEnrolled: true, done: 2, rework: 1, nextBoardTitle: "Addieren" }),
+				progress("green"),
+			],
 		},
-		{ userId: "bob", firstName: "Bob", lastName: "Berg", paths: [] },
+		{ userId: "bob", firstName: "Bob", lastName: "Berg", paths: [progress("blue"), progress("green")] },
+		{
+			userId: "carla",
+			firstName: "Carla",
+			lastName: "Cohn",
+			paths: [progress("blue"), progress("green", { completed: true, done: 3 })],
+		},
 	],
 });
 
@@ -145,6 +169,39 @@ describe("RoomLearningPathsPage", () => {
 		expect(wrapper.get("[data-testid='learning-path-rework-anna-blue']").text()).toContain(
 			"pages.room.learningPaths.rework"
 		);
+	});
+
+	describe("a completed learning path", () => {
+		it("should stay visible with a check, even when the student does not go it any more", async () => {
+			const wrapper = await setup(overview());
+
+			expect(wrapper.find("[data-testid='learning-path-completed-carla-green']").exists()).toBe(true);
+			expect(wrapper.find("[data-testid='learning-path-assign-carla-green']").exists()).toBe(false);
+			expect(wrapper.find("[data-testid='learning-path-student-none-carla']").exists()).toBe(true);
+		});
+
+		it("should let the teacher have the student go it once more", async () => {
+			const wrapper = await setup(overview());
+
+			await wrapper.get("[data-testid='learning-path-redo-carla-green']").trigger("click");
+			await flushPromises();
+
+			expect(askConfirmation).toHaveBeenCalledWith(expect.objectContaining({ messageType: "warning" }));
+			expect(enroll).toHaveBeenCalledWith("green", "carla");
+			expect(resetProgress).toHaveBeenCalledWith("room-1", ["carla"], "green");
+			expect(fetchOverview).toHaveBeenCalledTimes(2);
+		});
+
+		it("should leave it completed when the question is declined", async () => {
+			askConfirmation.mockResolvedValue(false);
+			const wrapper = await setup(overview());
+
+			await wrapper.get("[data-testid='learning-path-redo-carla-green']").trigger("click");
+			await flushPromises();
+
+			expect(enroll).not.toHaveBeenCalled();
+			expect(resetProgress).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("resetting the progress", () => {
