@@ -58,18 +58,20 @@
 					:marker-end="`url(#${markerId})`"
 				/>
 			</svg>
-			<VBtn
+			<!-- a plain button with a fixed size: it sits on the arrow, independent of any theme sizes -->
+			<button
 				v-if="selectedEdge"
-				:icon="mdiClose"
-				size="x-small"
-				color="error"
+				type="button"
 				class="lp-canvas__edge-remove"
 				:style="{ left: `${selectedEdge.middle.x}px`, top: `${selectedEdge.middle.y}px` }"
+				:title="t('pages.learningPath.edge.remove')"
 				:aria-label="t('pages.learningPath.edge.remove')"
 				data-testid="learning-path-edge-remove"
 				@pointerdown.stop
 				@click="removeSelectedEdge"
-			/>
+			>
+				<VIcon :icon="mdiClose" size="18" aria-hidden="true" />
+			</button>
 			<LearningPathTile
 				v-for="step in steps"
 				:key="step.id"
@@ -542,8 +544,25 @@ defineExpose({ fitView, freePosition });
 
 .lp-canvas__edge-remove {
 	position: absolute;
-	transform: translate(-50%, -50%);
-	z-index: 2;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin: -16px 0 0 -16px;
+	padding: 0;
+	border: 2px solid rgb(var(--v-theme-surface));
+	border-radius: 50%;
+	background: rgb(var(--v-theme-error));
+	color: rgb(var(--v-theme-on-error));
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	cursor: pointer;
+}
+
+.lp-canvas__edge-remove:focus-visible {
+	outline: 2px solid rgb(var(--v-theme-primary));
+	outline-offset: 2px;
 }
 
 .lp-canvas:focus {
