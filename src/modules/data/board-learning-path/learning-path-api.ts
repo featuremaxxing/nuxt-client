@@ -18,9 +18,18 @@ export type LearningPathLock = {
 
 export type LearningPathStep = {
 	id: string;
+	// for a card step the board the card lies on
 	linkedBoardId: string;
-	// empty when the board is not available to the user
+	// set when the step is a single card
+	linkedCardId?: string;
+	// empty when the board or card is not available to the user
 	title: string;
+	// card steps: title of the board the card lies on
+	boardTitle?: string;
+	// a text tile (heading, work instructions): links nothing, has nothing to complete
+	isText?: boolean;
+	// text tiles: what they say - left out for students while the tile is locked
+	text?: string;
 	isVisible: boolean;
 	positionX: number;
 	positionY: number;
@@ -45,6 +54,7 @@ export type LearningPathAvailableBoard = {
 
 export type LearningPath = {
 	boardId: string;
+	title?: string;
 	isEditor: boolean;
 	color?: LearningPathColor;
 	// students only: whether they go this learning path
@@ -61,9 +71,20 @@ export type LearningPath = {
 export type LearningPathStepUpdate = Partial<
 	Pick<
 		LearningPathStep,
-		"positionX" | "positionY" | "prerequisiteStepIds" | "unlockMode" | "lockUntilPrerequisitesDone"
+		"positionX" | "positionY" | "prerequisiteStepIds" | "unlockMode" | "lockUntilPrerequisitesDone" | "title" | "text"
 	>
 >;
+
+export type LearningPathOverviewProgress = {
+	pathId: string;
+	isEnrolled: boolean;
+	// every published step done - completed boards count in every learning path, gone or not
+	completed: boolean;
+	done: number;
+	total: number;
+	rework: number;
+	nextBoardTitle?: string;
+};
 
 export type LearningPathOverview = {
 	paths: { id: string; title: string; color?: LearningPathColor; total: number }[];
@@ -71,8 +92,20 @@ export type LearningPathOverview = {
 		userId: string;
 		firstName?: string;
 		lastName?: string;
-		// the learning paths the student goes
-		paths: { pathId: string; done: number; total: number; rework: number; nextBoardTitle?: string }[];
+		// every learning path of the room: whether the student goes it and how far they got
+		paths: LearningPathOverviewProgress[];
+	}[];
+};
+
+// a card of a board that is a step of learning paths: per learning path the step's number and state
+export type LearningPathCardStep = {
+	cardId: string;
+	paths: {
+		pathId: string;
+		pathTitle: string;
+		color?: LearningPathColor;
+		position: number;
+		status: LearningPathStepStatus;
 	}[];
 };
 
@@ -105,11 +138,32 @@ export const useLearningPathApi = () => {
 		return response.data;
 	};
 
-	const createStep = (boardId: string, linkedBoardId: string, positionX: number, positionY: number) =>
+	// with linkedCardId the step is that card of the board linkedBoardId
+	const createStep = (
+		boardId: string,
+		linkedBoardId: string,
+		positionX: number,
+		positionY: number,
+		linkedCardId?: string
+	) =>
 		withErrorNotification(async () => {
 			const response = await $axios.post<LearningPathStep>("/v3/learning-path-steps", {
 				boardId,
 				linkedBoardId,
+				...(linkedCardId ? { linkedCardId } : {}),
+				positionX: Math.round(positionX),
+				positionY: Math.round(positionY),
+			});
+
+			return response.data;
+		}, "pages.learningPath.error.addStep");
+
+	const createTextStep = (boardId: string, title: string, text: string, positionX: number, positionY: number) =>
+		withErrorNotification(async () => {
+			const response = await $axios.post<LearningPathStep>("/v3/learning-path-steps", {
+				boardId,
+				title,
+				text,
 				positionX: Math.round(positionX),
 				positionY: Math.round(positionY),
 			});
@@ -144,10 +198,14 @@ export const useLearningPathApi = () => {
 			await $axios.delete(`/v3/boards/${boardId}/enrollment`, { data: userId ? { userId } : {} });
 		});
 
-	// starts over for the given students (default: all of the room): stored completions and checkbox ticks go
-	const resetProgress = (roomId: string, userIds?: string[]) =>
+	// starts over for the given students (default: all of the room): stored completions and checkbox ticks go.
+	// With a pathId only the boards and cards of that learning path start over.
+	const resetProgress = (roomId: string, userIds?: string[], pathId?: string) =>
 		withErrorNotification(async () => {
-			await $axios.post(`/v3/rooms/${roomId}/learning-paths/reset`, userIds ? { userIds } : {});
+			await $axios.post(`/v3/rooms/${roomId}/learning-paths/reset`, {
+				...(userIds ? { userIds } : {}),
+				...(pathId ? { pathId } : {}),
+			});
 		});
 
 	const fetchOverview = async (roomId: string): Promise<LearningPathOverview> => {
@@ -174,9 +232,29 @@ export const useLearningPathApi = () => {
 			return response.data;
 		});
 
+	const fetchCardCompletion = async (cardId: string): Promise<BoardCompletion> => {
+		const response = await $axios.get<BoardCompletion>(`/v3/cards/${cardId}/completion`);
+
+		return response.data;
+	};
+
+	const setCardCompletion = (cardId: string, completed: boolean) =>
+		withErrorNotification(async () => {
+			const response = await $axios.put<BoardCompletion>(`/v3/cards/${cardId}/completion`, { completed });
+
+			return response.data;
+		});
+
+	const fetchBoardCardSteps = async (boardId: string): Promise<LearningPathCardStep[]> => {
+		const response = await $axios.get<{ data: LearningPathCardStep[] }>(`/v3/boards/${boardId}/learning-path-cards`);
+
+		return response.data.data;
+	};
+
 	return {
 		fetchLearningPath,
 		createStep,
+		createTextStep,
 		updateStep,
 		updateColor,
 		enroll,
@@ -186,5 +264,8 @@ export const useLearningPathApi = () => {
 		deleteStep,
 		fetchCompletion,
 		setCompletion,
+		fetchCardCompletion,
+		setCardCompletion,
+		fetchBoardCardSteps,
 	};
 };

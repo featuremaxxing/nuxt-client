@@ -33,6 +33,18 @@ export interface RoomLearningPathStepResponse {
      */
     boardId: string;
     /**
+     * Card steps: the card the step leads to (on the board boardId).
+     * @type {string}
+     * @memberof RoomLearningPathStepResponse
+     */
+    cardId?: string;
+    /**
+     * A text tile (heading, work instructions): numbered with the steps, nothing to complete.
+     * @type {boolean}
+     * @memberof RoomLearningPathStepResponse
+     */
+    isText?: boolean;
+    /**
      * Empty when the board is not available to the user.
      * @type {string}
      * @memberof RoomLearningPathStepResponse

@@ -62,7 +62,7 @@
 						<th scope="row" class="font-weight-bold">
 							{{ fullName(student) }}
 							<VChip
-								v-if="student.paths.length === 0"
+								v-if="!student.paths.some((progress) => progress.isEnrolled)"
 								size="x-small"
 								class="ml-2"
 								:data-testid="`learning-path-student-none-${student.userId}`"
@@ -87,6 +87,7 @@
 								:can-assign="canAssign"
 								@assign="onAssign(student.userId, path.id)"
 								@remove="onRemove(student.userId, path.id)"
+								@redo="onRedo(student, path)"
 							/>
 						</td>
 					</tr>
@@ -158,8 +159,8 @@ const filterItems = computed(() => [
 const visibleStudents = computed(() =>
 	(overview.value?.students ?? []).filter((student) => {
 		if (filter.value === "all") return true;
-		if (filter.value === "none") return student.paths.length === 0;
-		return student.paths.some((progress) => progress.pathId === filter.value);
+		if (filter.value === "none") return !student.paths.some((progress) => progress.isEnrolled);
+		return student.paths.some((progress) => progress.pathId === filter.value && progress.isEnrolled);
 	})
 );
 
@@ -195,6 +196,23 @@ const reset = async (userIds?: string[]) => {
 
 const onResetAll = async () => {
 	if (await confirmReset(t("pages.room.learningPaths.reset.titleAll"))) await reset();
+};
+
+// a completed learning path stays completed until the teacher has the student go it once more:
+// the student goes it again and its boards and cards start over
+const onRedo = async (student: OverviewStudent, path: { id: string; title: string }) => {
+	const confirmed = await askConfirmation({
+		title: t("pages.room.learningPaths.redo.title", { name: fullName(student), title: path.title }),
+		message: t("pages.room.learningPaths.redo.message"),
+		messageType: "warning",
+		confirmBtnKey: "pages.room.learningPaths.redo.confirm",
+	});
+	if (!confirmed) return;
+
+	const isEnrolled = progressOf(student, path.id)?.isEnrolled ?? false;
+	if (!isEnrolled && canAssign.value) await api.enroll(path.id, student.userId).catch(() => undefined);
+	await api.resetProgress(roomId, [student.userId], path.id).catch(() => undefined);
+	await load();
 };
 
 const onResetStudent = async (student: OverviewStudent) => {

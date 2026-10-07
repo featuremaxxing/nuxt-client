@@ -5,11 +5,15 @@ import { type LearningPath, type LearningPathStep } from "@data-board-learning-p
 import { createTestingPinia } from "@pinia/testing";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { setActivePinia } from "pinia";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 
 const fetchLearningPath = vi.fn();
+const post = vi.fn();
 vi.mock("@/utils/api", () => ({
-	$axios: { get: () => fetchLearningPath().then((data: unknown) => ({ data })) },
+	$axios: {
+		get: () => fetchLearningPath().then((data: unknown) => ({ data })),
+		post: (...args: unknown[]) => post(...args),
+	},
 	mapAxiosErrorToResponseError: vi.fn(),
 }));
 vi.mock("@data-board-learning-path", async (importOriginal) => ({
@@ -22,7 +26,10 @@ vi.mock("@data-board", () => ({
 	useSharedBoardPageInformation: () => ({ createPageInformation: vi.fn(), breadcrumbs: ref([]) }),
 }));
 
-vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+const push = vi.fn();
+const replace = vi.fn();
+const route = reactive<{ query: Record<string, string> }>({ query: {} });
+vi.mock("vue-router", () => ({ useRouter: () => ({ push, replace }), useRoute: () => route }));
 
 const step = (id: string, overrides: Partial<LearningPathStep> = {}): LearningPathStep => ({
 	id,
@@ -180,5 +187,165 @@ describe("LearningPathBoard", () => {
 
 		const list = wrapper.findComponent({ name: "LearningPathList" });
 		expect((list.props("steps") as LearningPathStep[]).map((entry) => entry.reopened)).toEqual([true, undefined]);
+	});
+
+	describe("card steps", () => {
+		it("should open a card step as part of the learning path", async () => {
+			const wrapper = await setup({ steps: [step("k", { linkedCardId: "card-k" })] });
+
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", step("k", { linkedCardId: "card-k" }));
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-k", cardId: "card-k" },
+				query: { learningPath: "path" },
+			});
+		});
+
+		it("should add a card picked from the list or dropped on the canvas", async () => {
+			post.mockResolvedValue({ data: {} });
+			const wrapper = await setup({ isEditor: true });
+
+			wrapper.findComponent({ name: "LearningPathBoardPicker" }).vm.$emit("add-card", "board-b", "card-k");
+			await flushPromises();
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("drop-card", "board-b", "card-l", 40, 60);
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				linkedBoardId: "board-b",
+				linkedCardId: "card-k",
+				positionX: 0,
+				positionY: 0,
+			});
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				linkedBoardId: "board-b",
+				linkedCardId: "card-l",
+				positionX: 40,
+				positionY: 60,
+			});
+		});
+	});
+
+	describe("pasted links", () => {
+		beforeEach(() => {
+			post.mockClear();
+			post.mockResolvedValue({ data: {} });
+		});
+
+		it("should add every linked card and board, but not a card that is already a step", async () => {
+			const wrapper = await setup({
+				isEditor: true,
+				steps: [step("k", { linkedBoardId: "board-b", linkedCardId: "card-k" })],
+			});
+
+			wrapper
+				.findComponent({ name: "LearningPathBoardPicker" })
+				.vm.$emit("add-links", [
+					{ boardId: "board-b", cardId: "card-k" },
+					{ boardId: "board-b", cardId: "card-l" },
+					{ boardId: "board-c" },
+				]);
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledTimes(2);
+			expect(post).toHaveBeenNthCalledWith(
+				1,
+				"/v3/learning-path-steps",
+				expect.objectContaining({ linkedCardId: "card-l" })
+			);
+			expect(post).toHaveBeenNthCalledWith(
+				2,
+				"/v3/learning-path-steps",
+				expect.not.objectContaining({ linkedCardId: expect.anything() })
+			);
+		});
+	});
+
+	describe("text tiles", () => {
+		beforeEach(() => {
+			push.mockClear();
+			post.mockClear();
+		});
+
+		const text = step("t", { linkedBoardId: "", isText: true, title: "Teil 2", text: "Lest die Karten." });
+
+		// a card step, then the text tile, then a locked card step
+		const chain = [
+			step("k", { linkedBoardId: "board-b", linkedCardId: "card-k", status: "done", positionY: 0 }),
+			{ ...text, positionY: 100, prerequisiteStepIds: ["k"] },
+			step("l", { linkedBoardId: "board-b", linkedCardId: "card-l", status: "locked", positionY: 200 }),
+		];
+
+		it("should open a text tile as a step of the learning path, numbered with the others", async () => {
+			const wrapper = await setup({ steps: chain });
+
+			wrapper.findComponent({ name: "LearningPathCanvas" }).vm.$emit("open", chain[1]);
+			await flushPromises();
+
+			expect(push).not.toHaveBeenCalled();
+			expect(wrapper.findComponent({ name: "VDialog" }).props("modelValue")).toBe(true);
+			expect(wrapper.findComponent({ name: "VDialog" }).text()).toContain("Lest die Karten.");
+		});
+
+		it("should open the text tile a link from a card's full view leads to, and page back to the card", async () => {
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: chain });
+
+			const dialog = wrapper.findComponent({ name: "VDialog" });
+			expect(dialog.props("modelValue")).toBe(true);
+			expect(dialog.find("[data-testid='learning-path-text-next']").attributes("disabled")).toBeDefined();
+			await dialog.get("[data-testid='learning-path-text-previous']").trigger("click");
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-b", cardId: "card-k" },
+				query: { learningPath: "path" },
+			});
+			route.query = {};
+		});
+
+		it("should page with the arrow keys like the buttons", async () => {
+			const unlocked = chain.map((entry) => (entry.id === "l" ? { ...entry, status: "open" as const } : entry));
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: unlocked });
+			const card = wrapper.findComponent({ name: "VDialog" }).findComponent({ name: "VCard" });
+
+			await card.trigger("keydown", { key: "ArrowRight", shiftKey: true });
+			expect(push).not.toHaveBeenCalled();
+			await card.trigger("keydown", { key: "ArrowRight" });
+
+			expect(push).toHaveBeenCalledWith({
+				name: "boards-card-detail",
+				params: { boardId: "board-b", cardId: "card-l" },
+				query: { learningPath: "path" },
+			});
+			route.query = {};
+		});
+
+		it("should not open a locked text tile from a link", async () => {
+			route.query = { step: "t" };
+			const wrapper = await setup({ steps: [{ ...text, status: "locked", title: "", text: undefined }] });
+
+			expect(wrapper.findComponent({ name: "VDialog" }).props("modelValue")).toBe(false);
+			route.query = {};
+		});
+
+		it("should add a text tile for editors", async () => {
+			post.mockResolvedValue({ data: {} });
+			const wrapper = await setup({ isEditor: true });
+
+			wrapper.findComponent({ name: "LearningPathBoardPicker" }).vm.$emit("add-text");
+			await flushPromises();
+
+			expect(post).toHaveBeenCalledWith("/v3/learning-path-steps", {
+				boardId: "path",
+				title: "pages.learningPath.text.label",
+				text: "",
+				positionX: 0,
+				positionY: 0,
+			});
+		});
 	});
 });

@@ -39,6 +39,7 @@
 						@update:value="onUpdateCardTitle"
 						@enter="onEnter"
 					/>
+					<LearningPathCardHint :card-id="cardId" class="mx-4 mt-2" />
 
 					<div v-if="!isDetailView" class="board-menu" :class="boardMenuClasses">
 						<DetailViewButton class="mr-1" @open-detail-view="onOpenDetailView" />
@@ -111,6 +112,7 @@ import {
 	useCardStore,
 	useCourseBoardEditMode,
 } from "@data-board";
+import { LearningPathCardHint } from "@feature-board-learning-path";
 import { withGlobalLoadingState } from "@feature-dialog";
 import { BoardMenu, BoardMenuScope, DetailViewButton } from "@ui-board";
 import { SvsColorPickerMenu } from "@ui-controls";

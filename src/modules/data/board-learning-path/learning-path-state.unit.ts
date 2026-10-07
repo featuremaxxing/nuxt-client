@@ -61,6 +61,18 @@ describe("useLearningPathState", () => {
 		expect(availableBoards.value.map((board) => board.id)).toEqual(["board-new"]);
 	});
 
+	it("should still offer a board whose single cards are steps, and know those cards", async () => {
+		fetchLearningPath.mockResolvedValueOnce(
+			path([{ ...step("k"), linkedBoardId: "board-new", linkedCardId: "card-k" }, step("a")])
+		);
+
+		const { availableBoards, roomBoards, cardIdsInPath } = await setup();
+
+		expect(availableBoards.value.map((board) => board.id)).toEqual(["board-new"]);
+		expect(roomBoards.value.map((board) => board.id)).toEqual(["board-a", "board-new"]);
+		expect(Array.from(cardIdsInPath.value)).toEqual(["card-k"]);
+	});
+
 	it("should report a failed load", async () => {
 		fetchLearningPath.mockRejectedValueOnce(new Error("offline"));
 
@@ -74,8 +86,16 @@ describe("useLearningPathState", () => {
 
 		await addStep("board-new", 10, 20);
 
-		expect(createStep).toHaveBeenCalledWith("path", "board-new", 10, 20);
+		expect(createStep).toHaveBeenCalledWith("path", "board-new", 10, 20, undefined);
 		expect(fetchLearningPath).toHaveBeenCalledTimes(2);
+	});
+
+	it("should add a single card of a board", async () => {
+		const { addStep } = await setup();
+
+		await addStep("board-new", 10, 20, "card-1");
+
+		expect(createStep).toHaveBeenCalledWith("path", "board-new", 10, 20, "card-1");
 	});
 
 	it("should move a tile right away and save the position", async () => {

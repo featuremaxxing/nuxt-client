@@ -128,6 +128,57 @@ describe("LearningPathCanvas", () => {
 			]);
 		});
 
+		describe("removing an arrow", () => {
+			const selectArrow = async () => {
+				const { wrapper } = setup();
+				pointer(wrapper.get("[data-testid=learning-path-edge-hit-a-b]").element, "pointerdown", 200, 50);
+				await nextTick();
+				return wrapper;
+			};
+
+			it("should select an arrow on click and remove it with its button", async () => {
+				const wrapper = await selectArrow();
+
+				expect(wrapper.get("[data-testid=learning-path-edge]").classes()).toContain("lp-canvas__edge--selected");
+				await wrapper.get("[data-testid=learning-path-edge-remove]").trigger("click");
+
+				expect(wrapper.emitted("disconnect")).toEqual([["a", "b"]]);
+				expect(wrapper.find("[data-testid=learning-path-edge-remove]").exists()).toBe(false);
+			});
+
+			it("should remove the selected arrow with the delete key, and let it go with escape", async () => {
+				const wrapper = await selectArrow();
+				const canvas = wrapper.get("[data-testid=learning-path-canvas]");
+
+				await canvas.trigger("keydown", { key: "Escape" });
+				expect(wrapper.find("[data-testid=learning-path-edge-remove]").exists()).toBe(false);
+				await canvas.trigger("keydown", { key: "Delete" });
+				expect(wrapper.emitted("disconnect")).toBeUndefined();
+
+				pointer(wrapper.get("[data-testid=learning-path-edge-hit-a-b]").element, "pointerdown", 200, 50);
+				await nextTick();
+				await canvas.trigger("keydown", { key: "Delete" });
+				expect(wrapper.emitted("disconnect")).toEqual([["a", "b"]]);
+			});
+
+			it("should let the arrow go when the empty canvas is clicked", async () => {
+				const wrapper = await selectArrow();
+				const canvas = wrapper.get("[data-testid=learning-path-canvas]").element;
+
+				pointer(canvas, "pointerdown", 900, 600);
+				pointer(canvas, "pointerup", 900, 600);
+				await nextTick();
+
+				expect(wrapper.find("[data-testid=learning-path-edge-remove]").exists()).toBe(false);
+			});
+
+			it("should not let students select arrows", () => {
+				const { wrapper } = setup({ isEditor: false });
+
+				expect(wrapper.find("[data-testid=learning-path-edge-hit-a-b]").exists()).toBe(false);
+			});
+		});
+
 		it("should clear the selection when the empty canvas is clicked", () => {
 			const { wrapper } = setup();
 			const canvas = wrapper.get("[data-testid=learning-path-canvas]").element;

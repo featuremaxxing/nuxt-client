@@ -45,7 +45,7 @@
 					v-for="(step, stepIndex) in chain"
 					:key="step.id"
 					class="lp-chain__item"
-					:data-testid="`learning-path-card-step-${step.boardId}`"
+					:data-testid="`learning-path-card-step-${step.cardId ?? step.boardId}`"
 				>
 					<span class="lp-chain__step" :class="`lp-chain__step--${stepState(step)}`">
 						<VIcon v-if="stepIcon(step)" size="16" :icon="stepIcon(step)" aria-hidden="true" />
@@ -115,7 +115,14 @@ import {
 	RoomLearningPathStepResponseStatusEnum as StepStatus,
 } from "@api-server";
 import { learningPathColorValue } from "@data-board-learning-path";
-import { mdiArrowRight, mdiCheck, mdiCheckCircle, mdiLockOutline, mdiMapMarker } from "@icons/material";
+import {
+	mdiArrowRight,
+	mdiCardTextOutline,
+	mdiCheck,
+	mdiCheckCircle,
+	mdiLockOutline,
+	mdiMapMarker,
+} from "@icons/material";
 import { LearningPathMarker, LearningPathReworkMark } from "@ui-room-details";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
@@ -193,7 +200,8 @@ const stepIcon = (step: RoomLearningPathStepResponse): string | undefined => {
 		case "next":
 			return mdiMapMarker;
 		default:
-			return undefined;
+			// a single card rather than a whole board
+			return step.cardId ? mdiCardTextOutline : undefined;
 	}
 };
 

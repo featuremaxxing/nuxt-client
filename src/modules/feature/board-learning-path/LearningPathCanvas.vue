@@ -4,7 +4,9 @@
 		class="lp-canvas"
 		:class="{ 'lp-canvas--panning': interaction?.kind === 'pan', 'lp-canvas--drop': isDropTarget }"
 		data-testid="learning-path-canvas"
+		tabindex="-1"
 		@pointerdown="onBackgroundPointerDown"
+		@keydown="onCanvasKeydown"
 		@wheel="onWheel"
 		@dragover="onDragOver"
 		@dragleave="isDropTarget = false"
@@ -30,10 +32,25 @@
 					:key="edge.key"
 					:d="edge.d"
 					class="lp-canvas__edge"
-					:class="{ 'lp-canvas__edge--active': edge.isActive, 'lp-canvas__edge--locked': edge.isLocked }"
+					:class="{
+						'lp-canvas__edge--active': edge.isActive,
+						'lp-canvas__edge--locked': edge.isLocked,
+						'lp-canvas__edge--selected': edge.key === selectedEdgeKey,
+					}"
 					:marker-end="`url(#${markerId})`"
 					data-testid="learning-path-edge"
 				/>
+				<!-- editors click an arrow on a wider, invisible line to select it -->
+				<template v-if="isEditor">
+					<path
+						v-for="edge in edgePaths"
+						:key="`hit-${edge.key}`"
+						:d="edge.d"
+						class="lp-canvas__edge-hit"
+						:data-testid="`learning-path-edge-hit-${edge.key}`"
+						@pointerdown.stop="onEdgePointerDown($event, edge.key)"
+					/>
+				</template>
 				<path
 					v-if="draftEdge"
 					:d="draftEdge"
@@ -41,6 +58,20 @@
 					:marker-end="`url(#${markerId})`"
 				/>
 			</svg>
+			<!-- a plain button with a fixed size: it sits on the arrow, independent of any theme sizes -->
+			<button
+				v-if="selectedEdge"
+				type="button"
+				class="lp-canvas__edge-remove"
+				:style="{ left: `${selectedEdge.middle.x}px`, top: `${selectedEdge.middle.y}px` }"
+				:title="t('pages.learningPath.edge.remove')"
+				:aria-label="t('pages.learningPath.edge.remove')"
+				data-testid="learning-path-edge-remove"
+				@pointerdown.stop
+				@click="removeSelectedEdge"
+			>
+				<VIcon :icon="mdiClose" size="18" aria-hidden="true" />
+			</button>
 			<LearningPathTile
 				v-for="step in steps"
 				:key="step.id"
@@ -87,10 +118,20 @@
 </template>
 
 <script setup lang="ts">
-import { anchorOf, BOARD_DRAG_TYPE, curveBetween, edgeBetween, type Side, TILE_HEIGHT, TILE_WIDTH } from "./canvas";
+import {
+	anchorOf,
+	BOARD_DRAG_TYPE,
+	CARD_DRAG_TYPE,
+	curveBetween,
+	edgeBetween,
+	edgeMiddle,
+	type Side,
+	TILE_HEIGHT,
+	TILE_WIDTH,
+} from "./canvas";
 import LearningPathTile from "./LearningPathTile.vue";
 import { edgesOf, type LearningPathStep } from "@data-board-learning-path";
-import { mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
+import { mdiClose, mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from "@icons/material";
 import { computed, onBeforeUnmount, PropType, ref, useId } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -114,7 +155,9 @@ const emit = defineEmits<{
 	(e: "open", step: LearningPathStep): void;
 	(e: "move", stepId: string, positionX: number, positionY: number): void;
 	(e: "connect", fromId: string, toId: string): void;
+	(e: "disconnect", fromId: string, toId: string): void;
 	(e: "drop-board", boardId: string, positionX: number, positionY: number): void;
+	(e: "drop-card", boardId: string, cardId: string, positionX: number, positionY: number): void;
 }>();
 
 const { t } = useI18n();
@@ -152,14 +195,46 @@ const edgePaths = computed(() => {
 
 	return edgesOf(props.steps).map(({ fromId, toId }) => {
 		const to = byId.get(toId) as LearningPathStep;
+		const from = positionOf(byId.get(fromId) as LearningPathStep);
 		return {
 			key: `${fromId}-${toId}`,
-			d: edgeBetween(positionOf(byId.get(fromId) as LearningPathStep), positionOf(to)),
+			fromId,
+			toId,
+			d: edgeBetween(from, positionOf(to)),
+			middle: edgeMiddle(from, positionOf(to)),
 			isActive: props.selectedStepId === toId || props.selectedStepId === fromId,
 			isLocked: !props.isEditor && to.status === "locked",
 		};
 	});
 });
+
+// an arrow selected by an editor, to remove it
+const selectedEdgeKey = ref<string>();
+const selectedEdge = computed(() => edgePaths.value.find((edge) => edge.key === selectedEdgeKey.value));
+
+const onEdgePointerDown = (event: PointerEvent, key: string) => {
+	if (event.button !== 0) return;
+	selectedEdgeKey.value = key;
+	// for the delete key
+	viewport.value?.focus({ preventScroll: true });
+};
+
+const removeSelectedEdge = () => {
+	const edge = selectedEdge.value;
+	if (!edge) return;
+	selectedEdgeKey.value = undefined;
+	emit("disconnect", edge.fromId, edge.toId);
+};
+
+const onCanvasKeydown = (event: KeyboardEvent) => {
+	if (!selectedEdge.value) return;
+	if (event.key === "Delete" || event.key === "Backspace") {
+		event.preventDefault();
+		removeSelectedEdge();
+	} else if (event.key === "Escape") {
+		selectedEdgeKey.value = undefined;
+	}
+};
 
 const draftEdge = computed(() => {
 	const current = interaction.value;
@@ -257,11 +332,17 @@ const onPointerUp = (event: PointerEvent) => {
 	const current = interaction.value;
 	if (current?.kind === "pan") {
 		const moved = Math.hypot(event.clientX - current.startX, event.clientY - current.startY) >= CLICK_TOLERANCE;
-		if (!moved) emit("select", undefined);
+		if (!moved) {
+			selectedEdgeKey.value = undefined;
+			emit("select", undefined);
+		}
 	} else if (current?.kind === "drag") {
 		// an editor's click on a tile is a drag that did not move: it opens the settings
 		if (current.moved) emit("move", current.step.id, current.x, current.y);
-		else emit("select", current.step.id);
+		else {
+			selectedEdgeKey.value = undefined;
+			emit("select", current.step.id);
+		}
 	} else if (current?.kind === "connect") {
 		const { x, y } = toCanvas(event.clientX, event.clientY);
 		const target = stepAt(x, y);
@@ -350,19 +431,22 @@ const fitView = () => {
 // --- boards dragged in from the list next to the canvas ---
 
 const onDragOver = (event: DragEvent) => {
-	if (!props.isEditor || !event.dataTransfer?.types.includes(BOARD_DRAG_TYPE)) return;
+	const types = event.dataTransfer?.types ?? [];
+	if (!props.isEditor || !(types.includes(BOARD_DRAG_TYPE) || types.includes(CARD_DRAG_TYPE))) return;
 	event.preventDefault();
-	event.dataTransfer.dropEffect = "copy";
+	if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
 	isDropTarget.value = true;
 };
 
 const onDrop = (event: DragEvent) => {
 	isDropTarget.value = false;
 	const boardId = event.dataTransfer?.getData(BOARD_DRAG_TYPE);
-	if (!props.isEditor || !boardId) return;
+	const [cardBoardId, cardId] = (event.dataTransfer?.getData(CARD_DRAG_TYPE) ?? "").split(":");
+	if (!props.isEditor || !(boardId || cardId)) return;
 	event.preventDefault();
 	const { x, y } = toCanvas(event.clientX, event.clientY);
-	emit("drop-board", boardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
+	if (cardId) emit("drop-card", cardBoardId, cardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
+	else if (boardId) emit("drop-board", boardId, x - TILE_WIDTH / 2, y - TILE_HEIGHT / 2);
 };
 
 // a free spot for a board added with the button: right of the right-most tile in the top row
@@ -442,5 +526,46 @@ defineExpose({ fitView, freePosition });
 	background: rgb(var(--v-theme-surface));
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 	cursor: default;
+}
+
+/* the wide, invisible line an editor clicks to select an arrow */
+.lp-canvas__edge-hit {
+	fill: none;
+	stroke: transparent;
+	stroke-width: 16;
+	pointer-events: stroke;
+	cursor: pointer;
+}
+
+.lp-canvas__edge--selected {
+	stroke: rgb(var(--v-theme-error));
+	stroke-width: 3;
+}
+
+.lp-canvas__edge-remove {
+	position: absolute;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin: -16px 0 0 -16px;
+	padding: 0;
+	border: 2px solid rgb(var(--v-theme-surface));
+	border-radius: 50%;
+	background: rgb(var(--v-theme-error));
+	color: rgb(var(--v-theme-on-error));
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	cursor: pointer;
+}
+
+.lp-canvas__edge-remove:focus-visible {
+	outline: 2px solid rgb(var(--v-theme-primary));
+	outline-offset: 2px;
+}
+
+.lp-canvas:focus {
+	outline: none;
 }
 </style>

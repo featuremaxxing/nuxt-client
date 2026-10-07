@@ -2,7 +2,7 @@
 	<button
 		type="button"
 		class="lp-tile"
-		:class="[`lp-tile--${visualState}`, { 'lp-tile--selected': isSelected }]"
+		:class="[`lp-tile--${visualState}`, { 'lp-tile--selected': isSelected, 'lp-tile--text': step.isText }]"
 		:aria-label="ariaLabel"
 		:aria-disabled="!isEditor && !isOpenable"
 		:aria-pressed="isEditor ? isSelected : undefined"
@@ -29,10 +29,17 @@
 					<VIcon :icon="mdiLockOutline" size="12" aria-hidden="true" />
 					{{ t("pages.learningPath.tile.locks") }}
 				</span>
+				<span v-if="step.linkedCardId" class="lp-tile__chip" data-testid="learning-path-tile-card">
+					{{ t("components.boardCard") }}
+				</span>
+				<span v-if="step.isText" class="lp-tile__chip" data-testid="learning-path-tile-text">
+					{{ t("pages.learningPath.text.label") }}
+				</span>
 				<span v-if="step.studentCount" data-testid="learning-path-tile-progress">
 					{{ t("pages.learningPath.progress", { done: step.doneCount ?? 0, total: step.studentCount }) }}
 				</span>
 			</template>
+			<span v-else-if="step.isText && step.status !== 'locked'" class="lp-tile__snippet">{{ snippet }}</span>
 			<template v-else>{{ isRework ? t("pages.learningPath.rework") : statusText }}</template>
 		</span>
 		<template v-if="isEditor">
@@ -54,8 +61,10 @@
 import { type Side, SIDES } from "./canvas";
 import { type LearningPathStep } from "@data-board-learning-path";
 import {
+	mdiCardTextOutline,
 	mdiCheckCircle,
 	mdiEyeOffOutline,
+	mdiFormatText,
 	mdiLockOutline,
 	mdiMapMarkerPath,
 	mdiViewDashboardOutline,
@@ -86,7 +95,8 @@ const isOpenable = computed(() => props.step.status === "open" || props.step.sta
 const visualState = computed(() => (props.isEditor ? (props.step.isVisible ? "open" : "draft") : props.step.status));
 
 const statusIcon = computed(() => {
-	if (props.isEditor) return mdiViewDashboardOutline;
+	if (props.step.isText && (props.isEditor || props.step.status !== "locked")) return mdiFormatText;
+	if (props.isEditor) return props.step.linkedCardId ? mdiCardTextOutline : mdiViewDashboardOutline;
 	switch (props.step.status) {
 		case "done":
 			return mdiCheckCircle;
@@ -101,12 +111,29 @@ const statusIcon = computed(() => {
 
 const statusText = computed(() => t(`pages.learningPath.status.${props.step.status}`));
 
-const displayTitle = computed(() => props.step.title || t("pages.learningPath.tile.unavailable"));
+const displayTitle = computed(() => {
+	if (props.step.isText)
+		return (
+			props.step.title ||
+			t(
+				props.step.status === "locked" && !props.isEditor
+					? "pages.learningPath.text.locked"
+					: "pages.learningPath.text.label"
+			)
+		);
+	return props.step.title || t("pages.learningPath.tile.unavailable");
+});
+
+// the start of a text tile's text, all of it opens with a click
+const snippet = computed(() => (props.step.text ?? "").replace(/\s+/g, " ").trim());
 
 const isRework = computed(() => !props.isEditor && !!props.step.reopened);
 
 const ariaLabel = computed(() => {
 	const parts = [displayTitle.value];
+	if (props.step.linkedCardId && props.step.boardTitle) {
+		parts.push(t("pages.learningPath.cards.from", { title: props.step.boardTitle }));
+	}
 	if (!props.isEditor) parts.push(isRework.value ? t("pages.learningPath.reworkHint") : statusText.value);
 	if (props.hint) parts.push(props.hint);
 	return parts.join(", ");
@@ -248,5 +275,18 @@ const ariaLabel = computed(() => {
 .lp-tile__handle--left {
 	left: -9px;
 	top: calc(50% - 9px);
+}
+
+/* a text tile: a note on the path, nothing to open */
+.lp-tile--text {
+	border-style: dashed;
+	background: rgb(var(--v-theme-surface-light));
+}
+
+.lp-tile__snippet {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 </style>

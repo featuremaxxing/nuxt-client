@@ -21,10 +21,16 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 // Shown on a board that is part of a learning path and has nothing to track progress with:
-// the student marks it as done by hand, which unlocks the boards behind it.
+// the student marks it as done by hand, which unlocks the boards behind it. With a cardId the
+// same for a card that is a step of a learning path.
 const props = defineProps<{
 	boardId: string;
 	roomId?: string;
+	cardId?: string;
+}>();
+
+const emit = defineEmits<{
+	(e: "change", completed: boolean): void;
 }>();
 
 const { t } = useI18n();
@@ -39,7 +45,9 @@ const refresh = async () => {
 	completion.value = undefined;
 	if (!isEnabled.value) return;
 	try {
-		completion.value = await api.fetchCompletion(props.boardId);
+		completion.value = props.cardId
+			? await api.fetchCardCompletion(props.cardId)
+			: await api.fetchCompletion(props.boardId);
 	} catch {
 		// without the information the button simply stays hidden
 	}
@@ -49,7 +57,11 @@ const toggle = async () => {
 	if (!completion.value) return;
 	isSaving.value = true;
 	try {
-		completion.value = await api.setCompletion(props.boardId, !completion.value.completed);
+		const completed = !completion.value.completed;
+		completion.value = props.cardId
+			? await api.setCardCompletion(props.cardId, completed)
+			: await api.setCompletion(props.boardId, completed);
+		emit("change", completion.value.completed);
 	} catch {
 		// the api already told the user
 	} finally {
@@ -58,6 +70,6 @@ const toggle = async () => {
 };
 
 onMounted(refresh);
-watch(() => props.boardId, refresh);
+watch(() => [props.boardId, props.cardId], refresh);
 watch(isEnabled, refresh);
 </script>

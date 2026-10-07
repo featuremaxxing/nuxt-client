@@ -63,7 +63,16 @@
 				{{ isEditor ? t("pages.learningPath.empty.editor") : t("pages.learningPath.empty.student") }}
 			</VAlert>
 			<div class="lp-layout">
-				<LearningPathBoardPicker v-if="isEditor" :boards="availableBoards" @add="onAddBoard" />
+				<LearningPathBoardPicker
+					v-if="isEditor"
+					:boards="availableBoards"
+					:room-boards="roomBoards"
+					:card-ids-in-path="cardIdsInPath"
+					@add="onAddBoard"
+					@add-card="onAddCard"
+					@add-text="onAddText"
+					@add-links="onAddLinks"
+				/>
 				<LearningPathCanvas
 					ref="canvas"
 					class="flex-grow-1"
@@ -77,11 +86,14 @@
 					@move="moveStep"
 					@connect="onConnect"
 					@drop-board="addStep"
+					@drop-card="onDropCard"
+					@disconnect="disconnect"
 				/>
 				<LearningPathStepPanel
 					v-if="isEditor && selectedStep"
 					:step="selectedStep"
 					:steps="steps"
+					:path-id="boardId"
 					@update="updateStep(selectedStep.id, $event)"
 					@connect="onConnect($event, selectedStep.id)"
 					@disconnect="disconnect($event, selectedStep.id)"
@@ -89,11 +101,64 @@
 					@close="selectedStepId = undefined"
 				/>
 			</div>
-			<LearningPathList v-if="steps.length > 0" class="mt-6" :steps="steps" :hints="hints" />
+			<LearningPathList v-if="steps.length > 0" class="mt-6" :steps="steps" :hints="hints" :path-id="boardId" />
 		</template>
 	</DefaultWireframe>
 	<LearningPathTitleDialog v-model:is-dialog-open="isTitleDialogOpen" :name="title" @confirm="onRename" />
 	<LearningPathColorDialog v-model="isColorDialogOpen" :color="color" @confirm="onChangeColor" />
+	<!-- a text tile, read as a step of the learning path: in the same full view as a card step -->
+	<VDialog
+		:model-value="!!openText"
+		fullscreen
+		scrollable
+		:transition="false"
+		data-testid="learning-path-text-dialog"
+		@update:model-value="(open: boolean) => !open && closeText()"
+		@keydown.escape="closeText"
+		@keydown="onTextArrowKey"
+	>
+		<VCard v-if="openText" ref="textView" tabindex="-1" class="lp-text-card">
+			<VToolbar class="border-b-thin" color="surface">
+				<VBtn
+					:icon="mdiClose"
+					:aria-label="t('common.labels.close')"
+					data-testid="learning-path-text-close"
+					@click="closeText"
+				/>
+				<VToolbarTitle data-testid="learning-path-text-position">
+					{{
+						t("pages.learningPath.cards.stepOf", {
+							title,
+							position: textNavigation.position,
+							total: textNavigation.total,
+						})
+					}}
+				</VToolbarTitle>
+				<VBtn
+					:icon="mdiChevronLeft"
+					:aria-label="t('components.board.action.prev-detail-view')"
+					:disabled="!textNavigation.previous"
+					data-testid="learning-path-text-previous"
+					@click="goTo(textNavigation.previous)"
+				/>
+				<VBtn
+					:icon="mdiChevronRight"
+					:aria-label="t('components.board.action.next-detail-view')"
+					:disabled="!textNavigation.next"
+					data-testid="learning-path-text-next"
+					@click="goTo(textNavigation.next)"
+				/>
+				<!-- as in a card's full view, where the "done" button follows: the arrows stay in the middle -->
+				<VSpacer />
+			</VToolbar>
+			<VCardText>
+				<div class="lp-text-view mx-auto mt-4 pa-8 elevation-3 rounded-lg">
+					<h2 class="text-h3 mb-4">{{ openText.title || t("pages.learningPath.text.label") }}</h2>
+					<p class="lp-text text-body-1" data-testid="learning-path-text-dialog-body">{{ openText.text }}</p>
+				</div>
+			</VCardText>
+		</VCard>
+	</VDialog>
 </template>
 
 <script setup lang="ts">
@@ -110,10 +175,13 @@ import {
 	type LearningPathColor,
 	learningPathColorValue,
 	type LearningPathStep,
+	type LearningPathStepLink,
+	stepNavigation,
+	stepRoute,
 	useLearningPathSocket,
 	useLearningPathState,
 } from "@data-board-learning-path";
-import { mdiPalette } from "@icons/material";
+import { mdiChevronLeft, mdiChevronRight, mdiClose, mdiPalette } from "@icons/material";
 import {
 	KebabMenu,
 	KebabMenuAction,
@@ -127,7 +195,7 @@ import { LearningPathColorDialog, LearningPathMarker } from "@ui-room-details";
 import { useTitle } from "@vueuse/core";
 import { computed, nextTick, onMounted, PropType, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const props = defineProps({
 	boardId: { type: String, required: true },
@@ -137,6 +205,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 const boardApi = useBoardApi();
 const { createPageInformation, breadcrumbs: sharedBreadcrumbs } = useSharedBoardPageInformation();
 
@@ -161,11 +230,14 @@ const {
 	isEnrolled,
 	canChoose,
 	availableBoards,
+	roomBoards,
+	cardIdsInPath,
 	isLoading,
 	hasError,
 	load,
 	reloadSoon,
 	addStep,
+	addTextStep,
 	moveStep,
 	updateStep,
 	connect,
@@ -207,8 +279,9 @@ const onChangeColor = async (newColor: LearningPathColor) => {
 
 // what a student still has to do before a locked step opens
 const hints = computed<Record<string, string>>(() => {
+	// text tiles have nothing to complete, they are never what is missing
 	const isMissing = (step: LearningPathStep | undefined): step is LearningPathStep =>
-		!!step && step.status !== "done" && step.status !== "unavailable";
+		!!step && !step.isText && step.status !== "done" && step.status !== "unavailable";
 
 	return Object.fromEntries(
 		steps.value
@@ -236,12 +309,94 @@ const hints = computed<Record<string, string>>(() => {
 	);
 });
 
-const openStep = (step: LearningPathStep) => router.push(`/boards/${step.linkedBoardId}`);
+// a card step opens the card on its own, as part of the learning path; a text tile is read right here
+// the open text tile follows ?step=<id>, so paging from a card's full view can land on it
+const openTextId = ref<string>();
+const openText = computed(() => steps.value.find((step) => step.id === openTextId.value && step.isText));
+const textNavigation = computed(() =>
+	stepNavigation(path.value, boardId.value, (step) => step.id === openTextId.value)
+);
+watch(
+	[() => route.query.step, steps],
+	([stepId]) => {
+		const target = steps.value.find((step) => step.id === stepId);
+		if (target?.isText && target.status !== "locked") openTextId.value = target.id;
+	},
+	{ immediate: true }
+);
+
+// the focus moves into the full view, so the arrow keys work right away
+const textView = ref<{ $el?: HTMLElement }>();
+watch(openTextId, async (id) => {
+	if (!id) return;
+	await nextTick();
+	textView.value?.$el?.focus();
+});
+
+const closeText = () => {
+	openTextId.value = undefined;
+	if (route.query.step) router.replace({ query: {} });
+};
+
+const goTo = (step: LearningPathStep | undefined) => {
+	if (!step) return;
+	if (step.isText) {
+		openTextId.value = step.id;
+		return;
+	}
+	router.push(stepRoute(step, boardId.value));
+};
+
+// the arrow keys page like the buttons, as in a card's full view
+const onTextArrowKey = (event: KeyboardEvent) => {
+	if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+	if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+	const target = event.key === "ArrowLeft" ? textNavigation.value.previous : textNavigation.value.next;
+	if (!target) return;
+	event.preventDefault();
+	goTo(target);
+};
+
+const openStep = (step: LearningPathStep) => {
+	if (step.isText) {
+		openTextId.value = step.id;
+		return;
+	}
+	router.push(stepRoute(step, boardId.value));
+};
+
+const onAddText = async () => {
+	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+	const added = await addTextStep(t("pages.learningPath.text.label"), position.x, position.y);
+	// the new tile is selected, so its text can be written right away
+	const created = steps.value.find(
+		(step) => step.isText && step.positionX === Math.round(position.x) && step.positionY === Math.round(position.y)
+	);
+	if (added && created) selectedStepId.value = created.id;
+};
 
 const onAddBoard = async (linkedBoardId: string) => {
 	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
 	await addStep(linkedBoardId, position.x, position.y);
 };
+
+const onAddCard = async (linkedBoardId: string, cardId: string) => {
+	const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+	await addStep(linkedBoardId, position.x, position.y, cardId);
+};
+
+// pasted links are added one after the other, each right of the tiles so far; cards that are
+// already part of the learning path are left out
+const onAddLinks = async (links: LearningPathStepLink[]) => {
+	for (const link of links) {
+		if (link.cardId && cardIdsInPath.value.has(link.cardId)) continue;
+		const position = canvas.value?.freePosition() ?? { x: 0, y: 0 };
+		await addStep(link.boardId, position.x, position.y, link.cardId);
+	}
+};
+
+const onDropCard = (linkedBoardId: string, cardId: string, positionX: number, positionY: number) =>
+	addStep(linkedBoardId, positionX, positionY, cardId);
 
 const onConnect = async (fromId: string, toId: string) => {
 	const connected = await connect(fromId, toId);
@@ -249,7 +404,10 @@ const onConnect = async (fromId: string, toId: string) => {
 };
 
 const onRemoveStep = async (step: LearningPathStep) => {
-	const shouldRemove = await askDeletionForItem(step.title, "common.words.board");
+	const shouldRemove = await askDeletionForItem(
+		step.title,
+		step.isText ? "pages.learningPath.text.label" : step.linkedCardId ? "components.boardCard" : "common.words.board"
+	);
 	if (!shouldRemove) return;
 	selectedStepId.value = undefined;
 	await removeStep(step.id);
@@ -288,6 +446,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.lp-text {
+	white-space: pre-wrap;
+}
+
+.lp-text-card:focus {
+	outline: none;
+}
+
+.lp-text-view {
+	max-width: 860px;
+	background: rgb(var(--v-theme-surface));
+}
+
 .lp-layout {
 	display: flex;
 	gap: 16px;

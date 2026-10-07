@@ -5,10 +5,23 @@
 				v-if="cardId"
 				:key="cardId"
 				:card-id="cardId"
-				:previous-card-route="previousCardRoute"
-				:next-card-route="nextCardRoute"
+				:previous-card-route="
+					learningPathCard.isActive.value ? learningPathCard.previousRoute.value : previousCardRoute
+				"
+				:next-card-route="learningPathCard.isActive.value ? learningPathCard.nextRoute.value : nextCardRoute"
+				:toolbar-title="learningPathTitle"
 				@close:detail-view="onCloseDetailView"
-			/>
+			>
+				<template v-if="learningPathCard.isActive.value" #toolbar-actions>
+					<BoardCompletionButton
+						:board-id="boardId"
+						:card-id="cardId"
+						:room-id="roomId"
+						class="mr-4"
+						@change="onLearningPathCardChange"
+					/>
+				</template>
+			</CardHostDetailView>
 			<DefaultWireframe
 				ref="main"
 				:breadcrumbs="breadcrumbs"
@@ -166,7 +179,14 @@ import {
 	useSharedBoardPageInformation,
 	useSharedEditMode,
 } from "@data-board";
+import {
+	LEARNING_PATH_CARD_STEPS_KEY,
+	type LearningPathCardStep,
+	useLearningPathApi,
+	useLearningPathCardNavigation,
+} from "@data-board-learning-path";
 import { useEnvConfig } from "@data-env";
+import { BoardCompletionButton } from "@feature-board-learning-path";
 import type { CreateCollaboraFilePayload } from "@feature-collabora";
 import { AddCollaboraFileDialog } from "@feature-collabora";
 import { useCopyFlow } from "@feature-copy";
@@ -220,6 +240,42 @@ const cardId = computed(() => {
 });
 
 const { previousCardRoute, nextCardRoute } = useBoardCardNavigation();
+
+// a card opened from a learning path: paging goes through the learning path, closing leads back to it
+const learningPathId = computed(() =>
+	typeof route.query.learningPath === "string" && cardId.value ? route.query.learningPath : undefined
+);
+const learningPathCard = useLearningPathCardNavigation(learningPathId, cardId);
+// the cards of the board that are steps of learning paths get a hint
+const learningPathApi = useLearningPathApi();
+const learningPathCardSteps = ref<Record<string, LearningPathCardStep["paths"]>>({});
+provide(LEARNING_PATH_CARD_STEPS_KEY, learningPathCardSteps);
+const loadLearningPathCardSteps = async () => {
+	if (!useEnvConfig().value.FEATURE_BOARD_LEARNING_PATH_ENABLED || !roomId.value) {
+		learningPathCardSteps.value = {};
+		return;
+	}
+	try {
+		const steps = await learningPathApi.fetchBoardCardSteps(props.boardId);
+		learningPathCardSteps.value = Object.fromEntries(steps.map((entry) => [entry.cardId, entry.paths]));
+	} catch {
+		learningPathCardSteps.value = {};
+	}
+};
+watch([() => props.boardId, roomId], loadLearningPathCardSteps, { immediate: true });
+
+const onLearningPathCardChange = async () => {
+	await Promise.all([learningPathCard.reload(), loadLearningPathCardSteps()]);
+};
+
+const learningPathTitle = computed(() => {
+	const { path, step, position, total } = learningPathCard;
+	if (!learningPathId.value || !path.value) return undefined;
+	const title = path.value.title ?? "";
+	return step.value
+		? t("pages.learningPath.cards.stepOf", { title, position: position.value, total: total.value })
+		: title;
+});
 
 const isEditableChipVisible = computed(() => board.value?.readersCanEdit ?? false);
 const hasReadersEditPermission = ref(false);
@@ -532,6 +588,10 @@ const onCreateCollaboraFile = async (payload: CreateCollaboraFilePayload) => {
 };
 
 const onCloseDetailView = () => {
+	if (learningPathCard.pathRoute.value) {
+		router.push(learningPathCard.pathRoute.value);
+		return;
+	}
 	router.replace({
 		name: "boards-id",
 		params: { id: props.boardId },
