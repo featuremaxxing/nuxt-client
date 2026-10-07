@@ -1,7 +1,29 @@
 <template>
 	<DefaultWireframe max-width="full" :fab-items="fabAction" main-with-bottom-padding>
 		<template #header>
-			<h1>{{ t("pages.rooms.title") }}</h1>
+			<!-- the view toggle sits next to the title: the right side belongs to the "create room" button -->
+			<div class="d-flex align-center flex-wrap gc-6">
+				<h1>{{ t("pages.rooms.title") }}</h1>
+				<VBtnToggle
+					v-if="!isEmpty"
+					v-model="viewMode"
+					mandatory
+					density="compact"
+					variant="outlined"
+					divided
+					color="primary"
+					class="mb-4"
+					:aria-label="t('pages.rooms.view.ariaLabel')"
+					data-testid="rooms-view-toggle"
+				>
+					<VBtn value="all" :prepend-icon="mdiViewGridOutline" data-testid="rooms-view-all">
+						{{ t("pages.rooms.view.all") }}
+					</VBtn>
+					<VBtn value="tags" :prepend-icon="mdiTagMultipleOutline" data-testid="rooms-view-tags">
+						{{ t("pages.rooms.view.tags") }}
+					</VBtn>
+				</VBtnToggle>
+			</div>
 		</template>
 		<RoomsWelcomeInfo class="mt-8" />
 		<VContainer v-if="isLoading && isEmpty" class="loader">
@@ -12,7 +34,9 @@
 				<RoomsEmptyStateSvg />
 			</template>
 		</EmptyState>
+		<RoomTagView v-else-if="viewMode === 'tags'" :rooms />
 		<RoomGrid v-else :rooms />
+		<RoomTagsDialog />
 	</DefaultWireframe>
 </template>
 
@@ -22,8 +46,8 @@ import { Permission } from "@api-server";
 import { useAppStore } from "@data-app";
 import { useRoomStore } from "@data-room";
 import { useImportFlow } from "@feature-import";
-import { RoomGrid, RoomsWelcomeInfo } from "@feature-room";
-import { mdiPlus } from "@icons/material";
+import { RoomGrid, RoomsWelcomeInfo, RoomTagsDialog, RoomTagView, useRoomsView } from "@feature-room";
+import { mdiPlus, mdiTagMultipleOutline, mdiViewGridOutline } from "@icons/material";
 import { EmptyState, RoomsEmptyStateSvg } from "@ui-empty-state";
 import { DefaultWireframe } from "@ui-layout";
 import { useTitle } from "@vueuse/core";
@@ -39,6 +63,7 @@ const router = useRouter();
 const { rooms, isLoading, isEmpty } = storeToRefs(useRoomStore());
 
 const { fetchRooms } = useRoomStore();
+const { viewMode } = useRoomsView();
 
 const pageTitle = computed(() => buildPageTitle(t("pages.rooms.title")));
 useTitle(pageTitle);

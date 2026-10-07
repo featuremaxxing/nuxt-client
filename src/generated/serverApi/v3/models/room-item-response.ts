@@ -88,6 +88,12 @@ export interface RoomItemResponse {
      * @memberof RoomItemResponse
      */
     totalMembers: number;
+    /**
+     * The ids of the personal tags of the room
+     * @type {Array<string>}
+     * @memberof RoomItemResponse
+     */
+    tagIds?: Array<string>;
 }
 
 

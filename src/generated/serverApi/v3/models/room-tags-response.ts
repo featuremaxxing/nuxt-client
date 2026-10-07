@@ -13,27 +13,25 @@
  */
 
 
-import { RoomItemResponse } from './room-item-response';
 import { RoomTagResponse } from './room-tag-response';
 
 /**
  * 
  * @export
- * @interface RoomListResponse
+ * @interface RoomTagsResponse
  */
-export interface RoomListResponse {
+export interface RoomTagsResponse {
     /**
-     * 
-     * @type {Array<RoomItemResponse>}
-     * @memberof RoomListResponse
+     * The ids of the tags of the room
+     * @type {Array<string>}
+     * @memberof RoomTagsResponse
      */
-    data: Array<RoomItemResponse>;
+    tagIds: Array<string>;
     /**
-     * Personal tags of the user
+     * All personal tags of the user
      * @type {Array<RoomTagResponse>}
-     * @memberof RoomListResponse
+     * @memberof RoomTagsResponse
      */
     tags: Array<RoomTagResponse>;
 }
-
 

@@ -39,7 +39,27 @@
 				</div>
 			</RouterLink>
 		</VCardItem>
-		<VCardActions class="justify-end pr-4">
+		<div class="room-grid-item-menu">
+			<RoomTagMenu :room :current-tag />
+		</div>
+		<VCardActions class="pl-4 pr-4 align-end">
+			<div v-if="roomTags.length" class="room-grid-item-tags d-flex flex-wrap ga-1" :data-testid="`room-tags-${index}`">
+				<VChip
+					v-for="tag in visibleTags"
+					:key="tag.id"
+					size="small"
+					variant="tonal"
+					:prepend-icon="mdiTagOutline"
+					:aria-label="t('pages.rooms.tags.chip.ariaLabel', { name: tag.name })"
+					@click.stop.prevent="showTag(tag.id)"
+				>
+					{{ tag.name }}
+				</VChip>
+				<VChip v-if="hiddenTagCount" size="small" variant="text" @click.stop.prevent="editTags(room)">
+					+{{ hiddenTagCount }}
+				</VChip>
+			</div>
+			<VSpacer />
 			<VBtn
 				:data-testid="`room-open-button-${index}`"
 				:disabled="room.isLocked"
@@ -55,9 +75,12 @@
 </template>
 
 <script setup lang="ts">
+import { useRoomsView } from "./roomsView.composable";
+import RoomTagMenu from "./RoomTagMenu.vue";
 import { RoomItem } from "@/types/room/Room";
 import { useSchoolStoreRefs } from "@data-app";
-import { mdiAccountMultipleOutline, mdiLock } from "@icons/material";
+import { RoomTag, tagsOfRoom, useRoomStore } from "@data-room";
+import { mdiAccountMultipleOutline, mdiLock, mdiTagOutline } from "@icons/material";
 import { computed, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -67,6 +90,8 @@ const props = defineProps({
 		required: true,
 	},
 	index: { type: Number, required: true },
+	/** Set when the card is shown inside the rooms of a tag. */
+	currentTag: { type: Object as PropType<RoomTag>, default: undefined },
 });
 
 const { t } = useI18n();
@@ -77,6 +102,13 @@ const isExternalSchool = computed(() => schoolDetails.value?.id !== props.room.s
 
 const roomPath = computed(() => `/rooms/${props.room.id}`);
 const roomShortName = computed(() => props.room?.name?.slice(0, 2) ?? "");
+const MAX_VISIBLE_TAGS = 3;
+const roomStore = useRoomStore();
+const { showTag, editTags } = useRoomsView();
+const roomTags = computed(() => tagsOfRoom(props.room, roomStore.tags));
+const visibleTags = computed(() => roomTags.value.slice(0, MAX_VISIBLE_TAGS));
+const hiddenTagCount = computed(() => roomTags.value.length - visibleTags.value.length);
+
 const avatarColor = computed(() => `room-color--${props.room.color}`);
 const roomAriaLabel = computed(() => `${t("common.labels.room")} ${props.room.name}`);
 </script>
@@ -107,6 +139,22 @@ const roomAriaLabel = computed(() => `${t("common.labels.room")} ${props.room.na
 			text-decoration: underline;
 		}
 	}
+}
+
+// keep the title clear of the menu button
+.room-link-item {
+	padding-right: 28px;
+}
+
+.room-grid-item-menu {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+}
+
+.room-grid-item-tags {
+	min-width: 0;
+	padding-bottom: 6px;
 }
 
 .room-grid-avatar {
