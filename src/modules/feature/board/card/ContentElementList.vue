@@ -41,6 +41,7 @@ import { FileContentElement } from "@feature-board-file-element";
 import { FolderContentElement } from "@feature-board-folder-element";
 import { H5pElement } from "@feature-board-h5p-element";
 import { LinkContentElement } from "@feature-board-link-element";
+import { MapContentElement } from "@feature-board-map-element";
 import { PollContentElement } from "@feature-board-poll-element";
 import { RichTextContentElement } from "@feature-board-text-element";
 import { VideoConferenceContentElement } from "@feature-board-video-conference-element";
@@ -142,6 +143,11 @@ const mapToComponent = (type: ContentElementType) => {
 		case ContentElementType.FILE_AREA_LINK:
 			if (envConfig.value.FEATURE_BOARD_FILE_AREA_ENABLED) {
 				return FileAreaLinkContentElement;
+			}
+			break;
+		case ContentElementType.MAP:
+			if (envConfig.value.FEATURE_COLUMN_BOARD_MAP_ENABLED) {
+				return MapContentElement;
 			}
 			break;
 		case ContentElementType.FILE_FOLDER:

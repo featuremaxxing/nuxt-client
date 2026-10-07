@@ -730,6 +730,27 @@ describe("ElementTypeSelection Composable", () => {
 			});
 		});
 
+		describe("map element", () => {
+			it("offers creation only when the flag is enabled", () => {
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_MAP_ENABLED: true } as Partial<ConfigResponse>,
+				});
+				useAddElementDialog(addElementMock, cardId).askType();
+				const option = elementTypeOptions.value.find((item) => item.testId === "create-element-map");
+				expect(option).toBeDefined();
+				option?.action();
+				expect(addElementMock).toHaveBeenCalledWith({ type: ContentElementType.MAP, cardId });
+			});
+
+			it("does not offer creation when disabled", () => {
+				const { elementTypeOptions, addElementMock, cardId } = setup({
+					env: { FEATURE_COLUMN_BOARD_MAP_ENABLED: false } as Partial<ConfigResponse>,
+				});
+				useAddElementDialog(addElementMock, cardId).askType();
+				expect(elementTypeOptions.value.find((item) => item.testId === "create-element-map")).toBeUndefined();
+			});
+		});
+
 		describe("checkbox element", () => {
 			it("offers creation only when the flag is enabled", () => {
 				useAppStore().meResponse = { roles: [{ id: "teacher", name: RoleName.TEACHER }] } as MeResponse;

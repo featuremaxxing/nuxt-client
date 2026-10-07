@@ -38,6 +38,8 @@ import {
 	LinkContentBody,
 	LinkElementContentBody,
 	LinkElementResponse,
+	MapContentBody,
+	MapElementContentBody,
 	RichTextElementContentBody,
 	RichTextElementResponse,
 	RoomApiFactory,
@@ -231,6 +233,15 @@ export const useBoardApi = () => {
 			const body: FileAreaLinkElementContentBody = {
 				content: element.content as FileAreaLinkContentBody,
 				type: ContentElementType.FILE_AREA_LINK,
+			};
+
+			return body;
+		}
+
+		if (element.type === ContentElementType.MAP) {
+			const body: MapElementContentBody = {
+				content: element.content as MapContentBody,
+				type: ContentElementType.MAP,
 			};
 
 			return body;

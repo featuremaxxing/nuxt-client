@@ -234,6 +234,12 @@ export interface ConfigResponse {
      */
     FEATURE_COLUMN_BOARD_POLL_ENABLED: boolean;
     FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConfigResponse
+     */
+    FEATURE_COLUMN_BOARD_MAP_ENABLED: boolean;
     FEATURE_BOARD_PROGRESS_ENABLED: boolean;
     /**
      * 
