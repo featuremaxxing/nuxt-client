@@ -20,6 +20,7 @@ import {
 	mdiFolderOpenOutline,
 	mdiFormatText,
 	mdiLink,
+	mdiMapOutline,
 	mdiPoll,
 	mdiPresentation,
 	mdiPuzzleOutline,
@@ -166,6 +167,15 @@ export const useAddElementDialog = (createElementRequestFn: CreateElementRequest
 				label: t("components.elementTypeSelection.elements.fileAreaLinkElement.subtitle"),
 				action: () => onElementClick(ContentElementType.FILE_AREA_LINK),
 				testId: "create-element-file-area-link",
+			});
+		}
+
+		if (envConfig.value.FEATURE_COLUMN_BOARD_MAP_ENABLED) {
+			options.push({
+				icon: mdiMapOutline,
+				label: t("components.elementTypeSelection.elements.mapElement.subtitle"),
+				action: () => onElementClick(ContentElementType.MAP),
+				testId: "create-element-map",
 			});
 		}
 

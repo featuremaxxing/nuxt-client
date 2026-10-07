@@ -58,6 +58,7 @@
 			"@feature-board-file-element": ["./src/modules/feature/board-file-element"],
 			"@feature-board-text-element": ["./src/modules/feature/board-text-element"],
 			"@feature-board-link-element": ["./src/modules/feature/board-link-element"],
+			"@feature-board-map-element": ["./src/modules/feature/board-map-element"],
 			"@feature-board-external-tool-element": ["./src/modules/feature/board-external-tool-element"],
 			"@feature-board-drawing-element": ["./src/modules/feature/board-drawing-element"],
 			"@feature-board-collaborative-text-editor-element": [

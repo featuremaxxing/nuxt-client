@@ -11,6 +11,7 @@ import {
 	FileFolderElementResponse,
 	H5pElementResponse,
 	LinkElementResponse,
+	MapElementResponse,
 	ParentNodeInfoResponse,
 	ParentNodeType,
 	PollElementResponse,
@@ -24,6 +25,7 @@ export type CheckboxElement = CheckboxElementResponse;
 export type AssignmentElement = AssignmentElementResponse;
 export type AiQuestionElement = AiQuestionElementResponse;
 export type FileAreaLinkElement = FileAreaLinkElementResponse;
+export type MapElement = MapElementResponse;
 
 export type AnyContentElement =
 	| LinkElementResponse
@@ -39,7 +41,8 @@ export type AnyContentElement =
 	| CheckboxElementResponse
 	| AssignmentElementResponse
 	| AiQuestionElementResponse
-	| FileAreaLinkElementResponse;
+	| FileAreaLinkElementResponse
+	| MapElementResponse;
 
 export type ParentNodeInfo = ParentNodeInfoResponse;
 

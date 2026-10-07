@@ -9,6 +9,7 @@ import {
 	ExternalToolElementResponse,
 	H5pElementResponse,
 	LayoutBodyParams,
+	MapElementResponse,
 } from "@api-server";
 import { CardResponse, DrawingElementResponse } from "@api-server";
 import { ApplicationError } from "@data-app";
@@ -300,6 +301,29 @@ describe("BoardApi.composable", () => {
 			const data = {
 				content: payload.content,
 				type: ContentElementType.H5P,
+			};
+
+			await updateElementCall(payload);
+
+			expect(elementApi.elementControllerUpdateElement).toHaveBeenCalledWith(payload.id, { data });
+		});
+
+		it("should call elementControllerUpdateElement api with MapElement", async () => {
+			const { updateElementCall } = useBoardApi();
+			const payload: MapElementResponse = {
+				id: "map-element-id",
+				type: ContentElementType.MAP,
+				content: {
+					latitude: 52.37,
+					longitude: 9.73,
+					zoom: 12,
+					marker: { latitude: 52.371, longitude: 9.735 },
+				},
+				timestamps: timestampsResponseFactory.build(),
+			};
+			const data = {
+				content: payload.content,
+				type: ContentElementType.MAP,
 			};
 
 			await updateElementCall(payload);

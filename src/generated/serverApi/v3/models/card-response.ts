@@ -29,6 +29,7 @@ import { PollElementResponse } from './poll-element-response';
 import { RichTextElementResponse } from './rich-text-element-response';
 import { TimestampsResponse } from './timestamps-response';
 import { CheckboxElementResponse } from './checkbox-element-response';
+import { MapElementResponse } from './map-element-response';
 import { VideoConferenceElementResponse } from './video-conference-element-response';
 import { VisibilitySettingsResponse } from './visibility-settings-response';
 
@@ -64,10 +65,10 @@ export interface CardResponse {
     height: number;
     /**
      * 
-     * @type {Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse | AiQuestionElementResponse | FileAreaLinkElementResponse>}
+     * @type {Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | AssignmentElementResponse | AiQuestionElementResponse | FileAreaLinkElementResponse | MapElementResponse>}
      * @memberof CardResponse
      */
-    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | CheckboxElementResponse | AssignmentElementResponse | AiQuestionElementResponse | FileAreaLinkElementResponse>;
+    elements: Array<ExternalToolElementResponse | FileElementResponse | LinkElementResponse | RichTextElementResponse | DrawingElementResponse | CollaborativeTextEditorElementResponse | DeletedElementResponse | VideoConferenceElementResponse | FileFolderElementResponse | H5pElementResponse | PollElementResponse | CheckboxElementResponse | AssignmentElementResponse | AiQuestionElementResponse | FileAreaLinkElementResponse | MapElementResponse>;
     /**
      * 
      * @type {VisibilitySettingsResponse}

@@ -10,6 +10,7 @@ import { computed, reactive } from "vue";
 export const defaultConfigEnvs: ConfigResponse = {
 	FEATURE_COLUMN_BOARD_POLL_ENABLED: false,
 	FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: false,
+	FEATURE_COLUMN_BOARD_MAP_ENABLED: false,
 	FEATURE_BOARD_PROGRESS_ENABLED: false,
 	FEATURE_BOARD_FILE_AREA_ENABLED: false,
 	FEATURE_BOARD_LEARNING_PATH_ENABLED: false,

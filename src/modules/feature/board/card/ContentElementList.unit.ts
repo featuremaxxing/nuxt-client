@@ -13,6 +13,7 @@ import { FileContentElement } from "@feature-board-file-element";
 import { FolderContentElement } from "@feature-board-folder-element";
 import { H5pElement } from "@feature-board-h5p-element";
 import { LinkContentElement } from "@feature-board-link-element";
+import { MapContentElement } from "@feature-board-map-element";
 import { RichTextContentElement } from "@feature-board-text-element";
 import { VideoConferenceContentElement } from "@feature-board-video-conference-element";
 import { createTestingPinia } from "@pinia/testing";
@@ -31,6 +32,7 @@ describe("ContentElementList", () => {
 				FEATURE_COLUMN_BOARD_H5P_ENABLED: true,
 				FEATURE_COLUMN_BOARD_ASSIGNMENT_ENABLED: true,
 				FEATURE_COLUMN_BOARD_CHECKBOX_ENABLED: true,
+				FEATURE_COLUMN_BOARD_MAP_ENABLED: true,
 				FEATURE_TEAMS_ENABLED: true,
 				FEATURE_COLUMN_BOARD_COLLABORATIVE_TEXT_EDITOR_ENABLED: true,
 				FEATURE_TLDRAW_ENABLED: true,
@@ -108,6 +110,10 @@ describe("ContentElementList", () => {
 					elementType: ContentElementType.CHECKBOX,
 					component: CheckboxContentElement,
 				},
+				{
+					elementType: ContentElementType.MAP,
+					component: MapContentElement,
+				},
 			];
 
 			it.each(elementComponents)("should render $elementType-elements", ({ elementType, component }) => {
@@ -169,6 +175,28 @@ describe("ContentElementList", () => {
 			});
 
 			expect(wrapper.findComponent(FolderContentElement).exists()).toBe(false);
+		});
+	});
+
+	describe("when FEATURE_COLUMN_BOARD_MAP_ENABLED is false", () => {
+		beforeEach(() => {
+			setActivePinia(createTestingPinia());
+			createTestEnvStore({ FEATURE_COLUMN_BOARD_MAP_ENABLED: false });
+		});
+
+		it("should not render MapContentElement", () => {
+			const wrapper = shallowMount(ContentElementList, {
+				global: { plugins: [createTestingI18n(), createTestingVuetify()] },
+				props: {
+					elements: [{ type: ContentElementType.MAP } as AnyContentElement],
+					isEditMode: false,
+					isDetailView: false,
+					rowIndex: 0,
+					columnIndex: 0,
+				},
+			});
+
+			expect(wrapper.findComponent(MapContentElement).exists()).toBe(false);
 		});
 	});
 
